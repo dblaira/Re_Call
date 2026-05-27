@@ -1,0 +1,15 @@
+[
+  {
+    "id": "FormatMatchEngineRequirement",
+    "label": "Format Match Engine requirement",
+    "triggeredBySignal": "HierarchicalWinSignal",
+    "prefersFormat": "MindMapFormat",
+    "reason": "When a win involves hierarchy, use a mind map to preserve structure and reduce styling fixation.",
+    "acceptanceCriterion": "Given a user describes a hierarchical win, when Re_Call generates a reminder, then the output includes a mind map and asks whether this is the best match for describing what happened.",
+    "source": {
+      "kind": "ontology",
+      "path": "ontology/project-recall-principles.ttl",
+      "predicate": "recall:triggeredBySignal + recall:prefersFormat"
+    }
+  }
+]

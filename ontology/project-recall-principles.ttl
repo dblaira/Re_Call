@@ -1,0 +1,86 @@
+@prefix recall: <https://understood.app/ontology/project-recall#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://understood.app/ontology/project-recall>
+    a owl:Ontology ;
+    rdfs:label "Re_Call Ontology" ;
+    rdfs:comment "A seed ontology for Re_Call product requirements, personalization rules, and format-matching principles." ;
+    owl:versionInfo "0.1.0" .
+
+recall:ProductRequirement
+    a owl:Class ;
+    rdfs:label "Product requirement" ;
+    rdfs:comment "A product behavior or constraint that Re_Call should satisfy." .
+
+recall:FormatMatchRule
+    a owl:Class ;
+    rdfs:subClassOf recall:ProductRequirement ;
+    rdfs:label "Format match rule" ;
+    rdfs:comment "A deterministic rule that maps a user signal to the translation format most likely to preserve judgment." .
+
+recall:UserSignal
+    a owl:Class ;
+    rdfs:label "User signal" ;
+    rdfs:comment "A detected or reported user state, context, judgment, reaction, or moment." .
+
+recall:TranslationFormat
+    a owl:Class ;
+    rdfs:label "Translation format" ;
+    rdfs:comment "The answer shape used to express a reminder or insight, such as prose, table, checklist, decision filter, review log, or mind map." .
+
+recall:MindMap
+    a owl:Class ;
+    rdfs:subClassOf recall:TranslationFormat ;
+    rdfs:label "Mind map" ;
+    rdfs:comment "A translation format for preserving hierarchy and relationships." .
+
+recall:HierarchicalWin
+    a owl:Class ;
+    rdfs:subClassOf recall:UserSignal ;
+    rdfs:label "Hierarchical win" ;
+    rdfs:comment "A win whose meaning is best expressed as a hierarchy rather than flat prose or a table." .
+
+recall:prefersFormat
+    a owl:ObjectProperty ;
+    rdfs:domain recall:FormatMatchRule ;
+    rdfs:range recall:TranslationFormat ;
+    rdfs:label "prefers format" .
+
+recall:triggeredBySignal
+    a owl:ObjectProperty ;
+    rdfs:domain recall:FormatMatchRule ;
+    rdfs:range recall:UserSignal ;
+    rdfs:label "triggered by signal" .
+
+recall:requirementStatement
+    a owl:DatatypeProperty ;
+    rdfs:domain recall:ProductRequirement ;
+    rdfs:range xsd:string ;
+    rdfs:label "requirement statement" .
+
+recall:acceptanceCriterion
+    a owl:DatatypeProperty ;
+    rdfs:domain recall:ProductRequirement ;
+    rdfs:range xsd:string ;
+    rdfs:label "acceptance criterion" .
+
+recall:FormatMatchEngineRequirement
+    a recall:FormatMatchRule ;
+    rdfs:label "Format Match Engine requirement" ;
+    recall:requirementStatement "Re_Call must classify the best translation format for the user's signal, not only generate reminder text." ;
+    recall:acceptanceCriterion "Given a user describes a hierarchical win, when Re_Call generates a reminder, then the output includes a mind map and asks whether this is the best match for describing what happened." ;
+    recall:triggeredBySignal recall:HierarchicalWinSignal ;
+    recall:prefersFormat recall:MindMapFormat .
+
+recall:HierarchicalWinSignal
+    a recall:HierarchicalWin ;
+    rdfs:label "Hierarchical win signal" ;
+    rdfs:comment "A user signal where the meaning of the event is a hierarchy capable of harnessing AI advantages while avoiding downside consequences." .
+
+recall:MindMapFormat
+    a recall:MindMap ;
+    rdfs:label "Mind map format" ;
+    rdfs:comment "The preferred format when the user's win is best understood through hierarchy." .

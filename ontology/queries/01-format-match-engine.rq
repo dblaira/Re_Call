@@ -1,0 +1,11 @@
+PREFIX recall: <https://understood.app/ontology/project-recall#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?requirementName ?signalName ?formatName WHERE {
+  recall:FormatMatchEngineRequirement rdfs:label ?requirementName ;
+    recall:triggeredBySignal ?signal ;
+    recall:prefersFormat ?format .
+
+  ?signal rdfs:label ?signalName .
+  ?format rdfs:label ?formatName .
+}

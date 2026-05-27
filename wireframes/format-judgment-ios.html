@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Re_Call iOS Wireframe - Format Judgment</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #16201c;
+      --muted: #66716d;
+      --line: #d7ded9;
+      --paper: #f4f1ea;
+      --screen: #fbfcfb;
+      --panel: #ffffff;
+      --green: #1f7a5c;
+      --blue: #245f9f;
+      --red: #9f3f35;
+      --gold: #a16c20;
+      --teal: #2d7f86;
+      --shadow: 0 22px 58px rgba(22, 32, 28, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    main {
+      width: min(1420px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) minmax(280px, 520px);
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 26px;
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(30px, 4vw, 54px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .brief {
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 16px;
+    }
+
+    .legend {
+      display: grid;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .legend-row {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: start;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .dot {
+      width: 24px;
+      height: 24px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 999px;
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      background: var(--blue);
+    }
+
+    .wire-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(310px, 1fr));
+      gap: 22px;
+      align-items: start;
+    }
+
+    .flow-card {
+      display: grid;
+      gap: 10px;
+    }
+
+    .flow-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 34px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .phone {
+      width: min(100%, 390px);
+      min-height: 780px;
+      margin: 0 auto;
+      border: 10px solid #1d2421;
+      border-radius: 38px;
+      background: var(--screen);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .status {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #26302c;
+    }
+
+    .status span:last-child {
+      letter-spacing: 0;
+    }
+
+    .app {
+      padding: 4px 18px 18px;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 36px;
+    }
+
+    .nav-title {
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .icon-button {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      font-weight: 900;
+      color: var(--ink);
+    }
+
+    .screen-title {
+      font-size: 28px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .screen-subtitle {
+      color: var(--muted);
+      line-height: 1.42;
+      font-size: 15px;
+    }
+
+    .surface {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .surface.compact {
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      min-height: 26px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #e9f2ef;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .tag.blue {
+      background: #e8f0fa;
+      color: var(--blue);
+    }
+
+    .tag.gold {
+      background: #f8edd9;
+      color: var(--gold);
+    }
+
+    .kicker {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 900;
+    }
+
+    .large-copy {
+      font-size: 19px;
+      line-height: 1.25;
+      font-weight: 850;
+    }
+
+    .body-copy {
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfb;
+    }
+
+    .row strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .row span {
+      display: block;
+      color: var(--muted);
+      line-height: 1.35;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .num {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--blue);
+      color: white;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .primary, .secondary, .danger, .plain {
+      width: 100%;
+      min-height: 48px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      font: inherit;
+      font-weight: 850;
+      cursor: default;
+    }
+
+    .primary {
+      background: var(--green);
+      color: white;
+    }
+
+    .secondary {
+      background: #edf5f2;
+      border-color: #bfd6cd;
+      color: var(--green);
+    }
+
+    .danger {
+      background: #f8e9e6;
+      border-color: #e7c0ba;
+      color: var(--red);
+    }
+
+    .plain {
+      background: var(--panel);
+      border-color: var(--line);
+      color: var(--ink);
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: #edf0ee;
+      padding: 5px;
+      border-radius: 8px;
+    }
+
+    .segment {
+      min-height: 42px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 850;
+      color: var(--muted);
+    }
+
+    .segment.active {
+      background: white;
+      color: var(--ink);
+      box-shadow: 0 2px 8px rgba(22, 32, 28, 0.08);
+    }
+
+    .diagnostic {
+      border-left: 5px solid var(--gold);
+      background: #fff8ed;
+    }
+
+    .proof {
+      display: grid;
+      gap: 6px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #eef4fb;
+      border: 1px solid #cadaee;
+    }
+
+    .proof-line {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .arrow {
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .mind-map {
+      display: grid;
+      gap: 9px;
+    }
+
+    .map-center {
+      justify-self: center;
+      width: 86%;
+      border: 2px solid var(--green);
+      background: white;
+      border-radius: 8px;
+      padding: 11px;
+      text-align: center;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+
+    .map-branch {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      gap: 8px;
+      align-items: start;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .input {
+      min-height: 44px;
+      border: 1px solid #cdd6d1;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcfb;
+      line-height: 1.35;
+      font-size: 14px;
+    }
+
+    .tabbar {
+      height: 66px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .tab {
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .tab b {
+      width: 22px;
+      height: 4px;
+      border-radius: 999px;
+      background: transparent;
+    }
+
+    .tab.active {
+      color: var(--green);
+    }
+
+    .tab.active b {
+      background: var(--green);
+    }
+
+    .footer-note {
+      margin-top: 26px;
+      display: grid;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1120px) {
+      .wire-grid {
+        grid-template-columns: repeat(2, minmax(300px, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      main {
+        width: min(100vw - 20px, 420px);
+        padding-top: 18px;
+      }
+
+      header,
+      .wire-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .phone {
+        min-height: 720px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <section>
+        <h1>Format Judgment iOS Flow</h1>
+        <p class="brief">A first-pass wireframe for PRD #26: when a reminder feels wrong after an important win, Re_Call helps the user diagnose whether the issue is content, styling, or answer shape, then turns the reaction into a custom reminder.</p>
+      </section>
+      <aside class="legend" aria-label="Design constraints">
+        <div class="legend-row"><span class="dot">A</span><span>Designed for low spatial visualization: linear screens, visible labels, numbered choices, and no reliance on mental rotation.</span></div>
+        <div class="legend-row"><span class="dot">B</span><span>Designed for the product proof: the template should make the user want to build a better personal version.</span></div>
+        <div class="legend-row"><span class="dot">C</span><span>Designed for the graph layer: the UI can show why the format was chosen without exposing ontology machinery too early.</span></div>
+      </aside>
+    </header>
+
+    <section class="wire-grid" aria-label="iOS wireframe screens">
+      <article class="flow-card">
+        <div class="flow-label"><span class="dot">1</span><span>Return to a preserved thread</span></div>
+        <section class="phone">
+          <div class="status"><span>9:41</span><span>LTE 100%</span></div>
+          <div class="app">
+            <div class="nav"><span class="nav-title">Re_Call</span><span class="icon-button">+</span></div>
+            <h2 class="screen-title">Pick up where you left off</h2>
+            <p class="screen-subtitle">Re_Call keeps the meaning around important moments so you do not have to rebuild the whole context alone.</p>
+            <div class="surface">
+              <div class="tag-row">
+                <span class="tag">Important win</span>
+                <span class="tag blue">Understood.app</span>
+                <span class="tag gold">Needs format check</span>
+              </div>
+              <p class="large-copy">You built a hierarchy that can preserve AI advantages while reducing downside drift.</p>
+              <p class="body-copy">Last thread: the visible styling flaw pulled attention away from the size of the win.</p>
+              <button class="primary">Review the reminder</button>
+            </div>
+            <div class="surface compact">
+              <span class="kicker">Relational context</span>
+              <div class="list">
+                <div class="row"><span class="num">1</span><div><strong>Past signal</strong><span>Styling scrutiny after a real system win.</span></div></div>
+                <div class="row"><span class="num">2</span><div><strong>Known rule</strong><span>Hierarchy should not be flattened into prose.</span></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab active"><b></b><span>Today</span></div>
+            <div class="tab"><b></b><span>Rules</span></div>
+            <div class="tab"><b></b><span>Map</span></div>
+            <div class="tab"><b></b><span>Me</span></div>
+          </div>
+        </section>
+      </article>
+
+      <article class="flow-card">
+        <div class="flow-label"><span class="dot">2</span><span>The reminder feels partly wrong</span></div>
+        <section class="phone">
+          <div class="status"><span>9:41</span><span>LTE 100%</span></div>
+          <div class="app">
+            <div class="nav"><span class="icon-button">&lt;</span><span class="nav-title">Reminder</span><span></span></div>
+            <h2 class="screen-title">Let the win land</h2>
+            <div class="surface">
+              <span class="kicker">Draft reminder</span>
+              <p class="large-copy">Before fixing the visible flaw, name the actual win and decide if the next move is a true Yes.</p>
+              <p class="body-copy">This is close, but it may be using the wrong container for what happened.</p>
+            </div>
+            <div class="surface compact">
+              <span class="kicker">Quick reaction</span>
+              <button class="secondary">This helps</button>
+              <button class="danger">Something feels off</button>
+              <button class="plain">Remind me later</button>
+            </div>
+            <div class="surface compact">
+              <span class="kicker">What Re_Call is watching</span>
+              <p class="body-copy">A negative reaction is not failure. It may be signal: wrong content, wrong styling, or wrong answer shape.</p>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab active"><b></b><span>Today</span></div>
+            <div class="tab"><b></b><span>Rules</span></div>
+            <div class="tab"><b></b><span>Map</span></div>
+            <div class="tab"><b></b><span>Me</span></div>
+          </div>
+        </section>
+      </article>
+
+      <article class="flow-card">
+        <div class="flow-label"><span class="dot">3</span><span>PRD #26 diagnostic moment</span></div>
+        <section class="phone">
+          <div class="status"><span>9:41</span><span>LTE 100%</span></div>
+          <div class="app">
+            <div class="nav"><span class="icon-button">&lt;</span><span class="nav-title">Format Judgment</span><span></span></div>
+            <h2 class="screen-title">What feels wrong?</h2>
+            <p class="screen-subtitle">Choose the closest diagnosis. Re_Call will keep the insight and adjust the template.</p>
+            <div class="segmented" aria-label="Diagnostic choices">
+              <button class="segment">Content</button>
+              <button class="segment">Style</button>
+              <button class="segment active">Shape</button>
+            </div>
+            <div class="surface diagnostic">
+              <span class="kicker">Selected: answer shape</span>
+              <p class="large-copy">The win is hierarchical. A sentence is flattening it.</p>
+              <p class="body-copy">This explains why the reminder feels close but not quite right.</p>
+            </div>
+            <div class="list">
+              <div class="row"><span class="num">1</span><div><strong>Content problem</strong><span>The facts or message are wrong.</span></div></div>
+              <div class="row"><span class="num">2</span><div><strong>Style problem</strong><span>The tone, length, or wording is wrong.</span></div></div>
+              <div class="row"><span class="num">3</span><div><strong>Shape problem</strong><span>The format does not match the event.</span></div></div>
+            </div>
+            <button class="primary">Find the best format</button>
+          </div>
+          <div class="tabbar">
+            <div class="tab active"><b></b><span>Today</span></div>
+            <div class="tab"><b></b><span>Rules</span></div>
+            <div class="tab"><b></b><span>Map</span></div>
+            <div class="tab"><b></b><span>Me</span></div>
+          </div>
+        </section>
+      </article>
+
+      <article class="flow-card">
+        <div class="flow-label"><span class="dot">4</span><span>Format Match Engine recommends a shape</span></div>
+        <section class="phone">
+          <div class="status"><span>9:41</span><span>LTE 100%</span></div>
+          <div class="app">
+            <div class="nav"><span class="icon-button">&lt;</span><span class="nav-title">Best Format</span><span></span></div>
+            <h2 class="screen-title">Use a mind map</h2>
+            <p class="screen-subtitle">Re_Call matched the signal to a format that preserves hierarchy.</p>
+            <div class="proof">
+              <span class="kicker">Rule proof</span>
+              <div class="proof-line"><span>HierarchicalWinSignal</span><span class="arrow">to</span></div>
+              <div class="proof-line"><span>MindMapFormat</span><span>High</span></div>
+            </div>
+            <div class="surface">
+              <span class="kicker">Why this shape</span>
+              <p class="large-copy">A mind map keeps the system, downside removed, judgment access, and next question visible together.</p>
+              <p class="body-copy">The goal is not a prettier reminder. The goal is to preserve the meaning of what happened.</p>
+            </div>
+            <button class="primary">Show as mind map</button>
+            <button class="plain">No, keep as sentence</button>
+          </div>
+          <div class="tabbar">
+            <div class="tab active"><b></b><span>Today</span></div>
+            <div class="tab"><b></b><span>Rules</span></div>
+            <div class="tab"><b></b><span>Map</span></div>
+            <div class="tab"><b></b><span>Me</span></div>
+          </div>
+        </section>
+      </article>
+
+      <article class="flow-card">
+        <div class="flow-label"><span class="dot">5</span><span>The user sees the relational shape</span></div>
+        <section class="phone">
+          <div class="status"><span>9:41</span><span>LTE 100%</span></div>
+          <div class="app">
+            <div class="nav"><span class="icon-button">&lt;</span><span class="nav-title">Mind Map</span><span></span></div>
+            <h2 class="screen-title">Mind map the win</h2>
+            <div class="surface mind-map">
+              <div class="map-center">Hierarchy capable of using AI without tolerating drift</div>
+              <div class="map-branch"><span class="num">1</span><div><strong>System built</strong><span class="body-copy">A governed layer can preserve meaning.</span></div></div>
+              <div class="map-branch"><span class="num">2</span><div><strong>Downside removed</strong><span class="body-copy">Less random output, wrong shapes, and reactive scrutiny.</span></div></div>
+              <div class="map-branch"><span class="num">3</span><div><strong>Judgment access</strong><span class="body-copy">The format helps taste and judgment come back online.</span></div></div>
+              <div class="map-branch"><span class="num">4</span><div><strong>Next question</strong><span class="body-copy">Is this the best match for describing what happened?</span></div></div>
+            </div>
+            <button class="primary">Build my version</button>
+            <button class="plain">This is enough</button>
+          </div>
+          <div class="tabbar">
+            <div class="tab active"><b></b><span>Today</span></div>
+            <div class="tab"><b></b><span>Rules</span></div>
+            <div class="tab"><b></b><span>Map</span></div>
+            <div class="tab"><b></b><span>Me</span></div>
+          </div>
+        </section>
+      </article>
+
+      <article class="flow-card">
+        <div class="flow-label"><span class="dot">6</span><span>Success: inspired to build</span></div>
+        <section class="phone">
+          <div class="status"><span>9:41</span><span>LTE 100%</span></div>
+          <div class="app">
+            <div class="nav"><span class="icon-button">&lt;</span><span class="nav-title">Custom Reminder</span><span></span></div>
+            <h2 class="screen-title">Make it yours</h2>
+            <p class="screen-subtitle">The system suggests the structure. The user writes the reminder that actually fits their life.</p>
+            <div class="surface">
+              <div class="field">
+                <label>When</label>
+                <div class="input">I notice a fast hierarchical win and then start nitpicking style</div>
+              </div>
+              <div class="field">
+                <label>Remind me</label>
+                <div class="input">Pause. The flaw may be a format signal. Map the structure before rewriting the sentence.</div>
+              </div>
+              <div class="field">
+                <label>Use format</label>
+                <div class="input">Mind map</div>
+              </div>
+            </div>
+            <div class="surface compact">
+              <span class="kicker">Saved rule</span>
+              <p class="large-copy">Hierarchy uses mind map</p>
+              <p class="body-copy">Next time this signal appears, Re_Call can pick up the thread from here.</p>
+            </div>
+            <button class="primary">Save my reminder</button>
+          </div>
+          <div class="tabbar">
+            <div class="tab"><b></b><span>Today</span></div>
+            <div class="tab active"><b></b><span>Rules</span></div>
+            <div class="tab"><b></b><span>Map</span></div>
+            <div class="tab"><b></b><span>Me</span></div>
+          </div>
+        </section>
+      </article>
+    </section>
+
+    <section class="footer-note">
+      <h2>Core UX Thesis</h2>
+      <p>The first iOS experience should not ask the user to understand the whole knowledge graph. It should let them react to a reminder, diagnose the mismatch, see the better format, and then build their own version. That is the moment Re_Call moves from generic reminder app to relational continuity system.</p>
+    </section>
+  </main>
+</body>
+</html>

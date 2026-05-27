@@ -2,48 +2,731 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#FFE15D">
     <title>Re_Call</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
+      :root {
+        --sun: #FFE15D;
+        --sun-light: #F4D160;
+        --sun-pale: #FBEEAC;
+        --orange: #F49D1A;
+        --red: #DC3535;
+        --magenta: #B01E68;
+        --ocean: #1D5D9B;
+        --ocean-light: #75C2F6;
+        --sand: #FBEEAC;
+        --cream: #FFF9E6;
+        --charcoal: #2C2C2C;
+        --warm-gray: #8C7B6B;
+        --white: #FFFFFF;
+        --green: #27AE60;
+        --purple: #7B1FA2;
+        --font: "Outfit", "Avenir Next", "Helvetica Neue", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--sun);
+      }
+
       body {
         margin: 0;
         min-height: 100vh;
-        display: grid;
-        place-items: center;
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #f7f4ef;
-        color: #1d1b18;
+        background: var(--sun);
+        color: var(--charcoal);
+        font-family: var(--font);
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
       }
 
-      main {
-        width: min(680px, calc(100vw - 40px));
+      a {
+        color: inherit;
+        text-decoration: none;
       }
 
-      h1 {
-        margin: 0 0 12px;
-        font-size: 40px;
+      button {
+        font: inherit;
+      }
+
+      .app-shell {
+        min-height: 100vh;
+        background: linear-gradient(180deg, var(--sun) 0%, var(--sun-light) 30%, var(--sand) 55%, var(--cream) 100%);
+        overflow-x: hidden;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 88px);
+      }
+
+      .top-bar {
+        padding: 18px 20px 0;
+      }
+
+      .top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .round-button {
+        width: 48px;
+        height: 48px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(44, 44, 44, 0.04);
+        color: var(--charcoal);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .brand {
+        margin: 0;
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--charcoal);
+        letter-spacing: 0;
+        line-height: 1;
+      }
+
+      .date-stack {
+        margin-top: 4px;
+        text-align: center;
+      }
+
+      .greeting {
+        margin: 0;
+        font-size: 18px;
+        color: rgba(44, 44, 44, 0.5);
+        font-weight: 500;
+      }
+
+      .date-line {
+        margin: 2px 0 0;
+        font-size: 15px;
+        color: rgba(44, 44, 44, 0.35);
+        font-weight: 500;
+      }
+
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 36px 20px 0;
+      }
+
+      .recall-ring {
+        position: relative;
+        width: 300px;
+        height: 360px;
+      }
+
+      .ring-layer,
+      .progress-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      .progress-layer {
+        transform: rotate(-90deg);
+      }
+
+      .ring-center {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 300px;
+        height: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .ring-number {
+        font-size: 64px;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--charcoal);
+      }
+
+      .ring-label {
+        margin-top: 4px;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--warm-gray);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .half-sun {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .ring-percent {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 18px;
+        font-weight: 800;
+        color: rgba(44, 44, 44, 0.5);
+      }
+
+      .stat-row {
+        display: flex;
+        gap: 40px;
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--charcoal);
+        line-height: 1;
+      }
+
+      .stat-label {
+        margin-top: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--warm-gray);
+      }
+
+      .section {
+        margin-top: 40px;
+      }
+
+      .section-title {
+        margin: 0 0 16px;
+        padding: 0 20px;
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--charcoal);
         line-height: 1.05;
       }
 
-      p {
-        margin: 0 0 18px;
-        font-size: 18px;
-        line-height: 1.5;
+      .carousel {
+        display: flex;
+        gap: 14px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-padding-left: 20px;
+        -webkit-overflow-scrolling: touch;
+        padding-left: 20px;
+        padding-right: 20px;
+        scrollbar-width: none;
       }
 
-      code {
-        padding: 3px 6px;
-        border-radius: 6px;
-        background: #ebe3d8;
+      .carousel::-webkit-scrollbar {
+        display: none;
+      }
+
+      .metric-card {
+        scroll-snap-align: start;
+        flex: 0 0 auto;
+        width: 78vw;
+        min-height: 200px;
+        border-radius: 24px;
+        padding: 28px 24px;
+        color: var(--white);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .metric-card::after {
+        content: "";
+        position: absolute;
+        right: -30px;
+        top: -30px;
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: var(--glow);
+        opacity: 0.3;
+      }
+
+      .metric-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .metric-label {
+        margin-bottom: 8px;
+        font-size: 20px;
+        font-weight: 700;
+        opacity: 0.7;
+      }
+
+      .metric-value {
+        font-size: 56px;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .metric-value span {
+        font-size: 24px;
+        font-weight: 600;
+        opacity: 0.6;
+      }
+
+      .metric-sub {
+        margin-top: 4px;
+        font-size: 16px;
+        font-weight: 600;
+        opacity: 0.5;
+      }
+
+      .progress-wrap {
+        position: relative;
+        z-index: 1;
+        margin-top: 20px;
+      }
+
+      .progress-bar {
+        height: 10px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 5px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: var(--white);
+        border-radius: 5px;
+      }
+
+      .progress-pct {
+        margin-top: 6px;
+        text-align: right;
+        font-size: 14px;
+        font-weight: 700;
+        opacity: 0.6;
+      }
+
+      .quick-actions {
+        padding: 40px 20px 0;
+        display: flex;
+        gap: 12px;
+      }
+
+      .quick-action {
+        flex: 1;
+        height: 120px;
+        border-radius: 22px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .quick-action svg {
+        width: 120px;
+        height: 120px;
+        margin-bottom: -28px;
+        opacity: 0.85;
+      }
+
+      .big-card-pad {
+        padding: 28px 20px 0;
+      }
+
+      .big-card-pad + .big-card-pad {
+        padding-top: 14px;
+      }
+
+      .big-card {
+        min-height: 200px;
+        border-radius: 24px;
+        padding: 40px 28px;
+        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .big-card.light {
+        background: var(--white);
+        border: 4px solid var(--charcoal);
+        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.06);
+      }
+
+      .big-card.dark {
+        background: var(--charcoal);
+      }
+
+      .big-card h3 {
+        margin: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 44px;
+        font-weight: 800;
+        line-height: 1;
+        position: relative;
+        z-index: 1;
+      }
+
+      .dark h3 {
+        color: var(--cream);
+      }
+
+      .light h3 {
+        color: var(--charcoal);
+      }
+
+      .orb-one {
+        position: absolute;
+        right: -40px;
+        top: -40px;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: var(--red);
+        opacity: 0.12;
+      }
+
+      .orb-two {
+        position: absolute;
+        right: 20px;
+        bottom: -30px;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: var(--sun);
+        opacity: 0.08;
+      }
+
+      .recent {
+        padding: 14px 20px 0;
+      }
+
+      .recent-card {
+        background: var(--white);
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+      }
+
+      .recent-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .recent-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 18px;
+        background: var(--sand);
+        border-radius: 16px;
+      }
+
+      .recent-item p {
+        margin: 0;
+      }
+
+      .recent-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--charcoal);
+      }
+
+      .recent-sub {
+        margin-top: 4px;
+        font-size: 14px;
+        color: var(--warm-gray);
+      }
+
+      .recent-score {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--orange);
+        white-space: nowrap;
+      }
+
+      .bottom-tabs {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+        background: var(--white);
+        box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      .tabs-inner {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        position: relative;
+      }
+
+      .tab {
+        flex: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--warm-gray);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+      }
+
+      .tab.active {
+        color: var(--charcoal);
+        font-weight: 700;
+      }
+
+      .tab svg {
+        width: 24px;
+        height: 24px;
+        margin-bottom: 3px;
+      }
+
+      .tab-fab {
+        width: 64px;
+        height: 64px;
+        margin-top: -24px;
+        flex-shrink: 0;
+        border: 0;
+        border-radius: 50%;
+        background: var(--ocean);
+        color: var(--white);
+        box-shadow: 0 4px 20px rgba(29, 93, 155, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      @media (min-width: 560px) {
+        .app-shell {
+          max-width: 430px;
+          margin: 0 auto;
+          box-shadow: 0 0 0 1px rgba(44, 44, 44, 0.08), 0 24px 80px rgba(44, 44, 44, 0.18);
+        }
+
+        .bottom-tabs {
+          left: 50%;
+          right: auto;
+          width: 430px;
+          transform: translateX(-50%);
+        }
+
+        .metric-card {
+          width: 335px;
+        }
       }
     </style>
   </head>
   <body>
-    <main>
-      <h1>Re_Call</h1>
-      <p>A deterministic recommendation layer for reminders that go deeper, not broader.</p>
-      <p>API health: <code>/api/health</code></p>
-      <p>Recommendation endpoint: <code>POST /api/recommendations</code></p>
-    </main>
+    <div class="app-shell">
+      <header class="top-bar">
+        <div class="top-row">
+          <button class="round-button" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M18 8A6 6 0 0 0 6 8c0 7-3 8-3 8h18s-3-1-3-8"/></svg>
+          </button>
+          <h1 class="brand">Re_Call.</h1>
+          <button class="round-button" aria-label="Menu">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16"/><path d="M4 6h16"/><path d="M4 18h16"/></svg>
+          </button>
+        </div>
+        <div class="date-stack">
+          <p class="greeting" id="greeting">Good afternoon, Adam</p>
+          <p class="date-line" id="date-line">Wednesday, May 27</p>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero" aria-label="Current reminder">
+          <div class="recall-ring">
+            <svg class="ring-layer" width="300" height="300" aria-hidden="true">
+              <circle cx="150" cy="150" r="148" fill="#FBEEAC" opacity="0.35"></circle>
+              <circle cx="150" cy="150" r="128" fill="#F4D160" opacity="0.25"></circle>
+              <circle cx="150" cy="150" r="106" fill="#FFE15D" opacity="0.18"></circle>
+            </svg>
+            <svg class="progress-layer" width="300" height="300" aria-hidden="true">
+              <circle cx="150" cy="150" r="141" fill="none" stroke="rgba(244, 157, 26, 0.09)" stroke-width="18"></circle>
+              <circle cx="150" cy="150" r="141" fill="none" stroke="#F49D1A" stroke-width="18" stroke-dasharray="885.93" stroke-dashoffset="230.34" stroke-linecap="round"></circle>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-number">74</div>
+              <div class="ring-label">meaning fit</div>
+            </div>
+            <svg class="half-sun" width="200" height="60" viewBox="0 0 200 60" aria-hidden="true">
+              <path d="M 10 60 A 90 90 0 0 1 190 60" fill="#FFFFFF" opacity="0.7"></path>
+            </svg>
+            <div class="ring-percent">Now</div>
+          </div>
+
+          <div class="stat-row" aria-label="Reminder stats">
+            <div>
+              <div class="stat-value">3</div>
+              <div class="stat-label">Rules</div>
+            </div>
+            <div>
+              <div class="stat-value">12</div>
+              <div class="stat-label">Triples</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="deeper-title">
+          <h2 class="section-title" id="deeper-title">Deeper</h2>
+          <div class="carousel">
+            <article class="metric-card" style="background: var(--magenta); --glow: #C92585;">
+              <div class="metric-content">
+                <div class="metric-label">Leverage</div>
+                <div class="metric-value">4<span> paths</span></div>
+                <div class="metric-sub">small input, larger outcome</div>
+              </div>
+              <div class="progress-wrap">
+                <div class="progress-bar"><div class="progress-fill" style="width: 92%;"></div></div>
+                <div class="progress-pct">92%</div>
+              </div>
+            </article>
+
+            <article class="metric-card" style="background: var(--ocean); --glow: var(--ocean-light);">
+              <div class="metric-content">
+                <div class="metric-label">Format</div>
+                <div class="metric-value">4<span> shapes</span></div>
+                <div class="metric-sub">table, matrix, tree, note</div>
+              </div>
+              <div class="progress-wrap">
+                <div class="progress-bar"><div class="progress-fill" style="width: 88%;"></div></div>
+                <div class="progress-pct">88%</div>
+              </div>
+            </article>
+
+            <article class="metric-card" style="background: var(--orange); --glow: #FBBA42;">
+              <div class="metric-content">
+                <div class="metric-label">Time</div>
+                <div class="metric-value">4<span> scans</span></div>
+                <div class="metric-sub">transition stress, prep, energy</div>
+              </div>
+              <div class="progress-wrap">
+                <div class="progress-bar"><div class="progress-fill" style="width: 94%;"></div></div>
+                <div class="progress-pct">94%</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="quick-actions" aria-label="Primary actions">
+          <a class="quick-action" href="/api/recommendations" aria-label="Recommendations" style="background: var(--red); color: var(--white);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/><path d="M2 12h20"/><path d="m5 7-3 5 3 5"/><path d="m19 7 3 5-3 5"/></svg>
+          </a>
+          <a class="quick-action" href="#rules" aria-label="Rules" style="background: var(--sun); color: var(--charcoal);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
+          </a>
+          <a class="quick-action" href="#patterns" aria-label="Patterns" style="background: var(--ocean); color: var(--white);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          </a>
+        </section>
+
+        <section class="big-card-pad" id="rules">
+          <a href="/api/recommendations" class="big-card dark">
+            <span class="orb-one"></span>
+            <span class="orb-two"></span>
+            <h3>Rules</h3>
+          </a>
+        </section>
+
+        <section class="big-card-pad" id="patterns">
+          <a href="#recent" class="big-card light">
+            <h3>Patterns</h3>
+          </a>
+        </section>
+
+        <section class="recent" id="recent" aria-label="Recent recommendations">
+          <div class="recent-card">
+            <div class="recent-list">
+              <div class="recent-item">
+                <div>
+                  <p class="recent-title">Name small input</p>
+                  <p class="recent-sub">Leverage awareness</p>
+                </div>
+                <span class="recent-score">1.05</span>
+              </div>
+              <div class="recent-item">
+                <div>
+                  <p class="recent-title">Convert to one shape</p>
+                  <p class="recent-sub">Format judgment</p>
+                </div>
+                <span class="recent-score">1.07</span>
+              </div>
+              <div class="recent-item">
+                <div>
+                  <p class="recent-title">Scan transition stress</p>
+                  <p class="recent-sub">Time awareness</p>
+                </div>
+                <span class="recent-score">1.02</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="bottom-tabs" aria-label="Bottom navigation">
+        <div class="tabs-inner">
+          <a class="tab active" href="/">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m3 10 9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+            Now
+          </a>
+          <a class="tab" href="#deeper-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18"/><path d="M5 8h14"/><path d="M7 16h10"/></svg>
+            Deeper
+          </a>
+          <a class="tab-fab" href="/api/recommendations" aria-label="Log reminder insight">
+            <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          </a>
+          <a class="tab" href="#rules">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
+            Rules
+          </a>
+          <a class="tab" href="#patterns">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            Patterns
+          </a>
+        </div>
+      </nav>
+    </div>
+
+    <script>
+      const greetingEl = document.getElementById("greeting");
+      const dateEl = document.getElementById("date-line");
+      const now = new Date();
+      const hour = now.getHours();
+      const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+      greetingEl.textContent = `${greeting}, Adam`;
+      dateEl.textContent = now.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric"
+      });
+    </script>
   </body>
 </html>

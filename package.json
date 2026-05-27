@@ -5,5 +5,9 @@
   "type": "module",
   "scripts": {
     "test": "node --test"
+  },
+  "dependencies": {
+    "n3": "^2.0.3",
+    "openai": "^6.39.0"
   }
 }

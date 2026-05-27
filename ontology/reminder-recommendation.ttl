@@ -1,0 +1,148 @@
+@prefix recall: <https://understood.app/ontology/project-recall#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+recall:ReminderTemplate
+    a owl:Class ;
+    rdfs:label "Reminder template" ;
+    rdfs:comment "A reusable reminder pattern the user can accept, reject, edit, or turn into a personal rule." .
+
+recall:ReminderRecommendationRule
+    a owl:Class ;
+    rdfs:label "Reminder recommendation rule" ;
+    rdfs:comment "A deterministic rule that recommends deeper nearby reminder templates from a positively rated reminder." .
+
+recall:UserStrength
+    a owl:Class ;
+    rdfs:label "User strength" ;
+    rdfs:comment "A user attention pattern, capability, or domain of value revealed by reminder behavior." .
+
+recall:FeedbackSignal
+    a owl:Class ;
+    rdfs:label "Feedback signal" ;
+    rdfs:comment "A user's reaction to a reminder, template, or recommendation." .
+
+recall:triggeredByTemplate
+    a owl:ObjectProperty ;
+    rdfs:domain recall:ReminderRecommendationRule ;
+    rdfs:range recall:ReminderTemplate ;
+    rdfs:label "triggered by template" .
+
+recall:requiresFeedback
+    a owl:ObjectProperty ;
+    rdfs:domain recall:ReminderRecommendationRule ;
+    rdfs:range recall:FeedbackSignal ;
+    rdfs:label "requires feedback" .
+
+recall:revealsStrength
+    a owl:ObjectProperty ;
+    rdfs:domain recall:ReminderTemplate ;
+    rdfs:range recall:UserStrength ;
+    rdfs:label "reveals strength" .
+
+recall:deepensStrength
+    a owl:ObjectProperty ;
+    rdfs:domain recall:ReminderTemplate ;
+    rdfs:range recall:UserStrength ;
+    rdfs:label "deepens strength" .
+
+recall:recommendsTemplate
+    a owl:ObjectProperty ;
+    rdfs:domain recall:ReminderRecommendationRule ;
+    rdfs:range recall:ReminderTemplate ;
+    rdfs:label "recommends template" .
+
+recall:templateText
+    a owl:DatatypeProperty ;
+    rdfs:domain recall:ReminderTemplate ;
+    rdfs:range xsd:string ;
+    rdfs:label "template text" .
+
+recall:recommendationReason
+    a owl:DatatypeProperty ;
+    rdfs:domain recall:ReminderRecommendationRule ;
+    rdfs:range xsd:string ;
+    rdfs:label "recommendation reason" .
+
+recall:depthScore
+    a owl:DatatypeProperty ;
+    rdfs:domain recall:ReminderTemplate ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "depth score" .
+
+recall:PositiveReminderRating
+    a recall:FeedbackSignal ;
+    rdfs:label "Positive reminder rating" ;
+    rdfs:comment "The user marked a reminder as useful, helpful, or worth repeating." .
+
+recall:TimeAwareness
+    a recall:UserStrength ;
+    rdfs:label "Time awareness" ;
+    rdfs:comment "The user notices value through calendar shape, transitions, timing, and energy allocation." .
+
+recall:TransitionPreparation
+    a recall:UserStrength ;
+    rdfs:label "Transition preparation" ;
+    rdfs:comment "The user benefits from seeing what a coming transition needs before it arrives." .
+
+recall:ScanCalendarReminder
+    a recall:ReminderTemplate ;
+    rdfs:label "Scan calendar reminder" ;
+    recall:templateText "Scan my calendar before the day starts." ;
+    recall:revealsStrength recall:TimeAwareness .
+
+recall:ScanTomorrowForTransitionStress
+    a recall:ReminderTemplate ;
+    rdfs:label "Scan tomorrow for transition stress" ;
+    recall:templateText "Scan tomorrow's calendar for transition stress." ;
+    recall:deepensStrength recall:TimeAwareness, recall:TransitionPreparation ;
+    recall:depthScore "0.94"^^xsd:decimal .
+
+recall:IdentifyMeetingNeedingEmotionalPrep
+    a recall:ReminderTemplate ;
+    rdfs:label "Identify meeting needing emotional prep" ;
+    recall:templateText "Identify the meeting that needs emotional preparation." ;
+    recall:deepensStrength recall:TimeAwareness, recall:TransitionPreparation ;
+    recall:depthScore "0.91"^^xsd:decimal .
+
+recall:FindCalendarItemForPrebrief
+    a recall:ReminderTemplate ;
+    rdfs:label "Find calendar item for pre-brief" ;
+    recall:templateText "Find the one calendar item that deserves a pre-brief." ;
+    recall:deepensStrength recall:TimeAwareness ;
+    recall:depthScore "0.88"^^xsd:decimal .
+
+recall:NoticeEnergyOverestimate
+    a recall:ReminderTemplate ;
+    rdfs:label "Notice energy overestimate" ;
+    recall:templateText "Notice where the calendar overestimates available energy." ;
+    recall:deepensStrength recall:TimeAwareness ;
+    recall:depthScore "0.86"^^xsd:decimal .
+
+recall:ReviewCalendarProtectedBestWork
+    a recall:ReminderTemplate ;
+    rdfs:label "Review whether calendar protected best work" ;
+    recall:templateText "Review whether today's calendar protected or diluted your best work." ;
+    recall:deepensStrength recall:TimeAwareness ;
+    recall:depthScore "0.84"^^xsd:decimal .
+
+recall:GenericPlanningReminder
+    a recall:ReminderTemplate ;
+    rdfs:label "Generic planning reminder" ;
+    recall:templateText "Make a general plan for tomorrow." ;
+    rdfs:comment "A broader productivity recommendation that should not be selected when the graph points to time awareness." .
+
+recall:CalendarDepthRecommendationRule
+    a recall:ReminderRecommendationRule ;
+    rdfs:label "Calendar depth recommendation rule" ;
+    recall:triggeredByTemplate recall:ScanCalendarReminder ;
+    recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:recommendationReason "A positively rated calendar scan reminder reveals time awareness; recommend deeper nearby uses of that strength rather than broader generic calendar reminders." ;
+    recall:recommendsTemplate
+        recall:ScanTomorrowForTransitionStress,
+        recall:IdentifyMeetingNeedingEmotionalPrep,
+        recall:FindCalendarItemForPrebrief,
+        recall:NoticeEnergyOverestimate,
+        recall:ReviewCalendarProtectedBestWork .

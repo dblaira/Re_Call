@@ -29,24 +29,32 @@ This project can grow along the same path as `understood-app`: Next.js App Route
 
 ## Next Technical Starting Point
 
-The first API contract is now defined:
+Two first API contracts are now defined:
 
 ```text
 getBestFormat(userSignal) -> TranslationFormat
+getReminderRecommendations(input) -> ReminderRecommendationResult
 ```
 
 First proof case:
 
 ```text
 HierarchicalWinSignal -> MindMapFormat
+ScanCalendarReminder + PositiveReminderRating -> deeper TimeAwareness recommendations
 ```
 
 See:
 
+- [Product doctrine](./docs/product/personalization-system-doctrine.md)
 - [API contract: getBestFormat](./docs/api/get-best-format.md)
+- [API contract: getReminderRecommendations](./docs/api/get-reminder-recommendations.md)
 - [Rule fixture](./data/format-match-rules.json)
 - [Implementation](./src/format-match-engine.js)
+- [Recommendation implementation](./src/reminder-recommendation-engine.js)
+- [OpenAI copy layer](./src/openai-reminder-copy.js)
+- [Practical recommender stack](./src/recommender-stack.js)
 - [Proof test](./test/format-match-engine.test.js)
+- [Recommendation proof test](./test/reminder-recommendation-engine.test.js)
 
 Run the proof:
 

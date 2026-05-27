@@ -1,4 +1,6 @@
 @prefix recall: <https://understood.app/ontology/project-recall#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/> .
+@prefix cco: <https://www.commoncoreontologies.org/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -6,21 +8,25 @@
 
 recall:ReminderTemplate
     a owl:Class ;
+    rdfs:subClassOf cco:ont00000965 ;
     rdfs:label "Reminder template" ;
     rdfs:comment "A reusable reminder pattern the user can accept, reject, edit, or turn into a personal rule." .
 
 recall:ReminderRecommendationRule
     a owl:Class ;
+    rdfs:subClassOf cco:ont00000965 ;
     rdfs:label "Reminder recommendation rule" ;
     rdfs:comment "A deterministic rule that recommends deeper nearby reminder templates from a positively rated reminder." .
 
 recall:UserStrength
     a owl:Class ;
+    rdfs:subClassOf bfo:BFO_0000016 ;
     rdfs:label "User strength" ;
     rdfs:comment "A user attention pattern, capability, or domain of value revealed by reminder behavior." .
 
 recall:FeedbackSignal
     a owl:Class ;
+    rdfs:subClassOf cco:ont00000958 ;
     rdfs:label "Feedback signal" ;
     rdfs:comment "A user's reaction to a reminder, template, or recommendation." .
 

@@ -20,7 +20,9 @@ export const ReminderFeedback = Object.freeze({
 });
 
 export const ReminderTemplate = Object.freeze({
-  ScanCalendar: "ScanCalendarReminder"
+  ScanCalendar: "ScanCalendarReminder",
+  FindLeveragePoint: "FindLeveragePointReminder",
+  ChooseCommunicationFormat: "ChooseCommunicationFormatReminder"
 });
 
 export function getReminderRecommendations(input, options = {}) {

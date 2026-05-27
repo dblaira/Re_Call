@@ -87,11 +87,48 @@ recall:TransitionPreparation
     rdfs:label "Transition preparation" ;
     rdfs:comment "The user benefits from seeing what a coming transition needs before it arrives." .
 
+recall:LeverageAwareness
+    a recall:UserStrength ;
+    rdfs:label "Leverage awareness" ;
+    rdfs:comment "The user notices small repeatable inputs, bottlenecks, or decisions that can produce outsized improvement." .
+
+recall:ExecutionLeverage
+    a recall:UserStrength ;
+    rdfs:label "Execution leverage" ;
+    rdfs:comment "The user benefits when thinking is converted into the smallest visible proof, ordered draft, or next move." .
+
+recall:FormatJudgment
+    a recall:UserStrength ;
+    rdfs:label "Format judgment" ;
+    rdfs:comment "The user can tell when the answer shape, not just the wording, determines whether judgment becomes accessible." .
+
+recall:CommunicationFit
+    a recall:UserStrength ;
+    rdfs:label "Communication fit" ;
+    rdfs:comment "The user benefits from matching a message, explanation, or feedback summary to the structure the recipient needs." .
+
+recall:EvidenceTrust
+    a recall:UserStrength ;
+    rdfs:label "Evidence trust" ;
+    rdfs:comment "The user trusts communication more when provenance, constraints, and verification steps are visible." .
+
 recall:ScanCalendarReminder
     a recall:ReminderTemplate ;
     rdfs:label "Scan calendar reminder" ;
     recall:templateText "Scan my calendar before the day starts." ;
     recall:revealsStrength recall:TimeAwareness .
+
+recall:FindLeveragePointReminder
+    a recall:ReminderTemplate ;
+    rdfs:label "Find leverage point reminder" ;
+    recall:templateText "Before adding effort, find the smallest move that could change the most outcomes." ;
+    recall:revealsStrength recall:LeverageAwareness, recall:ExecutionLeverage .
+
+recall:ChooseCommunicationFormatReminder
+    a recall:ReminderTemplate ;
+    rdfs:label "Choose communication format reminder" ;
+    recall:templateText "Before replying, choose the format that lets the other person use the message." ;
+    recall:revealsStrength recall:FormatJudgment, recall:CommunicationFit .
 
 recall:ScanTomorrowForTransitionStress
     a recall:ReminderTemplate ;
@@ -134,6 +171,76 @@ recall:GenericPlanningReminder
     recall:templateText "Make a general plan for tomorrow." ;
     rdfs:comment "A broader productivity recommendation that should not be selected when the graph points to time awareness." .
 
+recall:NameSmallInputAndOutcome
+    a recall:ReminderTemplate ;
+    rdfs:label "Name small input and outcome" ;
+    recall:templateText "Name the small input and the larger outcome before calling this leverage." ;
+    recall:deepensStrength recall:LeverageAwareness ;
+    recall:depthScore "1.0"^^xsd:decimal .
+
+recall:ClearGoodIdeasForGreatIdea
+    a recall:ReminderTemplate ;
+    rdfs:label "Clear good ideas for great idea" ;
+    recall:templateText "Archive the good ideas; give the great idea the next move." ;
+    recall:deepensStrength recall:LeverageAwareness, recall:ExecutionLeverage ;
+    recall:depthScore "0.93"^^xsd:decimal .
+
+recall:AskForVisibleProcessDraft
+    a recall:ReminderTemplate ;
+    rdfs:label "Ask for visible process draft" ;
+    recall:templateText "Ask for the full ordered draft before analyzing the decision." ;
+    recall:deepensStrength recall:ExecutionLeverage ;
+    recall:depthScore "0.9"^^xsd:decimal .
+
+recall:FindBottleneckBlockingOutcomes
+    a recall:ReminderTemplate ;
+    rdfs:label "Find bottleneck blocking outcomes" ;
+    recall:templateText "Find the bottleneck that is blocking several outcomes at once." ;
+    recall:deepensStrength recall:LeverageAwareness ;
+    recall:depthScore "0.88"^^xsd:decimal .
+
+recall:DefineSmallestProofTest
+    a recall:ReminderTemplate ;
+    rdfs:label "Define smallest proof test" ;
+    recall:templateText "Define the smallest proof test that would confirm or weaken this idea." ;
+    recall:deepensStrength recall:ExecutionLeverage, recall:EvidenceTrust ;
+    recall:depthScore "0.86"^^xsd:decimal .
+
+recall:ConvertAbstractTalkToInspectableShape
+    a recall:ReminderTemplate ;
+    rdfs:label "Convert abstract talk to inspectable shape" ;
+    recall:templateText "Convert the idea into one table, node tree, route, or test path." ;
+    recall:deepensStrength recall:FormatJudgment, recall:CommunicationFit ;
+    recall:depthScore "0.97"^^xsd:decimal .
+
+recall:ChooseTableMatrixTreeOrNote
+    a recall:ReminderTemplate ;
+    rdfs:label "Choose table matrix tree or note" ;
+    recall:templateText "Choose whether this should be a table, matrix, tree, or short note." ;
+    recall:deepensStrength recall:FormatJudgment, recall:CommunicationFit ;
+    recall:depthScore "0.92"^^xsd:decimal .
+
+recall:SortFeedbackBeforeInterpreting
+    a recall:ReminderTemplate ;
+    rdfs:label "Sort feedback before interpreting" ;
+    recall:templateText "Sort feedback into Like, Dislike, Undecided, and exact quote before interpreting." ;
+    recall:deepensStrength recall:CommunicationFit, recall:EvidenceTrust ;
+    recall:depthScore "0.89"^^xsd:decimal .
+
+recall:AskForProvenanceConstraintsVerification
+    a recall:ReminderTemplate ;
+    rdfs:label "Ask for provenance constraints verification" ;
+    recall:templateText "Ask for provenance, constraints used, and one verification step before accepting it." ;
+    recall:deepensStrength recall:FormatJudgment, recall:EvidenceTrust ;
+    recall:depthScore "0.87"^^xsd:decimal .
+
+recall:DiagnoseContentStyleTimingFormat
+    a recall:ReminderTemplate ;
+    rdfs:label "Diagnose content style timing format" ;
+    recall:templateText "Diagnose whether the issue is content, styling, timing, or format mismatch." ;
+    recall:deepensStrength recall:FormatJudgment ;
+    recall:depthScore "0.85"^^xsd:decimal .
+
 recall:CalendarDepthRecommendationRule
     a recall:ReminderRecommendationRule ;
     rdfs:label "Calendar depth recommendation rule" ;
@@ -146,3 +253,29 @@ recall:CalendarDepthRecommendationRule
         recall:FindCalendarItemForPrebrief,
         recall:NoticeEnergyOverestimate,
         recall:ReviewCalendarProtectedBestWork .
+
+recall:LeverageDepthRecommendationRule
+    a recall:ReminderRecommendationRule ;
+    rdfs:label "Leverage depth recommendation rule" ;
+    recall:triggeredByTemplate recall:FindLeveragePointReminder ;
+    recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:recommendationReason "A positively rated leverage reminder reveals leverage awareness and execution leverage; recommend deeper nearby ways to name the small input, visible proof, bottleneck, or next move rather than broader productivity reminders." ;
+    recall:recommendsTemplate
+        recall:NameSmallInputAndOutcome,
+        recall:ClearGoodIdeasForGreatIdea,
+        recall:AskForVisibleProcessDraft,
+        recall:FindBottleneckBlockingOutcomes,
+        recall:DefineSmallestProofTest .
+
+recall:CommunicationFormatDepthRecommendationRule
+    a recall:ReminderRecommendationRule ;
+    rdfs:label "Communication format depth recommendation rule" ;
+    recall:triggeredByTemplate recall:ChooseCommunicationFormatReminder ;
+    recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:recommendationReason "A positively rated communication-format reminder reveals format judgment and communication fit; recommend deeper nearby ways to choose answer shape, preserve evidence, and diagnose format mismatch rather than rewriting the same message." ;
+    recall:recommendsTemplate
+        recall:ConvertAbstractTalkToInspectableShape,
+        recall:ChooseTableMatrixTreeOrNote,
+        recall:SortFeedbackBeforeInterpreting,
+        recall:AskForProvenanceConstraintsVerification,
+        recall:DiagnoseContentStyleTimingFormat .

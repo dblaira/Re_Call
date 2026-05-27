@@ -4,11 +4,11 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?ruleName ?sourceTemplate ?revealedStrength ?recommendation ?templateText ?depthScore WHERE {
   ?rule a recall:ReminderRecommendationRule ;
     rdfs:label ?ruleName ;
-    recall:triggeredByTemplate recall:ScanCalendarReminder ;
+    recall:triggeredByTemplate ?source ;
     recall:requiresFeedback recall:PositiveReminderRating ;
     recall:recommendsTemplate ?candidate .
 
-  recall:ScanCalendarReminder rdfs:label ?sourceTemplate ;
+  ?source rdfs:label ?sourceTemplate ;
     recall:revealsStrength ?strength .
 
   ?strength rdfs:label ?revealedStrength .
@@ -16,4 +16,4 @@ SELECT ?ruleName ?sourceTemplate ?revealedStrength ?recommendation ?templateText
     recall:templateText ?templateText ;
     recall:depthScore ?depthScore .
 }
-ORDER BY DESC(?depthScore)
+ORDER BY ?ruleName DESC(?depthScore)

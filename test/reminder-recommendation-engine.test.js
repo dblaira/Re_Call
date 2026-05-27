@@ -28,6 +28,50 @@ test("positive calendar reminder rating recommends deeper nearby reminders from 
   assert.deepEqual(result.graphTrace.matchedRuleIds, ["CalendarDepthRecommendationRule"]);
 });
 
+test("positive leverage reminder rating recommends deeper leverage templates from RDF triples", () => {
+  const result = getReminderRecommendations({
+    templateId: ReminderTemplate.FindLeveragePoint,
+    rating: ReminderFeedback.Positive,
+    text: "Before adding another feature, help me find the smallest move that changes the most outcomes."
+  });
+
+  assert.equal(result.decision, "rdf-graph-match");
+  assert.equal(result.confidence, "high");
+  assert.equal(result.sourceTemplate.id, "FindLeveragePointReminder");
+  assert.deepEqual(result.revealedStrengths.map((strength) => strength.id), [
+    "LeverageAwareness",
+    "ExecutionLeverage"
+  ]);
+  assert.match(result.reason, /leverage awareness/i);
+  assert.equal(result.recommendations.length, 4);
+  assert.equal(result.recommendations[0].id, "NameSmallInputAndOutcome");
+  assert.match(result.recommendations[0].text, /small input/i);
+  assert.ok(result.recommendations.some((recommendation) => recommendation.id === "ClearGoodIdeasForGreatIdea"));
+  assert.deepEqual(result.graphTrace.matchedRuleIds, ["LeverageDepthRecommendationRule"]);
+});
+
+test("positive communication-format reminder rating recommends deeper format templates from RDF triples", () => {
+  const result = getReminderRecommendations({
+    templateId: ReminderTemplate.ChooseCommunicationFormat,
+    rating: ReminderFeedback.Positive,
+    text: "Before replying, choose whether this should be a table, short note, tree, or call."
+  });
+
+  assert.equal(result.decision, "rdf-graph-match");
+  assert.equal(result.confidence, "high");
+  assert.equal(result.sourceTemplate.id, "ChooseCommunicationFormatReminder");
+  assert.deepEqual(result.revealedStrengths.map((strength) => strength.id), [
+    "FormatJudgment",
+    "CommunicationFit"
+  ]);
+  assert.match(result.reason, /format judgment/i);
+  assert.equal(result.recommendations.length, 4);
+  assert.equal(result.recommendations[0].id, "ConvertAbstractTalkToInspectableShape");
+  assert.match(result.recommendations[0].text, /table, node tree, route, or test path/i);
+  assert.ok(result.recommendations.some((recommendation) => recommendation.id === "ChooseTableMatrixTreeOrNote"));
+  assert.deepEqual(result.graphTrace.matchedRuleIds, ["CommunicationFormatDepthRecommendationRule"]);
+});
+
 test("unmodeled reminder feedback returns an explicit fallback", () => {
   const result = getReminderRecommendations({
     templateId: ReminderTemplate.ScanCalendar,

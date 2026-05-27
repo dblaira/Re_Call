@@ -3,28 +3,21 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#FFE15D">
+    <meta name="theme-color" content="#286498">
     <title>Re_Call</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
       :root {
-        --sun: #FFE15D;
-        --sun-light: #F4D160;
-        --sun-pale: #FBEEAC;
-        --orange: #F49D1A;
-        --red: #DC3535;
-        --magenta: #B01E68;
-        --ocean: #1D5D9B;
-        --ocean-light: #75C2F6;
-        --sand: #FBEEAC;
-        --cream: #FFF9E6;
-        --charcoal: #2C2C2C;
-        --warm-gray: #8C7B6B;
+        --black-coral: #555A6B;
+        --lapis: #286498;
+        --cerulean-frost: #5E99BD;
+        --american-silver: #C9CFD3;
+        --satin-gold: #C49E30;
+        --ink: #1B2530;
+        --paper: #F1E3D5;
         --white: #FFFFFF;
-        --green: #27AE60;
-        --purple: #7B1FA2;
         --font: "Outfit", "Avenir Next", "Helvetica Neue", sans-serif;
       }
 
@@ -33,14 +26,14 @@
       }
 
       html {
-        background: var(--sun);
+        background: var(--lapis);
       }
 
       body {
         margin: 0;
         min-height: 100vh;
-        background: var(--sun);
-        color: var(--charcoal);
+        background: var(--lapis);
+        color: var(--american-silver);
         font-family: var(--font);
         overflow-x: hidden;
         -webkit-font-smoothing: antialiased;
@@ -58,7 +51,7 @@
 
       .app-shell {
         min-height: 100vh;
-        background: linear-gradient(180deg, var(--sun) 0%, var(--sun-light) 30%, var(--sand) 55%, var(--cream) 100%);
+        background: linear-gradient(180deg, var(--lapis) 0%, #2E6F9C 35%, var(--cerulean-frost) 68%, var(--american-silver) 100%);
         overflow-x: hidden;
         padding-top: env(safe-area-inset-top, 0px);
         padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 88px);
@@ -79,8 +72,8 @@
         height: 48px;
         border: 0;
         border-radius: 50%;
-        background: rgba(44, 44, 44, 0.04);
-        color: var(--charcoal);
+        background: rgba(201, 207, 211, 0.14);
+        color: var(--paper);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -91,7 +84,7 @@
         margin: 0;
         font-size: 30px;
         font-weight: 800;
-        color: var(--charcoal);
+        color: var(--paper);
         letter-spacing: 0;
         line-height: 1;
       }
@@ -104,14 +97,14 @@
       .greeting {
         margin: 0;
         font-size: 18px;
-        color: rgba(44, 44, 44, 0.5);
+        color: rgba(241, 227, 213, 0.74);
         font-weight: 500;
       }
 
       .date-line {
         margin: 2px 0 0;
         font-size: 15px;
-        color: rgba(44, 44, 44, 0.35);
+        color: rgba(201, 207, 211, 0.72);
         font-weight: 500;
       }
 
@@ -155,19 +148,19 @@
         font-size: 64px;
         font-weight: 800;
         line-height: 1;
-        color: var(--charcoal);
+        color: var(--paper);
       }
 
       .ring-label {
         margin-top: 4px;
         font-size: 16px;
         font-weight: 600;
-        color: var(--warm-gray);
+        color: rgba(241, 227, 213, 0.76);
         letter-spacing: 0.06em;
         text-transform: uppercase;
       }
 
-      .half-sun {
+      .ring-base {
         position: absolute;
         bottom: 0;
         left: 50%;
@@ -181,7 +174,7 @@
         transform: translateX(-50%);
         font-size: 18px;
         font-weight: 800;
-        color: rgba(44, 44, 44, 0.5);
+        color: rgba(241, 227, 213, 0.78);
       }
 
       .stat-row {
@@ -194,7 +187,7 @@
       .stat-value {
         font-size: 32px;
         font-weight: 800;
-        color: var(--charcoal);
+        color: var(--paper);
         line-height: 1;
       }
 
@@ -202,7 +195,7 @@
         margin-top: 4px;
         font-size: 14px;
         font-weight: 600;
-        color: var(--warm-gray);
+        color: rgba(201, 207, 211, 0.82);
       }
 
       .section {
@@ -214,7 +207,7 @@
         padding: 0 20px;
         font-size: 28px;
         font-weight: 800;
-        color: var(--charcoal);
+        color: var(--paper);
         line-height: 1.05;
       }
 
@@ -241,7 +234,7 @@
         min-height: 200px;
         border-radius: 24px;
         padding: 28px 24px;
-        color: var(--white);
+        color: var(--paper);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -300,14 +293,14 @@
 
       .progress-bar {
         height: 10px;
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(241, 227, 213, 0.22);
         border-radius: 5px;
         overflow: hidden;
       }
 
       .progress-fill {
         height: 100%;
-        background: var(--white);
+        background: var(--paper);
         border-radius: 5px;
       }
 
@@ -364,13 +357,13 @@
       }
 
       .big-card.light {
-        background: var(--white);
-        border: 4px solid var(--charcoal);
-        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.06);
+        background: rgba(201, 207, 211, 0.94);
+        border: 4px solid var(--black-coral);
+        box-shadow: 0 6px 30px rgba(27, 37, 48, 0.12);
       }
 
       .big-card.dark {
-        background: var(--charcoal);
+        background: var(--black-coral);
       }
 
       .big-card h3 {
@@ -385,33 +378,11 @@
       }
 
       .dark h3 {
-        color: var(--cream);
+        color: var(--paper);
       }
 
       .light h3 {
-        color: var(--charcoal);
-      }
-
-      .orb-one {
-        position: absolute;
-        right: -40px;
-        top: -40px;
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        background: var(--red);
-        opacity: 0.12;
-      }
-
-      .orb-two {
-        position: absolute;
-        right: 20px;
-        bottom: -30px;
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        background: var(--sun);
-        opacity: 0.08;
+        color: var(--black-coral);
       }
 
       .recent {
@@ -419,7 +390,7 @@
       }
 
       .recent-card {
-        background: var(--white);
+        background: rgba(201, 207, 211, 0.92);
         border-radius: 24px;
         padding: 24px;
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
@@ -437,7 +408,7 @@
         align-items: center;
         gap: 16px;
         padding: 16px 18px;
-        background: var(--sand);
+        background: rgba(241, 227, 213, 0.74);
         border-radius: 16px;
       }
 
@@ -448,19 +419,19 @@
       .recent-title {
         font-size: 18px;
         font-weight: 700;
-        color: var(--charcoal);
+        color: var(--ink);
       }
 
       .recent-sub {
         margin-top: 4px;
         font-size: 14px;
-        color: var(--warm-gray);
+        color: var(--black-coral);
       }
 
       .recent-score {
         font-size: 20px;
         font-weight: 800;
-        color: var(--orange);
+        color: var(--satin-gold);
         white-space: nowrap;
       }
 
@@ -470,8 +441,8 @@
         right: 0;
         bottom: 0;
         z-index: 10;
-        background: var(--white);
-        box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+        background: rgba(241, 227, 213, 0.96);
+        box-shadow: 0 -2px 12px rgba(27, 37, 48, 0.14);
         padding-bottom: env(safe-area-inset-bottom, 0px);
       }
 
@@ -490,14 +461,14 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: var(--warm-gray);
+        color: var(--black-coral);
         font-size: 11px;
         font-weight: 500;
         letter-spacing: 0.02em;
       }
 
       .tab.active {
-        color: var(--charcoal);
+        color: var(--lapis);
         font-weight: 700;
       }
 
@@ -514,9 +485,9 @@
         flex-shrink: 0;
         border: 0;
         border-radius: 50%;
-        background: var(--ocean);
-        color: var(--white);
-        box-shadow: 0 4px 20px rgba(29, 93, 155, 0.4);
+        background: var(--satin-gold);
+        color: var(--ink);
+        box-shadow: 0 4px 20px rgba(196, 158, 48, 0.38);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -526,7 +497,7 @@
         .app-shell {
           max-width: 430px;
           margin: 0 auto;
-          box-shadow: 0 0 0 1px rgba(44, 44, 44, 0.08), 0 24px 80px rgba(44, 44, 44, 0.18);
+          box-shadow: 0 0 0 1px rgba(201, 207, 211, 0.14), 0 24px 80px rgba(27, 37, 48, 0.28);
         }
 
         .bottom-tabs {
@@ -564,20 +535,20 @@
         <section class="hero" aria-label="Current reminder">
           <div class="recall-ring">
             <svg class="ring-layer" width="300" height="300" aria-hidden="true">
-              <circle cx="150" cy="150" r="148" fill="#FBEEAC" opacity="0.35"></circle>
-              <circle cx="150" cy="150" r="128" fill="#F4D160" opacity="0.25"></circle>
-              <circle cx="150" cy="150" r="106" fill="#FFE15D" opacity="0.18"></circle>
+              <circle cx="150" cy="150" r="148" fill="#5E99BD" opacity="0.35"></circle>
+              <circle cx="150" cy="150" r="128" fill="#C9CFD3" opacity="0.2"></circle>
+              <circle cx="150" cy="150" r="106" fill="#F1E3D5" opacity="0.16"></circle>
             </svg>
             <svg class="progress-layer" width="300" height="300" aria-hidden="true">
-              <circle cx="150" cy="150" r="141" fill="none" stroke="rgba(244, 157, 26, 0.09)" stroke-width="18"></circle>
-              <circle cx="150" cy="150" r="141" fill="none" stroke="#F49D1A" stroke-width="18" stroke-dasharray="885.93" stroke-dashoffset="230.34" stroke-linecap="round"></circle>
+              <circle cx="150" cy="150" r="141" fill="none" stroke="rgba(201, 207, 211, 0.15)" stroke-width="18"></circle>
+              <circle cx="150" cy="150" r="141" fill="none" stroke="#C49E30" stroke-width="18" stroke-dasharray="885.93" stroke-dashoffset="230.34" stroke-linecap="round"></circle>
             </svg>
             <div class="ring-center">
               <div class="ring-number">74</div>
               <div class="ring-label">meaning fit</div>
             </div>
-            <svg class="half-sun" width="200" height="60" viewBox="0 0 200 60" aria-hidden="true">
-              <path d="M 10 60 A 90 90 0 0 1 190 60" fill="#FFFFFF" opacity="0.7"></path>
+            <svg class="ring-base" width="200" height="60" viewBox="0 0 200 60" aria-hidden="true">
+              <path d="M 10 60 A 90 90 0 0 1 190 60" fill="#F1E3D5" opacity="0.74"></path>
             </svg>
             <div class="ring-percent">Now</div>
           </div>
@@ -597,7 +568,7 @@
         <section class="section" aria-labelledby="deeper-title">
           <h2 class="section-title" id="deeper-title">Deeper</h2>
           <div class="carousel">
-            <article class="metric-card" style="background: var(--magenta); --glow: #C92585;">
+            <article class="metric-card" style="background: var(--black-coral); --glow: var(--american-silver);">
               <div class="metric-content">
                 <div class="metric-label">Leverage</div>
                 <div class="metric-value">4<span> paths</span></div>
@@ -609,7 +580,7 @@
               </div>
             </article>
 
-            <article class="metric-card" style="background: var(--ocean); --glow: var(--ocean-light);">
+            <article class="metric-card" style="background: var(--cerulean-frost); --glow: var(--paper);">
               <div class="metric-content">
                 <div class="metric-label">Format</div>
                 <div class="metric-value">4<span> shapes</span></div>
@@ -621,7 +592,7 @@
               </div>
             </article>
 
-            <article class="metric-card" style="background: var(--orange); --glow: #FBBA42;">
+            <article class="metric-card" style="background: var(--satin-gold); --glow: var(--paper); color: var(--ink);">
               <div class="metric-content">
                 <div class="metric-label">Time</div>
                 <div class="metric-value">4<span> scans</span></div>
@@ -636,21 +607,19 @@
         </section>
 
         <section class="quick-actions" aria-label="Primary actions">
-          <a class="quick-action" href="/api/recommendations" aria-label="Recommendations" style="background: var(--red); color: var(--white);">
+          <a class="quick-action" href="/api/recommendations" aria-label="Recommendations" style="background: var(--black-coral); color: var(--paper);">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/><path d="M2 12h20"/><path d="m5 7-3 5 3 5"/><path d="m19 7 3 5-3 5"/></svg>
           </a>
-          <a class="quick-action" href="#rules" aria-label="Rules" style="background: var(--sun); color: var(--charcoal);">
+          <a class="quick-action" href="#rules" aria-label="Rules" style="background: var(--satin-gold); color: var(--ink);">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
           </a>
-          <a class="quick-action" href="#patterns" aria-label="Patterns" style="background: var(--ocean); color: var(--white);">
+          <a class="quick-action" href="#patterns" aria-label="Patterns" style="background: var(--cerulean-frost); color: var(--paper);">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
           </a>
         </section>
 
         <section class="big-card-pad" id="rules">
           <a href="/api/recommendations" class="big-card dark">
-            <span class="orb-one"></span>
-            <span class="orb-two"></span>
             <h3>Rules</h3>
           </a>
         </section>

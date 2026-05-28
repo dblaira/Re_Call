@@ -30,6 +30,7 @@ export async function draftReminderRecommendationCopy(graphResult, options = {})
               "You write short Re_Call reminder recommendation copy.",
               "The RDF graph is the authority. Do not invent eligibility, scores, or graph facts.",
               "Use calm iOS reminder language. Avoid productivity coaching.",
+              "When personalized is true, the order reflects this user's own priorities; reflect that in 'why' without inventing scores.",
               "Return raw JSON only, with no markdown, using keys: title, body, why, variants."
             ].join(" ")
           }
@@ -69,12 +70,15 @@ export function createOpenAIClient(options = {}) {
 function toCopyPromptPayload(graphResult) {
   return {
     decision: graphResult.decision,
+    personalized: graphResult.personalized ?? false,
     sourceTemplate: graphResult.sourceTemplate,
     revealedStrengths: graphResult.revealedStrengths,
     recommendations: graphResult.recommendations.map((recommendation) => ({
       id: recommendation.id,
       text: recommendation.text,
       score: recommendation.score,
+      personalScore: recommendation.personalScore,
+      personalMultiplier: recommendation.personalMultiplier,
       sharedGraphFeatures: recommendation.sharedGraphFeatures,
       deepensStrengths: recommendation.deepensStrengths
     })),

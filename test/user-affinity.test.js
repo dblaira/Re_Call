@@ -43,3 +43,15 @@ test("propagation lifts graph neighbors but not non-neighbors", () => {
   // TimeAwareness is NOT a neighbor of LeverageAwareness -> unchanged
   assert.ok(Math.abs(bumped.TimeAwareness - baseline.TimeAwareness) < 1e-9);
 });
+
+test("unknown signal types are rejected", () => {
+  const store = loadReminderRecommendationStore();
+  assert.throws(
+    () => expandSignalToEvents({ templateId: "ScanCalendarReminder", signalType: "bogus" }, store),
+    /Unknown signal type: bogus/
+  );
+  assert.throws(
+    () => foldRawAffinity([{ strengthId: "TimeAwareness", signalType: "bogus" }], ["TimeAwareness"]),
+    /Unknown signal type: bogus/
+  );
+});

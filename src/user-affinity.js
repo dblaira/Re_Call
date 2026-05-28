@@ -11,10 +11,16 @@ export const SIGNAL_DELTAS = Object.freeze({
 export const NEUTRAL_AFFINITY = 1.0;
 export const DEFAULT_SPREAD = 0.3;
 
-export function expandSignalToEvents({ templateId, signalType }, store) {
-  if (SIGNAL_DELTAS[signalType] === undefined) {
+function deltaForSignal(signalType) {
+  const delta = SIGNAL_DELTAS[signalType];
+  if (delta === undefined) {
     throw new Error(`Unknown signal type: ${signalType}`);
   }
+  return delta;
+}
+
+export function expandSignalToEvents({ templateId, signalType }, store) {
+  deltaForSignal(signalType);
   // Events carry the durable signal type, never the numeric delta. The delta is derived
   // from SIGNAL_DELTAS at compute time so re-tuning a weight re-scores all history.
   return templateStrengths(store, templateId).map((strengthId) => ({
@@ -30,10 +36,7 @@ export function foldRawAffinity(events, strengths = []) {
     raw[id] = NEUTRAL_AFFINITY;
   }
   for (const event of events) {
-    const delta = SIGNAL_DELTAS[event.signalType];
-    if (delta === undefined) {
-      throw new Error(`Unknown signal type: ${event.signalType}`);
-    }
+    const delta = deltaForSignal(event.signalType);
     if (!(event.strengthId in raw)) {
       raw[event.strengthId] = NEUTRAL_AFFINITY;
     }

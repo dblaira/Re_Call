@@ -27,6 +27,7 @@ test("recordSignal expands a signal into per-strength rows and inserts them", as
   }, store);
   assert.equal(db.rows.events.length, 2);
   assert.ok(db.rows.events.every((e) => e.user_id === "u1" && e.signal_type === "edit"));
+  assert.ok(db.rows.events.every((e) => e.config_version === "v1"));
 });
 
 test("loadUserAffinityInputs returns events and a goalWeights map", async () => {

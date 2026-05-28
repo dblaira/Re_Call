@@ -8,6 +8,10 @@ export const SIGNAL_DELTAS = Object.freeze({
   dismiss: -0.1   // dismissed / skipped
 });
 
+// Bumped when the SIGNAL_DELTAS weights change, so persisted events record which delta
+// config they were written under (derived deltas re-score history; this preserves an audit trail).
+export const CONFIG_VERSION = "v1";
+
 export const NEUTRAL_AFFINITY = 1.0;
 export const DEFAULT_SPREAD = 0.3;
 

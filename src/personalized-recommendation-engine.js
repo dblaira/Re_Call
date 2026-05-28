@@ -47,6 +47,9 @@ export function getPersonalizedRecommendations(input, context = {}) {
 }
 
 function personalMultiplier(rec, affinity, goalWeights) {
+  // The design formula is per-strength (depthScore × affinity × goalWeight). A candidate can
+  // deepen several strengths, so we aggregate the (affinity × goalWeight) signal across them by
+  // mean — identical to the formula for single-strength candidates, a balanced blend otherwise.
   const ids = rec.deepensStrengths.map((strength) => strength.id);
   if (ids.length === 0) {
     return 1;

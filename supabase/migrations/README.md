@@ -5,6 +5,7 @@ Remote migrations applied to project `vzaceoipwimphdvdxcpa`:
 - `20260527205832_create_recall_recommendation_graph`
 - `20260527210247_add_rdf_and_neo4j_projection`
 - `20260527210414_add_bfo_cco_alignment`
+- `20260528120000_add_personalization_tables` — `recall.user_strength_events` and `recall.user_goal_weights` for the personalization layer
 
 The local Supabase CLI is not installed in this workspace, so these migrations were applied through the Supabase app connector and verified with SQL queries.
 

@@ -1,6 +1,14 @@
 import { getReminderRecommendations } from "./reminder-recommendation-engine.js";
-import { computeAffinity } from "./user-affinity.js";
+import { computeAffinity, NEUTRAL_AFFINITY } from "./user-affinity.js";
 import { goalWeightFor } from "./goal-weights.js";
+
+// Pull the full deeper set before re-ranking. The ontology yields only a few candidates
+// per rule today; this ceiling is generous headroom so personalization sees them all.
+const UNRANKED_CANDIDATE_CEILING = 50;
+
+// A multiplier floor keeps strongly-disliked picks ranked low without inverting their
+// order relative to universal score (a negative multiplier would flip score-based ordering).
+const MIN_PERSONAL_MULTIPLIER = 0.05;
 
 export function getPersonalizedRecommendations(input, context = {}) {
   const {
@@ -15,7 +23,7 @@ export function getPersonalizedRecommendations(input, context = {}) {
 
   // Pull the full universal candidate set first (it is already filtered to
   // "deeper, not broader"), then re-rank within it.
-  const universal = getReminderRecommendations(input, { store, limit: 50 });
+  const universal = getReminderRecommendations(input, { store, limit: UNRANKED_CANDIDATE_CEILING });
 
   if (universal.decision !== "rdf-graph-match") {
     return { ...universal, personalized: false };
@@ -44,8 +52,8 @@ function personalMultiplier(rec, affinity, goalWeights) {
     return 1;
   }
   const sum = ids.reduce(
-    (acc, id) => acc + (affinity[id] ?? 1) * goalWeightFor(goalWeights, id),
+    (acc, id) => acc + (affinity[id] ?? NEUTRAL_AFFINITY) * goalWeightFor(goalWeights, id),
     0
   );
-  return sum / ids.length;
+  return Math.max(MIN_PERSONAL_MULTIPLIER, sum / ids.length);
 }

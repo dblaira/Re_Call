@@ -19,10 +19,9 @@ export function getProactiveGuidance({
   const fresh = all.filter((candidate) => !recentNudgeIds.includes(candidate.id));
   const pool = fresh.length > 0 ? fresh : all; // rotation reset once all shown
 
-  const nudges = pool.slice(0, limit).map((candidate) => ({
-    ...candidate,
-    reason: `Guiding you toward your priority: ${goalStrengths.join(", ")}.`
-  }));
+  // Channel-level rationale (names the goals), shared by every nudge in this result.
+  const reason = `Guiding you toward your priority: ${goalStrengths.join(", ")}.`;
+  const nudges = pool.slice(0, limit).map((candidate) => ({ ...candidate, reason }));
 
   return { decision: "goal-guidance", goalStrengths, nudges };
 }

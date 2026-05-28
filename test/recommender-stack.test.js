@@ -143,3 +143,24 @@ test("personalized stack returns a personalized graph and skips copy without a k
   assert.equal(result.graph.personalized, true);
   assert.equal(result.copyStatus, "skipped");
 });
+
+test("personalized stack drafts copy via an injected client with real events", async () => {
+  const fakeClient = {
+    responses: {
+      create: async () => ({ output_text: '{"title":"t","body":"b","why":"w","variants":[]}' })
+    }
+  };
+  const result = await getPersonalizedRecommendationStack(
+    { templateId: "FindLeveragePointReminder", rating: "PositiveReminderRating" },
+    {
+      goalWeights: LEVERAGE_GOAL_WEIGHTS,
+      events: [
+        { strengthId: "ExecutionLeverage", signalType: "edit", templateId: "AskForVisibleProcessDraft" }
+      ],
+      client: fakeClient
+    }
+  );
+  assert.equal(result.graph.personalized, true);
+  assert.equal(result.copyStatus, "drafted");
+  assert.ok(result.graph.recommendations.length > 0);
+});

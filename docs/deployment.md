@@ -11,6 +11,18 @@ The Vercel surface is intentionally small:
 
 The build command is `npm test`, so deployment fails if the deterministic graph contracts fail.
 
+Production environment variables currently expected by the stack:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `OPENAI_API_KEY`
+- `RECALL_OPENAI_TINY_MODEL`
+- `RECALL_OPENAI_STANDARD_MODEL`
+- `RECALL_OPENAI_REASONING_MODEL`
+
+`OPENAI_API_KEY` is required only for model-written reminder copy. If it is absent, `/api/recommendations` still returns the deterministic RDF graph result and marks copy as skipped or missing.
+
 ## Supabase
 
 Project: `Re_Call`
@@ -19,6 +31,8 @@ Project: `Re_Call`
 - Project URL: `https://vzaceoipwimphdvdxcpa.supabase.co`
 - Edge Function: `recommendations`
 - Edge Function auth: JWT required
+- Current production row counts: `recall.rdf_prefixes` 9, `recall.rdf_terms` 56, `recall.rdf_triples` 107, `recall.neo4j_edges` 77, `recall.neo4j_node_properties` 30.
+- Supabase does not currently have a GitHub repository connected. That is expected for now; see `docs/supabase-github-connection.md`.
 
 ## RDF And Neo4j Shape
 

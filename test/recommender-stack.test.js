@@ -62,6 +62,7 @@ test("OpenAI copy layer uses standard tier by default and preserves graph facts"
   assert.equal(result.copy.model, "standard-test-model");
   assert.equal(result.copy.parsed.why, "Your calendar reminder revealed TimeAwareness.");
   assert.equal(calls[0].store, false);
+  assert.deepEqual(calls[0].reasoning, { effort: "minimal" });
   assert.match(JSON.stringify(calls[0].input), /TimeAwareness/);
 });
 
@@ -94,4 +95,41 @@ test("copy layer can be explicitly escalated to reasoning tier", async () => {
 
   assert.equal(copy.model, "reasoning-test-model");
   assert.equal(copy.tier, OpenAIModelTier.Reasoning);
+});
+
+test("copy layer allows enough output budget for GPT-5 reasoning models", async () => {
+  const calls = [];
+  const fakeClient = {
+    responses: {
+      create: async (request) => {
+        calls.push(request);
+        return {
+          output_text:
+            "```json\n{\"title\":\"Enough room\",\"body\":\"Done\",\"why\":\"Graph facts preserved.\",\"variants\":[]}\n```"
+        };
+      }
+    }
+  };
+
+  const copy = await draftReminderRecommendationCopy(
+    {
+      decision: "rdf-graph-match",
+      sourceTemplate: { id: "Example" },
+      revealedStrengths: [],
+      recommendations: [],
+      reason: "Budget test.",
+      graphTrace: {}
+    },
+    {
+      client: fakeClient,
+      modelPolicy: {
+        [OpenAIModelTier.Tiny]: "tiny-test-model",
+        [OpenAIModelTier.Standard]: "standard-test-model",
+        [OpenAIModelTier.Reasoning]: "reasoning-test-model"
+      }
+    }
+  );
+
+  assert.equal(calls[0].max_output_tokens, 800);
+  assert.equal(copy.parsed.title, "Enough room");
 });

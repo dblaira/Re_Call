@@ -16,7 +16,10 @@ export async function draftReminderRecommendationCopy(graphResult, options = {})
   const response = await client.responses.create({
     model,
     store: false,
-    max_output_tokens: options.maxOutputTokens || 250,
+    max_output_tokens: options.maxOutputTokens || 800,
+    reasoning: {
+      effort: options.reasoningEffort || "minimal"
+    },
     input: [
       {
         role: "developer",
@@ -27,7 +30,7 @@ export async function draftReminderRecommendationCopy(graphResult, options = {})
               "You write short Re_Call reminder recommendation copy.",
               "The RDF graph is the authority. Do not invent eligibility, scores, or graph facts.",
               "Use calm iOS reminder language. Avoid productivity coaching.",
-              "Return JSON only with keys: title, body, why, variants."
+              "Return raw JSON only, with no markdown, using keys: title, body, why, variants."
             ].join(" ")
           }
         ]
@@ -81,9 +84,24 @@ function toCopyPromptPayload(graphResult) {
 }
 
 function parseJsonObject(text) {
+  if (!text) {
+    return null;
+  }
+
   try {
     return JSON.parse(text);
   } catch {
-    return null;
+    const fencedJson = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    const candidate = fencedJson?.[1] || text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1);
+
+    if (!candidate) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      return null;
+    }
   }
 }

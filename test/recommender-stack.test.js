@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { OpenAIModelTier } from "../src/model-policy.js";
 import { draftReminderRecommendationCopy } from "../src/openai-reminder-copy.js";
-import { getReminderRecommendationStack } from "../src/recommender-stack.js";
+import { getReminderRecommendationStack, getPersonalizedRecommendationStack } from "../src/recommender-stack.js";
 import { ReminderFeedback, ReminderTemplate } from "../src/reminder-recommendation-engine.js";
+import { LEVERAGE_GOAL_WEIGHTS } from "../src/goal-weights.js";
 
 test("recommender stack returns graph-only result when no OpenAI key is configured", async () => {
   const previousKey = process.env.OPENAI_API_KEY;
@@ -132,4 +133,34 @@ test("copy layer allows enough output budget for GPT-5 reasoning models", async 
 
   assert.equal(calls[0].max_output_tokens, 800);
   assert.equal(copy.parsed.title, "Enough room");
+});
+
+test("personalized stack returns a personalized graph and skips copy without a key", async () => {
+  const result = await getPersonalizedRecommendationStack(
+    { templateId: "FindLeveragePointReminder", rating: "PositiveReminderRating" },
+    { goalWeights: LEVERAGE_GOAL_WEIGHTS, events: [], draftCopy: false }
+  );
+  assert.equal(result.graph.personalized, true);
+  assert.equal(result.copyStatus, "skipped");
+});
+
+test("personalized stack drafts copy via an injected client with real events", async () => {
+  const fakeClient = {
+    responses: {
+      create: async () => ({ output_text: '{"title":"t","body":"b","why":"w","variants":[]}' })
+    }
+  };
+  const result = await getPersonalizedRecommendationStack(
+    { templateId: "FindLeveragePointReminder", rating: "PositiveReminderRating" },
+    {
+      goalWeights: LEVERAGE_GOAL_WEIGHTS,
+      events: [
+        { strengthId: "ExecutionLeverage", signalType: "edit", templateId: "AskForVisibleProcessDraft" }
+      ],
+      client: fakeClient
+    }
+  );
+  assert.equal(result.graph.personalized, true);
+  assert.equal(result.copyStatus, "drafted");
+  assert.ok(result.graph.recommendations.length > 0);
 });

@@ -53,6 +53,11 @@ See:
 - [Recommendation implementation](./src/reminder-recommendation-engine.js)
 - [OpenAI copy layer](./src/openai-reminder-copy.js)
 - [Practical recommender stack](./src/recommender-stack.js)
+- [Strength graph](./src/strength-graph.js)
+- [User affinity](./src/user-affinity.js)
+- [Personalized recommendation engine](./src/personalized-recommendation-engine.js)
+- [Proactive guidance](./src/proactive-guidance.js)
+- [Personalization design spec](./docs/design/2026-05-28-personalization-layer-design.md)
 - [Proof test](./test/format-match-engine.test.js)
 - [Recommendation proof test](./test/reminder-recommendation-engine.test.js)
 

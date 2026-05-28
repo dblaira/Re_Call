@@ -193,7 +193,6 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  SIGNAL_DELTAS,
   expandSignalToEvents,
   foldRawAffinity,
   computeAffinity
@@ -201,7 +200,7 @@ import {
 import { buildStrengthAdjacency } from "../src/strength-graph.js";
 import { loadReminderRecommendationStore } from "../src/reminder-recommendation-engine.js";
 
-test("expandSignalToEvents creates one event per touched strength with the signal delta", () => {
+test("expandSignalToEvents creates one event per touched strength carrying the signal type", () => {
   const store = loadReminderRecommendationStore();
   const events = expandSignalToEvents(
     { templateId: "ClearGoodIdeasForGreatIdea", signalType: "edit" },
@@ -209,15 +208,17 @@ test("expandSignalToEvents creates one event per touched strength with the signa
   );
   assert.equal(events.length, 2);
   assert.deepEqual(events.map((e) => e.strengthId).sort(), ["ExecutionLeverage", "LeverageAwareness"]);
-  assert.ok(events.every((e) => e.delta === SIGNAL_DELTAS.edit));
+  // Events carry the durable signal_type, not a frozen numeric delta.
+  assert.ok(events.every((e) => e.signalType === "edit"));
+  assert.ok(events.every((e) => !("delta" in e)));
 });
 
-test("foldRawAffinity starts neutral at 1.0 and adds deltas", () => {
+test("foldRawAffinity starts neutral at 1.0 and adds the config delta for each signal type", () => {
   const raw = foldRawAffinity(
-    [{ strengthId: "ExecutionLeverage", delta: 0.3 }],
+    [{ strengthId: "ExecutionLeverage", signalType: "edit" }],
     ["ExecutionLeverage", "TimeAwareness"]
   );
-  assert.ok(Math.abs(raw.ExecutionLeverage - 1.3) < 1e-9);
+  assert.ok(Math.abs(raw.ExecutionLeverage - 1.3) < 1e-9); // edit delta = 0.3
   assert.ok(Math.abs(raw.TimeAwareness - 1.0) < 1e-9);
 });
 
@@ -225,7 +226,7 @@ test("propagation lifts graph neighbors but not non-neighbors", () => {
   const { adjacency, strengths } = buildStrengthAdjacency();
   const baseline = computeAffinity([], { adjacency, strengths });
   const bumped = computeAffinity(
-    [{ strengthId: "LeverageAwareness", delta: 0.3 }],
+    [{ strengthId: "LeverageAwareness", signalType: "edit" }],
     { adjacency, strengths }
   );
   // ExecutionLeverage is a graph neighbor of LeverageAwareness -> rises
@@ -257,13 +258,13 @@ export const NEUTRAL_AFFINITY = 1.0;
 export const DEFAULT_SPREAD = 0.3;
 
 export function expandSignalToEvents({ templateId, signalType }, store) {
-  const delta = SIGNAL_DELTAS[signalType];
-  if (delta === undefined) {
+  if (SIGNAL_DELTAS[signalType] === undefined) {
     throw new Error(`Unknown signal type: ${signalType}`);
   }
+  // Events carry the durable signal type, never the numeric delta. The delta is derived
+  // from SIGNAL_DELTAS at compute time so re-tuning a weight re-scores all history.
   return templateStrengths(store, templateId).map((strengthId) => ({
     strengthId,
-    delta,
     signalType,
     templateId
   }));
@@ -275,10 +276,14 @@ export function foldRawAffinity(events, strengths = []) {
     raw[id] = NEUTRAL_AFFINITY;
   }
   for (const event of events) {
+    const delta = SIGNAL_DELTAS[event.signalType];
+    if (delta === undefined) {
+      throw new Error(`Unknown signal type: ${event.signalType}`);
+    }
     if (!(event.strengthId in raw)) {
       raw[event.strengthId] = NEUTRAL_AFFINITY;
     }
-    raw[event.strengthId] += event.delta;
+    raw[event.strengthId] += delta;
   }
   return raw;
 }
@@ -790,14 +795,17 @@ work, noted in "Out of scope."
 ```sql
 -- supabase/migrations/20260528120000_add_personalization_tables.sql
 create table if not exists recall.user_strength_events (
-  id           bigint generated always as identity primary key,
-  user_id      uuid not null,
-  strength_id  text not null,
-  signal_type  text not null,
-  delta        numeric not null,
-  template_id  text,
-  created_at   timestamptz not null default now()
+  id             bigint generated always as identity primary key,
+  user_id        uuid not null,
+  strength_id    text not null,
+  signal_type    text not null,
+  template_id    text,
+  config_version text not null default 'v1',
+  created_at     timestamptz not null default now()
 );
+-- The numeric delta is intentionally NOT stored: it is derived from the signal-delta
+-- config at compute time, so re-tuning weights re-scores history without migrating rows.
+-- config_version records which delta config a row was written under, for auditability.
 
 create index if not exists user_strength_events_user_idx
   on recall.user_strength_events (user_id, created_at);
@@ -862,6 +870,7 @@ test("loadUserAffinityInputs returns events and a goalWeights map", async () => 
   const { events, goalWeights } = await loadUserAffinityInputs(db, "u1");
   assert.equal(events.length, 1);
   assert.equal(events[0].strengthId, "ExecutionLeverage");
+  assert.equal(events[0].signalType, "accept");
   assert.equal(goalWeights.LeverageAwareness, 3);
 });
 ```
@@ -879,7 +888,7 @@ import { expandSignalToEvents } from "./user-affinity.js";
 
 // `db` is injected and must provide:
 //   insertEvents(rows)        -> Promise<void>
-//   selectEvents(userId)      -> Promise<Array<{ strength_id, delta, signal_type, template_id }>>
+//   selectEvents(userId)      -> Promise<Array<{ strength_id, signal_type, template_id }>>
 //   selectGoalWeights(userId) -> Promise<Array<{ strength_id, weight }>>
 export async function recordSignal(db, { userId, templateId, signalType }, store) {
   const expanded = expandSignalToEvents({ templateId, signalType }, store);
@@ -887,7 +896,6 @@ export async function recordSignal(db, { userId, templateId, signalType }, store
     user_id: userId,
     strength_id: event.strengthId,
     signal_type: event.signalType,
-    delta: event.delta,
     template_id: event.templateId
   }));
   await db.insertEvents(rows);
@@ -902,7 +910,6 @@ export async function loadUserAffinityInputs(db, userId) {
 
   const events = eventRows.map((row) => ({
     strengthId: row.strength_id,
-    delta: Number(row.delta),
     signalType: row.signal_type,
     templateId: row.template_id
   }));

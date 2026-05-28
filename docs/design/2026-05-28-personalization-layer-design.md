@@ -73,7 +73,9 @@ graph load-bearing rather than decorative.
 | Dismiss / skip | −0.10 |
 
 Each signal touches the strengths revealed/deepened by the template it acted on. Deltas
-are tunable constants, not magic — they live in one config object.
+are tunable constants, not magic — they live in one config object and are applied **at
+compute time, not write time**. An event row stores the durable `signal_type`, never the
+numeric delta; re-tuning a weight therefore re-scores all history without migrating rows.
 
 ## Cold start
 
@@ -95,7 +97,9 @@ A new user has all `learnedAffinity = 1.0` (neutral) and only their declared goa
 ## Data model (Supabase — app truth)
 
 - `user_strength_events` (source of truth): `user_id`, `strength_id`, `signal_type`,
-  `delta`, `template_id`, `created_at`.
+  `template_id`, `config_version`, `created_at`. The numeric delta is **not** stored — it
+  is derived from the signal-delta config at compute time. `config_version` records which
+  delta config a row was written under, for auditability.
 - `user_goal_weights` (declared aspiration): `user_id`, `strength_id`, `weight`.
 - Derived affinity (materialized view or cache): `user_id`, `strength_id`, `raw_score`,
   `propagated_score`, `updated_at`.

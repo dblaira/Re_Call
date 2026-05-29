@@ -1,4 +1,4 @@
--- supabase/migrations/20260528120000_add_personalization_tables.sql
+-- supabase/migrations/20260528213640_add_personalization_tables.sql
 create table if not exists recall.user_strength_events (
   id             bigint generated always as identity primary key,
   user_id        uuid not null,

@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Re_Call — Lenses</title>
+<style>
+  /*
+    Re_Call — interactive prototype (self-contained, no build, opens by double-click).
+
+    DIRECTION (Pinterest masonry + gestalt + behavioral science, NO large text):
+      - Home is a scannable MOSAIC of color/data tiles with varied heights (2 columns,
+        imperfectly aligned). Visual interest = COLOR + small DATA, never imagery.
+      - Practices cluster by strength (similarity + proximity); a glance organizes the field.
+      - Behavioral nudges are STRUCTURAL, not copy: tiles look in-progress/editable
+        (Zeigarnik), an open "+" slot wants filling, varied tile size = variable reward.
+      - NO big headings, NO giant hero number. Numbers appear small, Pinterest-label scale.
+
+    KEPT: template editing (drag-reorder / hide / delete / inline-edit + persist),
+    Save-as-Lens, the Scoring stub + live re-sort, Tune sheet, tab bar, palette tokens,
+    gold reserved for the primary CTA / FAB, no void states.
+
+    SCORING: live numbers come from one client-side stub (`const Scoring`) — NOT the
+    production scorer; swap it for POST /recommendations later.
+  */
+
+  :root {
+    --black-coral:    #555A6B;
+    --coral-deep:     #2B2E38;
+    --lapis-lazuli:   #286498;
+    --cerulean-frost: #5E99BD;
+    --american-silver:#C9CFD3;
+    --satin-gold:     #C49E30;
+    --gold-lite:      #D9BC5E;
+
+    --gold:     var(--satin-gold);
+    --ink-hi:   #E6EAEC;
+    --ink:      var(--american-silver);
+    --ink-dim:  rgba(201,207,211,0.66);
+    --ink-faint:rgba(201,207,211,0.42);
+    --glass:    rgba(94,153,189,0.10);
+    --glass-2:  rgba(94,153,189,0.18);
+    --hairline: rgba(201,207,211,0.16);
+
+    --lev:   #286498;
+    --time:  #3E79A8;
+    --fmt:   #5E99BD;
+
+    --radius: 18px;
+    font-synthesis: none;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+                 "Helvetica Neue", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #0a0b10; color: var(--ink);
+    display: flex; flex-direction: column; align-items: center;
+    gap: 22px; padding: 38px 16px 64px;
+  }
+
+  .stage-caption { text-align: center; max-width: 430px; }
+  .stage-caption h1 { margin: 0 0 5px; font-size: 16px; font-weight: 600; color: var(--ink-hi); }
+  .stage-caption p  { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-dim); }
+
+  .phone {
+    position: relative; width: 393px; height: 852px;
+    border-radius: 56px; padding: 12px; flex: none;
+    background: linear-gradient(160deg, #34384a, #14161d 62%);
+    box-shadow: 0 2px 0 rgba(255,255,255,0.08) inset, 0 50px 90px -30px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .screen { position: relative; width: 100%; height: 100%; border-radius: 45px; overflow: hidden; isolation: isolate; background: var(--coral-deep); }
+
+  /* faceted ground (kept, restrained) */
+  .ground { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+  .ground .field { position: absolute; inset: -10%;
+    background:
+      linear-gradient(118deg, rgba(40,100,152,0.45) 0 34%, transparent 34% 100%),
+      linear-gradient(232deg, rgba(30,70,120,0.42) 0 30%, transparent 30% 100%),
+      linear-gradient(180deg, #1b3048 0%, #131f2d 46%, #0d141c 100%); }
+  .ground .facet { position: absolute; filter: blur(2px); mix-blend-mode: screen; opacity: 0.4; }
+  .ground .f1 { inset: -5% 40% 55% -10%; background: linear-gradient(120deg,#3a6f9e,transparent); clip-path: polygon(0 0,100% 0,62% 100%,0 70%); }
+  .ground .f2 { inset: 30% -10% -5% 45%; background: linear-gradient(300deg,#21527e,transparent); clip-path: polygon(38% 0,100% 22%,100% 100%,0 100%); }
+  .ground .vignette { position: absolute; inset: 0; background: radial-gradient(128% 100% at 50% 26%, transparent 34%, rgba(10,11,16,0.6) 76%, #080a0e 100%); }
+
+  .statusbar { position: relative; z-index: 30; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; font-size: 15px; font-weight: 600; color: var(--ink-hi); }
+  .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 124px; height: 35px; background: #000; border-radius: 20px; }
+  .sb-right { display: flex; align-items: center; gap: 7px; }
+
+  .view { position: absolute; inset: 54px 0 0 0; z-index: 10; display: none; }
+  .view[data-active="true"] { display: block; }
+  .scroll { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 4px 16px 150px; }
+  .scroll::-webkit-scrollbar { width: 0; }
+
+  /* ───────── Onboarding: small-text lens chooser (color-block cards) ───────── */
+  #onboard .intro { padding: 18px 4px 4px; }
+  #onboard .brand { font-size: 12px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--ink-dim); }
+  #onboard h2 { margin: 8px 0 0; font-size: 17px; font-weight: 700; letter-spacing: -0.2px; color: var(--ink-hi); }
+  #onboard .tagline { margin: 8px 0 0; font-size: 13px; line-height: 1.45; color: var(--ink-dim); font-weight: 500; }
+  #onboard .tagline em { color: var(--cerulean-frost); font-style: normal; }
+  #onboard .prompt { font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--ink-faint); margin: 16px 2px 8px; }
+
+  /* irregular chooser: cards vary in width (col span) + height (min-height) */
+  #lensCarousel { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; grid-auto-flow: row dense; align-items: start; }
+  .lens-card { border-radius: var(--radius); padding: 13px; cursor: pointer; color: var(--ink); overflow: hidden;
+    display: flex; flex-direction: column; border: 1px solid var(--hairline);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 14px 30px -24px rgba(0,0,0,0.8);
+    transition: transform .15s; }
+  .lens-card:active { transform: scale(0.98); }
+  .lc-head { display: flex; align-items: center; gap: 7px; }
+  .lc-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+  .lc-name { font-size: 13px; font-weight: 700; color: var(--ink-hi); }
+  .lc-mix { display: flex; flex-direction: column; gap: 5px; margin: 11px 0 9px; }
+  .lc-bar { height: 5px; border-radius: 3px; background: linear-gradient(90deg, var(--c) var(--w), rgba(255,255,255,0.12) var(--w)); }
+  .lc-foot { display: flex; align-items: baseline; justify-content: space-between; }
+  .lc-feel { font-size: 10px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--ink-dim); }
+  .lc-num { font-size: 13px; font-weight: 700; color: var(--ink-hi); font-variant-numeric: tabular-nums; }
+  .lc-edit { margin-top: auto; padding-top: 9px; font-size: 10px; color: var(--ink-faint); }
+
+  /* ───────── Home: IRREGULAR masonry — variable widths + heights, size = importance ─────────
+     6-col grid + fine auto-rows + dense flow. Each practice is a color block whose
+     column/row span comes from its importance bucket (L/M/S from the live score). */
+  #masonry { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 13px; gap: 10px;
+    grid-auto-flow: dense; padding-top: 8px; }
+  .cell { position: relative; border-radius: 16px; overflow: hidden; border: 1px solid var(--hairline);
+    box-shadow: inset 0 1px 0 rgba(201,207,211,0.14), 0 14px 30px -24px rgba(0,0,0,0.8);
+    backdrop-filter: blur(12px) saturate(140%); -webkit-backdrop-filter: blur(12px) saturate(140%); }
+
+  /* practice tile = color block; bigger = more important (higher depth × weight) */
+  .p-tile { display: flex; flex-direction: column; padding: 9px 10px; cursor: pointer; color: var(--ink-hi);
+    background: linear-gradient(155deg, var(--accent), rgba(8,10,16,0.40));
+    transition: box-shadow .2s, opacity .3s, transform .2s; }
+  .p-tile::after { content: ""; position: absolute; inset: 0; background: rgba(8,10,16,var(--mute,0)); pointer-events: none; }
+  .p-tile > * { position: relative; z-index: 1; }
+  .p-bar { display: flex; align-items: center; justify-content: space-between; }
+  .p-handle { width: 16px; height: 16px; display: grid; place-items: center; color: rgba(230,234,236,0.72); cursor: grab; touch-action: none; }
+  .p-handle:active { cursor: grabbing; }
+  .p-acts { display: flex; gap: 5px; }
+  .p-eye, .p-del { width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.86); display: grid; place-items: center; cursor: pointer; }
+  .p-eye:active, .p-del:active { transform: scale(0.88); }
+  .p-short { margin-top: auto; font-size: 12.5px; font-weight: 600; line-height: 1.25; outline: none;
+    text-shadow: 0 1px 8px rgba(8,10,16,0.55); border-radius: 4px; }
+  .p-tile[data-size="L"] .p-short { font-size: 13.5px; }
+  .p-tile[data-size="S"] .p-short { font-size: 11.5px; }
+  .p-short[contenteditable]:focus { box-shadow: 0 1px 0 rgba(255,255,255,0.6); }
+  .p-foot { margin-top: 7px; display: flex; align-items: center; justify-content: space-between; }
+  .p-num { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink-hi); text-shadow: 0 1px 8px rgba(8,10,16,0.55); }
+  .p-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: rgba(230,234,236,0.72); }
+  .p-tile[data-on="true"] { box-shadow: 0 0 0 2px var(--ink-hi), 0 16px 32px -18px var(--accent); }
+  .p-tile[data-on="true"] .p-tag::after { content: " · kept"; }
+  .p-tile[data-hidden="true"] { opacity: 0.42; }
+  .p-tile.dragging { box-shadow: 0 22px 42px -14px rgba(0,0,0,0.8); transform: scale(1.03); z-index: 9; opacity: 0.97; }
+
+  /* small group-label tile (gestalt anchor, tiny text) */
+  .h-tile { display: flex; align-items: center; gap: 8px; padding: 9px 11px;
+    background: linear-gradient(180deg, rgba(94,153,189,0.10), rgba(94,153,189,0.03)); }
+  .h-tile .m-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex: none; }
+  .h-tile .m-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink); }
+  .h-tile .m-count { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+
+  /* fit dial tile (small embedded number) */
+  .fit-tile { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px;
+    background: linear-gradient(180deg, rgba(94,153,189,0.12), rgba(94,153,189,0.04)); }
+  .recall-ring { position: relative; width: 52px; height: 52px; flex: none; }
+  .recall-ring svg { transform: rotate(-90deg); display: block; width: 52px; height: 52px; }
+  .recall-ring .fill { transition: stroke-dashoffset .55s cubic-bezier(.2,.9,.3,1), stroke .4s; }
+  .recall-ring .ctr { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+  .recall-ring .ctr .v { font-size: 14px; font-weight: 700; color: var(--ink-hi); font-variant-numeric: tabular-nums; line-height: 1; }
+  .recall-ring .ctr .u { font-size: 9px; font-weight: 500; color: var(--ink-dim); }
+  .fit-tile .fit-cap { font-size: 10.5px; color: var(--ink-dim); line-height: 1.3; }
+  .fit-tile .fit-cap b { display: block; font-size: 11px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.4px; }
+
+  /* lens chips tile */
+  .lens-tile { padding: 11px; background: linear-gradient(180deg, rgba(94,153,189,0.12), rgba(94,153,189,0.04)); }
+  .lens-tile .m-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink); margin-bottom: 9px; }
+  .m-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .m-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 20px;
+    border: 1px solid var(--hairline); background: rgba(94,153,189,0.08); color: var(--ink); font-size: 11px; font-weight: 600; cursor: pointer; }
+  .m-chip-sw { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+  .m-chip-num { color: var(--ink-dim); font-size: 10px; font-variant-numeric: tabular-nums; }
+  .m-chip.active { background: var(--accent); border-color: var(--accent); color: var(--coral-deep); }
+  .m-chip.active .m-chip-num { color: rgba(43,46,56,0.72); }
+
+  /* open slot — Zeigarnik incompleteness */
+  .slot-tile { display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-style: dashed; background: transparent; cursor: pointer; }
+  .slot-tile .plus { width: 34px; height: 34px; border-radius: 50%; border: 1.5px dashed var(--ink-faint);
+    display: grid; place-items: center; color: var(--ink-dim); font-size: 20px; font-weight: 300; }
+  .slot-tile .slot-cap { margin-top: 7px; font-size: 10px; color: var(--ink-faint); }
+
+  .restore-tile { display: flex; flex-direction: column; gap: 8px; justify-content: center; padding: 12px; text-align: center;
+    background: linear-gradient(180deg, rgba(94,153,189,0.10), rgba(94,153,189,0.03)); }
+  .restore-tile .m-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--ink-dim); }
+  .restore-tile .m-restore-btn { padding: 9px; border-radius: 12px; border: 1px solid var(--hairline);
+    background: rgba(94,153,189,0.08); color: var(--ink); font-size: 11.5px; font-weight: 600; cursor: pointer; }
+
+  /* ───────── full-screen photo background ───────── */
+  .screen-bg { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; display: none; }
+  /* darken progressively downward so glass tiles + small text stay legible; banner stays crisp up top */
+  .screen-scrim { position: absolute; inset: 0; z-index: 0; display: none; pointer-events: none;
+    background: linear-gradient(180deg, rgba(8,10,16,0.22) 0%, rgba(8,10,16,0.34) 24%, rgba(8,10,16,0.5) 58%, rgba(8,10,16,0.64) 100%); }
+
+  /* ───────── Notion-style real-photo cover (top banner) ───────── */
+  .cover { position: relative; margin: -4px -16px 0; height: 268px; overflow: hidden; }
+  /* when a screen background is active, the banner becomes a crisp window onto it (one photo, no fight) */
+  .cover[data-defer="true"] .cover-scrim { background: linear-gradient(180deg, transparent 52%, rgba(10,11,16,0.5) 100%); }
+  .cover-img { position: absolute; inset: 0; background-size: cover; background-position: center;
+    transition: background-image .3s; }
+  /* soft scrim: light at top (status bar) → strong at bottom (tiles stay crisp) */
+  .cover-scrim { position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(8,10,14,0.34) 0%, transparent 24%, transparent 50%, rgba(10,11,16,0.72) 86%, #0a0b10 100%); }
+  .cover-change { position: absolute; right: 14px; bottom: 30px; z-index: 3; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 16px;
+    font-size: 11px; font-weight: 600; color: var(--ink-hi);
+    background: rgba(20,22,30,0.5); border: 1px solid rgba(255,255,255,0.24);
+    backdrop-filter: blur(10px) saturate(150%); -webkit-backdrop-filter: blur(10px) saturate(150%); }
+  .cover-change:active { transform: scale(0.95); }
+  .cover-picker { position: absolute; right: 14px; bottom: 66px; z-index: 4; display: none; gap: 8px; padding: 8px;
+    border-radius: 14px; background: rgba(20,22,30,0.72); border: 1px solid rgba(255,255,255,0.22);
+    backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%);
+    box-shadow: 0 18px 40px -16px rgba(0,0,0,0.7); }
+  .cover-picker[data-open="true"] { display: flex; }
+  .cover-thumb { width: 48px; height: 34px; border-radius: 8px; background-size: cover; background-position: center;
+    cursor: pointer; border: 2px solid transparent; transition: border-color .15s, transform .15s; }
+  .cover-thumb:active { transform: scale(0.93); }
+  .cover-thumb.active { border-color: var(--ink-hi); }
+  .cover-thumb.cover-none { display: grid; place-items: center; background: rgba(255,255,255,0.06);
+    border: 1px dashed var(--hairline); color: var(--ink-dim); font-size: 14px; }
+  .cover-thumb.cover-none.active { border-color: var(--ink-hi); color: var(--ink-hi); }
+  /* content sheet nudges up into the cover bottom (Notion overlap) */
+  .home-body { position: relative; z-index: 2; margin-top: -24px; padding: 14px 0 0;
+    border-top-left-radius: 22px; border-top-right-radius: 22px;
+    background: linear-gradient(180deg, rgba(10,11,16,0.55), rgba(10,11,16,0) 70px); }
+
+  /* per-card cover button (small, unobtrusive) */
+  .p-cover { width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.86); display: grid; place-items: center; cursor: pointer; }
+  .p-cover:active { transform: scale(0.88); }
+
+  /* a tile WITH a photo cover: image already set inline; add legibility scrim + translucent text */
+  .p-tile[data-hascover="true"]::after { background: linear-gradient(180deg, rgba(8,10,16,0.18) 0%, rgba(8,10,16,0.22) 45%, rgba(8,10,16,0.62) 100%); }
+  .p-tile[data-hascover="true"] .p-short { color: #fff; opacity: 0.86; text-shadow: 0 1px 10px rgba(8,10,16,0.75); }
+  .p-tile[data-hascover="true"] .p-num,
+  .p-tile[data-hascover="true"] .p-tag { color: rgba(255,255,255,0.82); text-shadow: 0 1px 10px rgba(8,10,16,0.75); }
+
+  /* lens card cover button + translucent text over photo */
+  .lens-card { position: relative; }
+  .lens-card .lc-cover { position: absolute; top: 10px; right: 10px; z-index: 3; width: 24px; height: 24px; border-radius: 7px;
+    border: 1px solid rgba(255,255,255,0.24); background: rgba(20,22,30,0.4); color: rgba(255,255,255,0.88);
+    display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(6px); }
+  .lens-card .lc-cover:active { transform: scale(0.9); }
+  .lens-card[data-hascover="true"]::before { content: ""; position: absolute; inset: 0; border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(8,10,16,0.25), rgba(8,10,16,0.66)); pointer-events: none; }
+  .lens-card > * { position: relative; z-index: 1; }
+  .lens-card[data-hascover="true"] .lc-name { color: #fff; }
+  .lens-card[data-hascover="true"] .lc-feel,
+  .lens-card[data-hascover="true"] .lc-num { color: rgba(255,255,255,0.86); }
+  .lens-card[data-hascover="true"] .lc-edit { color: rgba(255,255,255,0.6); }
+
+  /* shared per-card / per-lens cover picker */
+  .card-picker { position: absolute; z-index: 55; display: none; flex-wrap: wrap; gap: 6px; width: 188px; padding: 8px;
+    border-radius: 12px; background: rgba(20,22,30,0.84); border: 1px solid rgba(255,255,255,0.22);
+    backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); box-shadow: 0 18px 40px -14px rgba(0,0,0,0.7); }
+  .card-picker[data-open="true"] { display: flex; }
+  .card-picker .cp-thumb { width: 48px; height: 34px; border-radius: 7px; background-size: cover; background-position: center;
+    cursor: pointer; border: 2px solid transparent; }
+  .card-picker .cp-thumb.active { border-color: var(--ink-hi); }
+  .card-picker .cp-none { width: 48px; height: 34px; border-radius: 7px; display: grid; place-items: center; cursor: pointer;
+    background: rgba(255,255,255,0.06); border: 1px dashed var(--hairline); color: var(--ink-dim); font-size: 13px; }
+  .card-picker .cp-none.active { border-color: var(--ink-hi); color: var(--ink-hi); }
+
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; background: transparent; cursor: pointer; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 6px; border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent, var(--lapis-lazuli)) var(--p,50%), rgba(201,207,211,0.16) var(--p,50%)); }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--ink-hi); margin-top: -8px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+
+  /* FAB (gold CTA) */
+  .fab { position: absolute; right: 18px; bottom: 96px; z-index: 42; width: 58px; height: 58px; border-radius: 50%;
+    border: none; cursor: pointer; background: linear-gradient(140deg, var(--gold-lite), var(--gold)); color: #1a1304;
+    display: grid; place-items: center; box-shadow: 0 18px 40px -14px var(--gold), inset 0 1px 0 rgba(255,255,255,0.4); transition: transform .18s; }
+  .fab:active { transform: scale(0.92); }
+  .fab .lbl { position: absolute; bottom: -17px; font-size: 10px; font-weight: 700; color: var(--gold); }
+
+  .tabbar { position: absolute; left: 14px; right: 14px; bottom: 16px; z-index: 40; height: 64px; border-radius: 32px;
+    display: flex; align-items: center; justify-content: space-around; padding: 0 6px;
+    background: rgba(43,46,56,0.55); border: 1px solid rgba(201,207,211,0.16); box-shadow: 0 20px 50px -18px rgba(0,0,0,0.7);
+    backdrop-filter: blur(28px) saturate(160%); -webkit-backdrop-filter: blur(28px) saturate(160%); }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; font-size: 10px; font-weight: 600; color: var(--ink-dim); cursor: pointer; }
+  .tab[data-active="true"] { color: var(--ink-hi); }
+
+  .scrim { position: absolute; inset: 0; z-index: 50; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .26s; }
+  .scrim[data-open="true"] { opacity: 1; pointer-events: auto; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 51; background: rgba(33,36,46,0.92);
+    border-top-left-radius: 30px; border-top-right-radius: 30px; border-top: 1px solid rgba(201,207,211,0.16);
+    padding: 12px 20px 26px; transform: translateY(100%); transition: transform .4s cubic-bezier(.2,.9,.3,1); max-height: 86%; overflow-y: auto;
+    backdrop-filter: blur(30px) saturate(170%); -webkit-backdrop-filter: blur(30px) saturate(170%); }
+  .sheet::-webkit-scrollbar { width: 0; }
+  .sheet[data-open="true"] { transform: translateY(0); }
+  .grab { width: 38px; height: 5px; border-radius: 3px; background: rgba(201,207,211,0.28); margin: 0 auto 14px; }
+  .sheet h3 { margin: 0 0 4px; font-size: 18px; font-weight: 800; letter-spacing: -0.3px; color: var(--ink-hi); }
+  .sheet .lead { margin: 0 0 12px; font-size: 12.5px; color: var(--ink-dim); line-height: 1.45; }
+
+  .master { margin: 6px 0 8px; }
+  .master .head { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; }
+  .master .head .lab { font-weight: 700; color: var(--ink); }
+  .master .head .amt { color: var(--ink-hi); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .dim { margin: 14px 0; }
+  .dim .dh { display: flex; align-items: center; justify-content: space-between; }
+  .dim .dh .nm { font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; color: var(--ink); }
+  .dim .dh .nm .sw { width: 11px; height: 11px; border-radius: 50%; }
+  .dim .dh .v { font-size: 14px; font-weight: 700; color: var(--ink-hi); font-variant-numeric: tabular-nums; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .chip-row { display: inline-flex; align-items: center; gap: 7px; padding: 9px 13px; border-radius: 20px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; background: rgba(94,153,189,0.08); border: 1px solid var(--hairline); color: var(--ink); transition: .18s; }
+  .chip-row .tick { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(201,207,211,0.3); display: grid; place-items: center; }
+  .chip-row[data-on="true"] { background: var(--accent); border-color: var(--accent); color: var(--coral-deep); }
+  .chip-row[data-on="true"] .tick { background: var(--coral-deep); border-color: var(--coral-deep); }
+
+  .seg { display: flex; gap: 6px; margin-top: 10px; background: rgba(94,153,189,0.07); border: 1px solid var(--hairline); border-radius: 16px; padding: 4px; }
+  .seg button { flex: 1; padding: 9px 0; border: none; border-radius: 12px; cursor: pointer; font-size: 12.5px; font-weight: 600; background: transparent; color: var(--ink-dim); transition: .18s; }
+  .seg button[data-on="true"] { background: var(--ink-hi); color: var(--coral-deep); }
+
+  .rules-block { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--hairline); }
+  .rules-block .t { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 10px; }
+  .rule { display: flex; align-items: flex-start; gap: 10px; padding: 11px 12px; margin-bottom: 8px; border-radius: 14px; background: rgba(94,153,189,0.07); border: 1px solid var(--hairline); }
+  .rule .body { flex: 1; min-width: 0; font-size: 12px; line-height: 1.4; }
+  .rule .body .when { color: var(--ink); font-weight: 600; }
+  .rule .body .when [contenteditable] { outline: none; }
+  .rule .body .then { color: var(--ink-dim); margin-top: 3px; }
+  .rule .body .then b { color: var(--cerulean-frost); font-weight: 700; }
+  .rule .del { flex: none; width: 26px; height: 26px; border-radius: 50%; border: none; cursor: pointer; background: rgba(201,207,211,0.12); color: var(--ink); font-size: 15px; }
+  .add-rule { width: 100%; margin-top: 2px; padding: 10px; border-radius: 14px; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--ink); background: rgba(94,153,189,0.08); border: 1px dashed var(--hairline); }
+
+  .sheet-cta { width: 100%; margin-top: 16px; padding: 14px; border-radius: 16px; border: none; cursor: pointer; font-size: 14.5px; font-weight: 800; color: #1a1304; background: linear-gradient(135deg, var(--gold-lite), var(--gold)); }
+  .sheet-cta.secondary { background: rgba(94,153,189,0.10); color: var(--ink); border: 1px solid var(--hairline); margin-top: 10px; font-weight: 600; }
+  .sheet-cta:active { transform: scale(0.99); }
+
+  .you-row { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-top: 1px solid var(--hairline); font-size: 13px; color: var(--ink); }
+  .you-row .b { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .you-row .d { color: var(--ink-hi); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .you-invite { border-radius: 18px; padding: 16px; margin-top: 6px; background: linear-gradient(165deg, rgba(196,158,48,0.16), rgba(94,153,189,0.04)); border: 1px solid rgba(196,158,48,0.32); }
+  .you-invite .t2 { font-size: 15px; font-weight: 800; color: var(--ink-hi); }
+  .you-invite .p2 { font-size: 12.5px; line-height: 1.45; color: var(--ink-dim); margin: 6px 0 12px; }
+  .you-invite .pick { display: flex; align-items: center; gap: 11px; padding: 12px; border-radius: 14px; background: rgba(94,153,189,0.06); border: 1px solid var(--hairline); }
+  .you-invite .pick .num2 { flex: none; font-size: 16px; font-weight: 700; color: var(--ink-hi); font-variant-numeric: tabular-nums; }
+  .you-invite .pick .pt { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+  .you-invite .pick .add { flex: none; padding: 8px 13px; border-radius: 12px; border: none; cursor: pointer; font-size: 12px; font-weight: 700; color: #1a1304; background: linear-gradient(135deg,var(--gold-lite),var(--gold)); }
+
+  .toast { position: absolute; left: 50%; bottom: 180px; transform: translate(-50%, 20px); z-index: 60; background: var(--ink-hi); color: var(--coral-deep);
+    font-size: 13px; font-weight: 700; padding: 10px 17px; border-radius: 18px; opacity: 0; pointer-events: none; transition: .3s; box-shadow: 0 18px 40px -16px rgba(0,0,0,0.7); }
+  .toast[data-show="true"] { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+  <div class="stage-caption">
+    <h1>Re_Call · Lenses</h1>
+    <p>A masonry of color + data tiles, grouped by strength. Reach in to rearrange, hide, delete, and rename — then save the arrangement as a lens.</p>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+
+      <!-- full-screen photo background (behind everything) -->
+      <div class="screen-bg" id="screenBg"></div>
+      <div class="screen-scrim" id="screenScrim"></div>
+
+      <div class="ground">
+        <div class="field"></div>
+        <div class="facet f1"></div>
+        <div class="facet f2"></div>
+        <div class="vignette"></div>
+      </div>
+
+      <div class="statusbar">
+        <span>9:41</span>
+        <div class="island"></div>
+        <span class="sb-right">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect y="7" width="3" height="5" rx="1" fill="currentColor"/><rect x="5" y="4" width="3" height="8" rx="1" fill="currentColor"/><rect x="10" y="2" width="3" height="10" rx="1" fill="currentColor"/><rect x="15" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.6" y="0.6" width="21" height="11.8" rx="3.3" stroke="currentColor" stroke-opacity="0.5"/><rect x="2.2" y="2.2" width="17" height="8.6" rx="2" fill="currentColor"/><rect x="23" y="4" width="2" height="5" rx="1" fill="currentColor" fill-opacity="0.5"/></svg>
+        </span>
+      </div>
+
+      <!-- ONBOARDING: small-text lens chooser -->
+      <section class="view" id="onboard" data-active="true">
+        <div class="scroll">
+          <div class="intro">
+            <div class="brand">Re_Call</div>
+            <h2>How do you want to see?</h2>
+            <p class="tagline">Memory is narrative. <em>Your life is relational.</em></p>
+            <div class="prompt">Pick a lens to begin</div>
+          </div>
+          <div id="lensCarousel"></div>
+        </div>
+      </section>
+
+      <!-- HOME: Notion-style cover + Pinterest masonry -->
+      <section class="view" id="main">
+        <div class="scroll" id="mainScroll">
+          <div class="cover" id="cover">
+            <div class="cover-img" id="coverImg"></div>
+            <div class="cover-scrim"></div>
+            <div class="cover-picker" id="coverPicker"></div>
+            <button class="cover-change" id="coverChange" title="Change cover">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 7h3l1.5-2h7L17 7h3v12H4V7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2" stroke="currentColor" stroke-width="1.8"/></svg>
+              Cover
+            </button>
+          </div>
+          <div class="home-body">
+            <div id="masonry"></div>
+          </div>
+        </div>
+
+        <button class="fab" id="fab" title="Tune signals">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M8 14v6" stroke="#1a1304" stroke-width="2" stroke-linecap="round"/></svg>
+          <span class="lbl">Tune</span>
+        </button>
+
+        <div class="tabbar">
+          <div class="tab" data-tab="home" data-active="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7.5" height="7.5" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2" stroke="currentColor" stroke-width="1.8"/></svg>Mosaic</div>
+          <div class="tab" data-tab="lenses"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="12" r="5.4" stroke="currentColor" stroke-width="1.8"/><circle cx="16" cy="12" r="5.4" stroke="currentColor" stroke-width="1.8"/></svg>Lenses</div>
+          <div class="tab" data-tab="tune"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M8 14v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Tune</div>
+          <div class="tab" data-tab="you"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c0-3.3 3.6-5.5 8-5.5s8 2.2 8 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>You</div>
+        </div>
+      </section>
+
+      <!-- TUNE SHEET -->
+      <div class="scrim" id="tuneScrim"></div>
+      <div class="sheet" id="tuneSheet">
+        <div class="grab"></div>
+        <h3>Tune your signals</h3>
+        <p class="lead">Drag a weight or toggle a facet. The mosaic re-sorts and the fit dial updates live.</p>
+        <div class="master">
+          <div class="head"><span class="lab">Personalization strength</span><span class="amt" id="masterAmt">70%</span></div>
+          <input type="range" id="masterSlider" min="0" max="100" value="70" style="--p:70%;--accent:var(--gold)" />
+        </div>
+        <div id="tuneDims"></div>
+        <div class="rules-block">
+          <div class="t">Rules — you build them, AI helps with the language</div>
+          <div id="ruleList"></div>
+          <button class="add-rule" id="addRule">+ Add a rule</button>
+        </div>
+        <button class="sheet-cta" id="saveLens">Save as a Lens</button>
+        <button class="sheet-cta secondary" id="tuneDone">Done</button>
+      </div>
+
+      <!-- YOU SHEET -->
+      <div class="scrim" id="youScrim"></div>
+      <div class="sheet" id="youSheet">
+        <div class="grab"></div>
+        <h3>You</h3>
+        <p class="lead">The practices you tapped to keep and build into personal rules.</p>
+        <div id="youChosen"></div>
+        <button class="sheet-cta secondary" id="youDone" style="margin-top:16px;">Done</button>
+      </div>
+
+      <div class="card-picker" id="cardPicker"></div>
+      <div class="toast" id="toast"></div>
+
+    </div>
+  </div>
+
+<script>
+"use strict";
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const C   = { time:"var(--time)", lev:"var(--lev)", fmt:"var(--fmt)" };
+const HEX = { time:"#3E79A8", lev:"#286498", fmt:"#5E99BD" };
+const SIGLABEL = { lev:"leverage", time:"time", fmt:"format" };
+const GROUPNAME = { time:"Time", lev:"Leverage", fmt:"Format" };
+
+const TEMPLATES = [
+  { id:"ScanTomorrowForTransitionStress", signal:"time", depth:0.94, short:"Scan tomorrow for stress", txt:"Scan tomorrow's calendar for transition stress.", facets:["stress","prep"], strengths:["Time awareness","Transition prep"] },
+  { id:"IdentifyMeetingNeedingEmotionalPrep", signal:"time", depth:0.91, short:"Prep the hardest meeting", txt:"Identify the meeting that needs emotional preparation.", facets:["prep","stress"], strengths:["Time awareness","Transition prep"] },
+  { id:"FindCalendarItemForPrebrief", signal:"time", depth:0.88, short:"Pre-brief one event", txt:"Find the one calendar item that deserves a pre-brief.", facets:["prep"], strengths:["Time awareness"] },
+  { id:"NoticeEnergyOverestimate", signal:"time", depth:0.86, short:"Spot the energy gap", txt:"Notice where the calendar overestimates available energy.", facets:["energy"], strengths:["Time awareness"] },
+  { id:"ReviewCalendarProtectedBestWork", signal:"time", depth:0.84, short:"Protect your best work", txt:"Review whether today's calendar protected or diluted your best work.", facets:["energy"], strengths:["Time awareness"] },
+  { id:"NameSmallInputAndOutcome", signal:"lev", depth:1.00, short:"Name the small input", txt:"Name the small input and the larger outcome before calling this leverage.", facets:[], strengths:["Leverage awareness"] },
+  { id:"ClearGoodIdeasForGreatIdea", signal:"lev", depth:0.93, short:"Clear room for the great idea", txt:"Archive the good ideas; give the great idea the next move.", facets:[], strengths:["Leverage awareness","Execution leverage"] },
+  { id:"AskForVisibleProcessDraft", signal:"lev", depth:0.90, short:"Ask for the ordered draft", txt:"Ask for the full ordered draft before analyzing the decision.", facets:[], strengths:["Execution leverage"] },
+  { id:"FindBottleneckBlockingOutcomes", signal:"lev", depth:0.88, short:"Find the real bottleneck", txt:"Find the bottleneck that is blocking several outcomes at once.", facets:[], strengths:["Leverage awareness"] },
+  { id:"DefineSmallestProofTest", signal:"lev", depth:0.86, short:"Define the smallest test", txt:"Define the smallest proof test that would confirm or weaken this idea.", facets:[], strengths:["Execution leverage","Evidence trust"] },
+  { id:"ConvertAbstractTalkToInspectableShape", signal:"fmt", depth:0.97, short:"Give the idea a shape", txt:"Convert the idea into one table, node tree, route, or test path.", formats:["table","tree"], strengths:["Format judgment","Communication fit"] },
+  { id:"ChooseTableMatrixTreeOrNote", signal:"fmt", depth:0.92, short:"Choose the right shape", txt:"Choose whether this should be a table, matrix, tree, or short note.", formats:["table","matrix","tree","note"], strengths:["Format judgment","Communication fit"] },
+  { id:"SortFeedbackBeforeInterpreting", signal:"fmt", depth:0.89, short:"Sort feedback first", txt:"Sort feedback into Like, Dislike, Undecided, and exact quote before interpreting.", formats:["table","note"], strengths:["Communication fit","Evidence trust"] },
+  { id:"AskForProvenanceConstraintsVerification", signal:"fmt", depth:0.87, short:"Ask for the proof", txt:"Ask for provenance, constraints used, and one verification step before accepting it.", formats:["note"], strengths:["Format judgment","Evidence trust"] },
+  { id:"DiagnoseContentStyleTimingFormat", signal:"fmt", depth:0.85, short:"Diagnose the mismatch", txt:"Diagnose whether the issue is content, styling, timing, or format mismatch.", formats:["matrix"], strengths:["Format judgment"] }
+];
+const ANCHORS = {
+  time:{ txt:"Scan my calendar before the day starts." },
+  lev:{ txt:"Before adding effort, find the smallest move that could change the most outcomes." },
+  fmt:{ txt:"Before replying, choose the format that lets the other person use the message." }
+};
+
+/* Lenses (painterly art intentionally NOT referenced in the UI per Adam's redirect) */
+/* Real-photo covers ONLY (no AI / impressionist / cosmic imagery).
+   Extend by dropping a real photo into wireframes/covers/ and adding ONE line here. */
+const COVER_PHOTOS = [
+  { id:"tennis", src:"covers/cover-tennis.png", label:"Tennis" },
+  { id:"ocean",  src:"covers/cover-ocean.png",  label:"Ocean" },
+  { id:"mosque", src:"covers/cover-mosque.png", label:"Dome" },
+  { id:"desert", src:"covers/cover-desert.png", label:"Desert" }
+];
+const COVER_SRC = Object.fromEntries(COVER_PHOTOS.map(c => [c.id, c.src]));
+const DEFAULT_COVER = "desert";
+
+let LENSES = [
+  { id:"deep",     name:"Deep Work",        feel:"Focused", cover:"tennis", screenCover:"ocean",  grad:"linear-gradient(165deg,#1c2a39,#286498 58%,#3E79A8)", w:{lev:0.95,time:0.35,fmt:0.80}, timeFacets:[],               format:"matrix", master:0.8, accent:"lev" },
+  { id:"lowstress",name:"Low-Stress",       feel:"Calm",    cover:"ocean",  screenCover:"ocean",  grad:"linear-gradient(165deg,#22384c,#3E79A8 55%,#5E99BD)", w:{lev:0.30,time:0.95,fmt:0.40}, timeFacets:["stress","prep"], format:null,    master:0.55, accent:"time", cap:3 },
+  { id:"decision", name:"Decision Mode",    feel:"Decisive",cover:"desert", screenCover:"desert", grad:"linear-gradient(165deg,#172430,#286498 52%,#5E99BD)", w:{lev:0.85,time:0.40,fmt:0.95}, timeFacets:[],               format:"matrix", master:0.85, accent:"fmt" },
+  { id:"recall",   name:"Recall · Learning",feel:"Curious", cover:"mosque", screenCover:"mosque", grad:"linear-gradient(165deg,#2a4256,#4d86ab 55%,#7FB0CE)", w:{lev:0.50,time:0.50,fmt:0.90}, timeFacets:[],               format:"tree",   master:0.7,  accent:"fmt" },
+  { id:"blank",    name:"Build your own",   feel:"Yours",   cover:null,     screenCover:"ocean",  grad:"linear-gradient(165deg,#2B2E38,#42475a 60%,#555A6B)", w:{lev:0.50,time:0.50,fmt:0.50}, timeFacets:[],               format:null,     master:0.5,  accent:"gold", blank:true }
+];
+
+const state = {
+  lensName:"Deep Work", master:0.7, w:{lev:0.5,time:0.5,fmt:0.5}, timeFacets:new Set(), format:null, chosen:new Set(), cap:99,
+  hidden:new Set(), deleted:new Set(), order:null, shortText:{}, cover:DEFAULT_COVER, covers:{}, screenCover:"ocean"
+};
+let activeLens = null;
+
+let RULES = [
+  { id:"r1", when:"A calendar-scan reminder is rated useful", then:"Recommend deeper", em:"transition-stress reminders" },
+  { id:"r2", when:"A leverage reminder gets edited into my own words", then:"Raise my", em:"Execution-leverage weight" }
+];
+
+/* ════════════ SCORING STUB — swap for POST /recommendations later ════════════ */
+const Scoring = {
+  score(t, st) {
+    const sigW = st.w[t.signal];
+    let facet = 0;
+    if (t.signal === "time" && st.timeFacets.size) facet = (t.facets||[]).some(f=>st.timeFacets.has(f)) ? 0.16 : -0.10;
+    if (t.signal === "fmt"  && st.format)          facet = (t.formats||[]).includes(st.format) ? 0.16 : -0.10;
+    const personalized = t.depth * (0.45 + 0.7 * sigW) + facet;
+    return t.depth * (1 - st.master) + personalized * st.master;
+  },
+  meaningFit(st) {
+    const vals = [st.w.lev, st.w.time, st.w.fmt];
+    const spread = Math.max(...vals) - Math.min(...vals);
+    let specificity = 0;
+    if (st.format) specificity += 0.5;
+    if (st.timeFacets.size) specificity += Math.min(1, st.timeFacets.size/3) * 0.5;
+    return Math.max(8, Math.min(99, Math.round(40 + spread*34 + specificity*13 + st.master*12)));
+  }
+};
+/* ════════════════════════════════════════════════════════════════════════════ */
+
+function shortOf(t) { return state.shortText[t.id] ?? t.short; }
+function visibleRanked(st) {
+  const base = TEMPLATES.filter(t => !st.deleted.has(t.id) && !st.hidden.has(t.id));
+  const scored = base.map(t => ({ t, s: Scoring.score(t, st) }));
+  if (st.order && st.order.length) {
+    const idx = id => { const i = st.order.indexOf(id); return i < 0 ? 999 : i; };
+    scored.sort((a, b) => (idx(a.t.id) - idx(b.t.id)) || (b.s - a.s));
+  } else {
+    scored.sort((a, b) => b.s - a.s);
+  }
+  return scored.slice(0, st.cap);
+}
+function hiddenItems(st) { return TEMPLATES.filter(t => !st.deleted.has(t.id) && st.hidden.has(t.id)); }
+function lensFocal(l) {
+  const dom = Object.entries(l.w).sort((a,b)=>b[1]-a[1])[0];
+  return { pct: Math.round(dom[1]*100), label: l.blank ? "balanced" : SIGLABEL[dom[0]] };
+}
+
+const EYE_OPEN = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>';
+const EYE_OFF  = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18M10.6 6.2A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.3 4M6.3 8.3A17 17 0 0 0 2 12s3.5 7 10 7a10.6 10.6 0 0 0 4-.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const TRASH    = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const HANDLE   = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M8 6h.01M8 12h.01M8 18h.01M15 6h.01M15 12h.01M15 18h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
+const PHOTO    = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2.4" stroke="currentColor" stroke-width="1.8"/><circle cx="8.5" cy="10" r="1.6" fill="currentColor"/><path d="M5 17l4.5-4 3 2.6L16 12l3 3.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+/* ── lens chooser cards (onboarding) — small text, color-block, no imagery ── */
+const LENS_SIZE = ["L","S","M","M","S","M","S"]; // per-index → irregular widths/heights
+function lensCardHTML(l, i) {
+  const f = lensFocal(l);
+  const acc = l.accent === "gold" ? "var(--cerulean-frost)" : C[l.accent];
+  const size = LENS_SIZE[i % LENS_SIZE.length];
+  const col = { L:4, M:3, S:2 }[size];
+  const mh  = { L:156, M:134, S:116 }[size];
+  const bar = k => `<span class="lc-bar" style="--w:${Math.round(l.w[k]*100)}%;--c:${C[k]}"></span>`;
+  const cov = l.cover ? `background-image:url('${COVER_SRC[l.cover]}');background-size:cover;background-position:center;` : `background:${l.grad};`;
+  return `<div class="lens-card" data-lens="${l.id}" data-size="${size}" data-hascover="${!!l.cover}" style="--accent:${acc};${cov}grid-column:span ${col};min-height:${mh}px;">
+    <button class="lc-cover" data-lenscover-btn="${l.id}" title="${l.cover?'Change cover':'Add cover'}">${PHOTO}</button>
+    <div class="lc-head"><span class="lc-dot"></span><span class="lc-name">${l.name}</span></div>
+    <div class="lc-mix">${bar("lev")}${bar("time")}${bar("fmt")}</div>
+    <div class="lc-foot"><span class="lc-feel">${l.feel}</span><span class="lc-num">${f.pct}</span></div>
+    <div class="lc-edit">tap to open · then rearrange</div>
+  </div>`;
+}
+function renderLensChooser() {
+  $("#lensCarousel").innerHTML = LENSES.map(lensCardHTML).join("");
+  $$('#lensCarousel .lens-card').forEach(card => {
+    card.addEventListener("click", (e) => { if (e.target.closest(".lc-cover")) return; applyLens(card.dataset.lens, true); });
+    card.querySelector("[data-lenscover-btn]")?.addEventListener("click", (e) => { e.stopPropagation(); openPicker("lens", card.dataset.lens, e.currentTarget); });
+  });
+}
+
+/* ── irregular masonry: variable W+H grid; tile SIZE = importance ── */
+const SPAN = { L:{c:4,r:7}, M:{c:3,r:6}, S:{c:2,r:4}, head:{c:2,r:2}, fit:{c:2,r:4}, lens:{c:4,r:5}, slot:{c:2,r:4} };
+function span(k) { const s = SPAN[k]; return `grid-column:span ${s.c};grid-row:span ${s.r};`; }
+function bucketFor(score, max) { const r = max > 0 ? score / max : 0; return r >= 0.93 ? "L" : r >= 0.84 ? "M" : "S"; }
+const MUTE = { L:0, M:0.14, S:0.26 };
+
+function practiceTileHTML(t, score, max, hidden) {
+  const acc = C[t.signal];
+  const size = hidden ? "S" : bucketFor(score, max);
+  const mute = hidden ? 0.5 : MUTE[size];
+  const coverKey = state.covers[t.id];
+  const coverStyle = coverKey ? `background-image:url('${COVER_SRC[coverKey]}');background-size:cover;background-position:center;` : "";
+  return `<div class="cell p-tile" data-id="${t.id}" data-size="${size}" data-hidden="${!!hidden}" data-on="${state.chosen.has(t.id)}" data-hascover="${!!coverKey}"
+      style="${span(size)}--accent:${acc};--mute:${mute};--d:${t.depth}${coverStyle}">
+    <div class="p-bar">
+      <span class="p-handle" data-handle="${t.id}" title="Drag to reorder">${HANDLE}</span>
+      <span class="p-acts">
+        <button class="p-cover" data-cover-btn="${t.id}" title="${coverKey?'Change cover':'Add cover'}">${PHOTO}</button>
+        <button class="p-eye" data-eye="${t.id}" title="${hidden?'Show':'Hide'}">${hidden?EYE_OFF:EYE_OPEN}</button>
+        <button class="p-del" data-del="${t.id}" title="Delete">${TRASH}</button>
+      </span>
+    </div>
+    <div class="p-short" contenteditable="true" data-short="${t.id}">${shortOf(t)}</div>
+    <div class="p-foot"><span class="p-num">${t.depth.toFixed(2).replace(/^0/,'.')}</span><span class="p-tag">${GROUPNAME[t.signal]}</span></div>
+  </div>`;
+}
+function headerTileHTML(signal, count) {
+  return `<div class="cell h-tile" style="${span('head')}--accent:${C[signal]}">
+    <span class="m-dot"></span><span class="m-label">${GROUPNAME[signal]}</span><span class="m-count">${count}</span></div>`;
+}
+function fitTileHTML() {
+  return `<div class="cell fit-tile" id="fitTile" style="${span('fit')}">
+    <div class="recall-ring" id="ring">
+      <svg width="52" height="52" viewBox="0 0 92 92">
+        <circle cx="46" cy="46" r="40" fill="none" stroke="rgba(201,207,211,0.14)" stroke-width="9"/>
+        <circle class="fill" id="ringFill" cx="46" cy="46" r="40" fill="none" stroke="var(--lapis-lazuli)" stroke-width="9" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="113"/>
+      </svg>
+      <div class="ctr"><div><div class="v" id="ringVal">55<span class="u">%</span></div></div></div>
+    </div>
+    <div class="fit-cap"><b>fit</b>tune to raise</div>
+  </div>`;
+}
+function lensTileHTML() {
+  return `<div class="cell lens-tile" style="${span('lens')}">
+    <span class="m-label">Lenses</span>
+    <div class="m-chips">${LENSES.map(l => {
+      const acc = l.accent === "gold" ? "var(--cerulean-frost)" : C[l.accent];
+      const active = l.name === state.lensName;
+      return `<button class="m-chip${active?' active':''}" data-lens="${l.id}" style="--accent:${acc}">
+        <span class="m-chip-sw"></span>${l.name}<span class="m-chip-num">${lensFocal(l).pct}</span></button>`;
+    }).join("")}</div>
+  </div>`;
+}
+function slotTileHTML() {
+  return `<div class="cell slot-tile" id="slotTile" style="${span('slot')}" title="Save this arrangement as a lens">
+    <div class="plus">+</div><div class="slot-cap">save</div>
+  </div>`;
+}
+function restoreTileHTML() {
+  const fh = hiddenItems(state)[0];
+  const inner = fh
+    ? `<span class="m-label">Hidden</span><button class="m-restore-btn" data-restore="${fh.id}">show ${shortOf(fh)}</button>`
+    : `<span class="m-label">Empty</span><button class="m-restore-btn" id="goLenses2">choose a lens</button>`;
+  return `<div class="cell restore-tile" style="${span('lens')}">${inner}</div>`;
+}
+/* gestalt: lead with the lens's dominant strength, cluster each group by color */
+function renderMasonry() {
+  const vis = visibleRanked(state);
+  const max = vis[0]?.s ?? 1;
+  const dom = Object.entries(state.w).sort((a,b)=>b[1]-a[1])[0][0];
+  const order = [dom, ...["time","lev","fmt"].filter(s => s !== dom)];
+  let html = fitTileHTML() + lensTileHTML();
+  let any = false;
+  order.forEach(sig => {
+    const items = vis.filter(r => r.t.signal === sig);
+    const hid = hiddenItems(state).filter(t => t.signal === sig);
+    if (items.length === 0 && hid.length === 0) return;
+    any = true;
+    html += headerTileHTML(sig, items.length);
+    items.forEach(({t,s}) => html += practiceTileHTML(t, s, max, false));
+    hid.forEach(t => html += practiceTileHTML(t, Scoring.score(t, state), max, true));
+  });
+  if (!any) html += restoreTileHTML();
+  html += slotTileHTML();
+  $("#masonry").innerHTML = html;
+  bindMasonry(); updateRing();
+}
+function bindMasonry() {
+  $$('#masonry .p-tile').forEach(el => {
+    const id = el.dataset.id;
+    el.addEventListener("click", (e) => {
+      if (e.target.closest(".p-handle, .p-cover, .p-eye, .p-del, [contenteditable]")) return;
+      if (el.dataset.hidden === "true") return;
+      toggleChosen(id, el);
+    });
+    el.querySelector("[data-cover-btn]")?.addEventListener("click", (e) => { e.stopPropagation(); openPicker("card", id, e.currentTarget); });
+    el.querySelector("[data-eye]")?.addEventListener("click", (e) => { e.stopPropagation(); toggleHidden(id); });
+    el.querySelector("[data-del]")?.addEventListener("click", (e) => { e.stopPropagation(); deleteItem(id); });
+    const s = el.querySelector("[data-short]");
+    s?.addEventListener("blur", () => editShort(id, s.textContent.trim()));
+    s?.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); s.blur(); } });
+    el.querySelector("[data-handle]")?.addEventListener("pointerdown", (e) => startDrag(e, el));
+  });
+  $$('#masonry .m-chip').forEach(c => c.addEventListener("click", () => applyLens(c.dataset.lens, false)));
+  $("#slotTile")?.addEventListener("click", saveAsLens);
+  $("#fitTile")?.addEventListener("click", () => setTab("tune"));
+  $('#masonry [data-restore]')?.addEventListener("click", e => toggleHidden(e.target.dataset.restore));
+  $("#goLenses2")?.addEventListener("click", () => setTab("lenses"));
+}
+
+function toggleChosen(id, el) {
+  if (state.chosen.has(id)) state.chosen.delete(id); else state.chosen.add(id);
+  el.dataset.on = state.chosen.has(id);
+  toast(state.chosen.has(id) ? "Saved to build" : "Removed");
+}
+function toggleHidden(id) {
+  if (state.hidden.has(id)) state.hidden.delete(id); else state.hidden.add(id);
+  persistEdits(); renderMasonry();
+  toast(state.hidden.has(id) ? "Hidden" : "Back in your set");
+}
+function deleteItem(id) {
+  state.deleted.add(id); state.hidden.delete(id);
+  if (state.order) state.order = state.order.filter(x => x !== id);
+  persistEdits(); renderMasonry(); toast("Deleted");
+}
+function editShort(id, text) { if (!text) return; state.shortText[id] = text; persistEdits(); }
+function persistEdits() {
+  if (!activeLens) return;
+  activeLens.hidden = [...state.hidden];
+  activeLens.deleted = [...state.deleted];
+  activeLens.order = state.order ? [...state.order] : null;
+  activeLens.shortText = { ...state.shortText };
+  activeLens.covers = { ...state.covers };
+  activeLens.cover = state.cover;
+  activeLens.screenCover = state.screenCover;
+}
+
+/* ── drag to rearrange (within a group's row list; pointer = touch + mouse) ── */
+let dragRow = null;
+function startDrag(e, row) {
+  e.preventDefault(); dragRow = row; row.classList.add("dragging");
+  document.addEventListener("pointermove", onDragMove);
+  document.addEventListener("pointerup", endDrag, { once: true });
+}
+function onDragMove(e) {
+  if (!dragRow) return;
+  const host = $("#masonry");
+  const tiles = [...host.querySelectorAll('.p-tile')].filter(n => n !== dragRow);
+  let best = null, bd = Infinity;
+  for (const t of tiles) {
+    const r = t.getBoundingClientRect();
+    const dx = e.clientX - (r.left + r.width/2), dy = e.clientY - (r.top + r.height/2);
+    const d = dx*dx + dy*dy;
+    if (d < bd) { bd = d; best = t; }
+  }
+  if (!best) return;
+  const r = best.getBoundingClientRect();
+  const before = e.clientY < r.top + r.height/2 || (e.clientX < r.left + r.width/2 && e.clientY < r.bottom);
+  host.insertBefore(dragRow, before ? best : best.nextSibling);
+}
+function endDrag() {
+  if (!dragRow) return;
+  dragRow.classList.remove("dragging");
+  document.removeEventListener("pointermove", onDragMove);
+  state.order = $$('#masonry .p-tile').map(n => n.dataset.id);
+  persistEdits(); dragRow = null; toast("Reordered");
+}
+
+/* ── meaning-fit: small embedded dial ── */
+const RING_C = 2 * Math.PI * 40;
+function updateRing() {
+  const fit = Scoring.meaningFit(state);
+  const v = $("#ringVal"); if (!v) return;
+  v.innerHTML = `${fit}<span class="u">%</span>`;
+  const dom = Object.entries(state.w).sort((a,b)=>b[1]-a[1])[0][0];
+  const f = $("#ringFill"); if (f) { f.style.strokeDashoffset = RING_C * (1 - fit/100); f.style.stroke = C[dom]; }
+}
+
+/* ── live re-sort + re-size, animated (FLIP across the whole masonry) ── */
+function flipRender() {
+  const first = new Map($$('#masonry .p-tile').map(n => [n.dataset.id, n.getBoundingClientRect()]));
+  renderMasonry();
+  $$('#masonry .p-tile').forEach(n => {
+    const f = first.get(n.dataset.id); if (!f) return;
+    const r = n.getBoundingClientRect();
+    const dx = f.left - r.left, dy = f.top - r.top, sx = f.width / r.width, sy = f.height / r.height;
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && Math.abs(sx-1) < 0.01 && Math.abs(sy-1) < 0.01) return;
+    n.style.transformOrigin = "top left"; n.style.transition = "none";
+    n.style.transform = `translate(${dx}px,${dy}px) scale(${sx},${sy})`;
+    requestAnimationFrame(() => { n.style.transition = "transform .42s cubic-bezier(.2,.9,.3,1)"; n.style.transform = ""; });
+  });
+}
+function liveUpdate() { flipRender(); }   // re-scores → re-sorts + re-sizes tiles, animated
+
+/* ── FULL-SCREEN background photo (behind everything) ── */
+function renderScreenBg() {
+  const key = state.screenCover;
+  const bg = $("#screenBg"), sc = $("#screenScrim"), gr = $(".ground");
+  if (key && COVER_SRC[key]) {
+    bg.style.backgroundImage = `url('${COVER_SRC[key]}')`;
+    bg.style.display = "block"; sc.style.display = "block"; gr.style.display = "none";
+  } else {
+    bg.style.display = "none"; sc.style.display = "none"; gr.style.display = "block"; // fall back to faceted ground
+  }
+}
+function setScreenCover(key) {
+  state.screenCover = key || null;
+  if (activeLens) activeLens.screenCover = state.screenCover;   // persist onto active lens
+  renderScreenBg(); renderCover();
+  $("#coverPicker").dataset.open = "false";
+  toast(key ? "Background set" : "Background cleared");
+}
+
+/* ── top banner: "Cover" control now sets the SCREEN background; ∅ included.
+   When a screen background exists, the banner becomes a crisp window onto it. ── */
+function renderCoverPicker() {
+  $("#coverPicker").innerHTML = `<div class="cover-thumb cover-none" data-cover="">∅</div>` +
+    COVER_PHOTOS.map(c => `<div class="cover-thumb" data-cover="${c.id}" style="background-image:url('${c.src}')" title="${c.label}"></div>`).join("");
+  $$('#coverPicker .cover-thumb').forEach(t => t.addEventListener("click", () => setScreenCover(t.dataset.cover || null)));
+}
+function renderCover() {
+  const defer = !!state.screenCover;
+  $("#cover").dataset.defer = String(defer);
+  // defer → transparent banner so the fixed screen photo shows crisp; else show the lens page cover
+  $("#coverImg").style.backgroundImage = defer ? "none" : (state.cover ? `url('${COVER_SRC[state.cover]}')` : "none");
+  $$('#coverPicker .cover-thumb').forEach(t => t.classList.toggle("active", (t.dataset.cover || "") === (state.screenCover || "")));
+}
+
+/* ── shared per-card / per-lens cover picker ── */
+let pickerTarget = null;
+function openPicker(kind, id, anchor) {
+  pickerTarget = { kind, id };
+  const cur = kind === "card" ? state.covers[id] : (LENSES.find(l => l.id === id)?.cover);
+  const p = $("#cardPicker");
+  p.innerHTML = `<div class="cp-none${!cur?' active':''}" data-pick="">∅</div>` +
+    COVER_PHOTOS.map(c => `<div class="cp-thumb${c.id===cur?' active':''}" data-pick="${c.id}" style="background-image:url('${c.src}')" title="${c.label}"></div>`).join("");
+  const scr = $(".screen").getBoundingClientRect();
+  const a = anchor.getBoundingClientRect();
+  let left = a.left - scr.left - 120; left = Math.max(8, Math.min(left, 393 - 196));
+  let top = a.bottom - scr.top + 6; if (top > 852 - 130) top = a.top - scr.top - 124;
+  p.style.left = left + "px"; p.style.top = top + "px"; p.dataset.open = "true";
+  $$('#cardPicker [data-pick]').forEach(el => el.addEventListener("click", () => applyPick(el.dataset.pick)));
+}
+function applyPick(key) {
+  if (!pickerTarget) return;
+  const { kind, id } = pickerTarget;
+  if (kind === "card") {
+    if (key) state.covers[id] = key; else delete state.covers[id];
+    persistEdits(); renderMasonry();
+  } else {
+    const l = LENSES.find(x => x.id === id);
+    if (l) { l.cover = key || null; if (l === activeLens) { state.cover = key || DEFAULT_COVER; renderCover(); } renderLensChooser(); }
+  }
+  closePicker(); toast(key ? "Cover set" : "Cover removed");
+}
+function closePicker() { $("#cardPicker").dataset.open = "false"; pickerTarget = null; }
+
+/* ── apply a lens (loads weights + this template's saved edits) ── */
+function applyLens(id, enterMain) {
+  const l = LENSES.find(x => x.id === id);
+  if (!l) return;
+  activeLens = l;
+  state.lensName = l.name; state.master = l.master; state.w = { ...l.w };
+  state.timeFacets = new Set(l.timeFacets || []); state.format = l.format || null; state.cap = l.cap || 99;
+  state.hidden = new Set(l.hidden || []);
+  state.deleted = new Set(l.deleted || []);
+  state.order = l.order ? [...l.order] : null;
+  state.shortText = { ...(l.shortText || {}) };
+  state.cover = l.cover || DEFAULT_COVER;
+  state.covers = { ...(l.covers || {}) };
+  state.screenCover = (l.screenCover !== undefined) ? l.screenCover : "ocean";
+  syncControls(); renderMasonry(); renderScreenBg(); renderCover();
+  if (enterMain) { $("#onboard").dataset.active = "false"; $("#main").dataset.active = "true"; setTab("home"); }
+}
+
+function syncControls() {
+  $("#masterSlider").value = Math.round(state.master * 100);
+  $("#masterSlider").style.setProperty("--p", Math.round(state.master*100) + "%");
+  $("#masterAmt").textContent = Math.round(state.master * 100) + "%";
+  buildTuneDims();
+}
+
+function renderRules() {
+  $("#ruleList").innerHTML = RULES.map(r => `
+    <div class="rule" data-rule="${r.id}">
+      <div class="body"><div class="when">When <span contenteditable="true" data-f="when">${r.when}</span></div>
+        <div class="then">${r.then} <b contenteditable="true" data-f="em">${r.em}</b></div></div>
+      <button class="del" title="Remove">×</button>
+    </div>`).join("");
+  $$('#ruleList .rule').forEach(el => {
+    const id = el.dataset.rule;
+    el.querySelector(".del").addEventListener("click", () => { RULES = RULES.filter(r => r.id !== id); renderRules(); toast("Rule removed"); });
+    $$('[contenteditable]', el).forEach(span => span.addEventListener("blur", () => { const r = RULES.find(x => x.id === id); if (r) r[span.dataset.f] = span.textContent.trim(); }));
+  });
+}
+
+function buildTuneDims() {
+  const timeChips = [["stress","transition stress"],["prep","prep"],["energy","energy"]];
+  const formats = ["table","matrix","tree","note"];
+  $("#tuneDims").innerHTML = `
+    <div class="dim" style="--accent:${C.lev}">
+      <div class="dh"><span class="nm"><span class="sw" style="background:${C.lev}"></span>Leverage</span><span class="v" id="tv_lev">${Math.round(state.w.lev*100)}</span></div>
+      <input type="range" data-tsig="lev" min="0" max="100" value="${Math.round(state.w.lev*100)}" style="--p:${Math.round(state.w.lev*100)}%;--accent:${C.lev}"/>
+    </div>
+    <div class="dim" style="--accent:${C.time}">
+      <div class="dh"><span class="nm"><span class="sw" style="background:${C.time}"></span>Time / Transition</span><span class="v" id="tv_time">${Math.round(state.w.time*100)}</span></div>
+      <input type="range" data-tsig="time" min="0" max="100" value="${Math.round(state.w.time*100)}" style="--p:${Math.round(state.w.time*100)}%;--accent:${C.time}"/>
+      <div class="chips" id="timeChips">
+        ${timeChips.map(([k,l]) => `<div class="chip-row" data-facet="${k}" data-on="${state.timeFacets.has(k)}" style="--accent:${C.time}">
+          <span class="tick"><svg width="9" height="9" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5 6 11l5.5-7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${l}</div>`).join("")}
+      </div>
+    </div>
+    <div class="dim" style="--accent:${C.fmt}">
+      <div class="dh"><span class="nm"><span class="sw" style="background:${C.fmt}"></span>Format</span><span class="v" id="tv_fmt">${Math.round(state.w.fmt*100)}</span></div>
+      <input type="range" data-tsig="fmt" min="0" max="100" value="${Math.round(state.w.fmt*100)}" style="--p:${Math.round(state.w.fmt*100)}%;--accent:${C.fmt}"/>
+      <div class="seg" id="fmtSeg">${formats.map(f => `<button data-fmt="${f}" data-on="${state.format===f}">${f}</button>`).join("")}</div>
+    </div>`;
+
+  $$('#tuneDims input[data-tsig]').forEach(inp => inp.addEventListener("input", () => {
+    const k = inp.dataset.tsig; state.w[k] = +inp.value/100;
+    inp.style.setProperty("--p", inp.value + "%"); $("#tv_"+k).textContent = inp.value;
+    liveUpdate();
+  }));
+  $$('#timeChips .chip-row').forEach(ch => ch.addEventListener("click", () => {
+    const f = ch.dataset.facet;
+    if (state.timeFacets.has(f)) state.timeFacets.delete(f); else state.timeFacets.add(f);
+    ch.dataset.on = state.timeFacets.has(f); liveUpdate();
+  }));
+  $$('#fmtSeg button').forEach(b => b.addEventListener("click", () => {
+    state.format = (state.format === b.dataset.fmt) ? null : b.dataset.fmt;
+    $$('#fmtSeg button').forEach(x => x.dataset.on = (x.dataset.fmt === state.format));
+    liveUpdate();
+  }));
+}
+
+function saveAsLens() {
+  const n = LENSES.filter(l => l.id.startsWith("custom")).length + 1;
+  const dom = Object.entries(state.w).sort((a,b)=>b[1]-a[1])[0][0];
+  const grads = { lev:"linear-gradient(165deg,#1c2a39,#286498 58%,#3E79A8)", time:"linear-gradient(165deg,#22384c,#3E79A8 55%,#5E99BD)", fmt:"linear-gradient(165deg,#2a4256,#4d86ab 55%,#7FB0CE)" };
+  const lens = { id:"custom"+n, name:"My Lens "+n, feel:"Tuned", cover:state.cover, covers:{ ...state.covers }, screenCover:state.screenCover, grad:grads[dom], w:{...state.w}, timeFacets:[...state.timeFacets], format:state.format, master:state.master, accent:dom,
+    order: state.order ? [...state.order] : [...visibleRanked(state).map(r => r.t.id)],
+    hidden: [...state.hidden], deleted: [...state.deleted], shortText: { ...state.shortText } };
+  LENSES.splice(LENSES.length-1, 0, lens);
+  activeLens = lens; state.lensName = lens.name;
+  renderLensChooser(); renderMasonry();
+  toast("Saved as " + lens.name);
+}
+
+function setTab(name) {
+  $$('.tab').forEach(t => t.dataset.active = (t.dataset.tab === name));
+  if (name === "tune") openSheet("tune");
+  else if (name === "you") { renderYou(); openSheet("you"); }
+  else if (name === "lenses") { $("#main").dataset.active = "false"; $("#onboard").dataset.active = "true"; $("#onboard .scroll").scrollTo({ top: 0 }); }
+}
+function openSheet(which) {
+  if (which === "tune") { $("#tuneScrim").dataset.open="true"; $("#tuneSheet").dataset.open="true"; }
+  if (which === "you")  { $("#youScrim").dataset.open="true";  $("#youSheet").dataset.open="true"; }
+}
+function closeSheets() {
+  ["tuneScrim","tuneSheet","youScrim","youSheet"].forEach(id => $("#"+id).dataset.open="false");
+  $$('.tab').forEach(t => t.dataset.active = (t.dataset.tab === "home"));
+}
+function renderYou() {
+  const list = $("#youChosen");
+  if (state.chosen.size === 0) {
+    const vis = visibleRanked(state);
+    if (vis.length === 0) { list.innerHTML = `<div class="you-invite"><div class="t2">Reload practices</div><div class="p2">Choose a lens to fill your mosaic again.</div></div>`; return; }
+    const top = vis[0].t;
+    list.innerHTML = `<div class="you-invite"><div class="t2">Keep what fits you.</div>
+      <div class="p2">Tap a tile in the mosaic to keep it. Start with this one.</div>
+      <div class="pick"><span class="num2">${top.depth.toFixed(2)}</span><span class="pt">${shortOf(top)}</span><button class="add" data-youadd="${top.id}">Keep</button></div></div>`;
+    $('[data-youadd]', list)?.addEventListener("click", () => { state.chosen.add(top.id); renderMasonry(); renderYou(); toast("Saved to build"); });
+    return;
+  }
+  list.innerHTML = [...state.chosen].map(id => {
+    const t = TEMPLATES.find(x => x.id === id);
+    return `<div class="you-row"><span class="b" style="background:${C[t.signal]}"></span><span style="flex:1">${shortOf(t)}</span><span class="d">${t.depth.toFixed(2)}</span></div>`;
+  }).join("");
+}
+
+let toastTimer;
+function toast(msg) { const el = $("#toast"); el.textContent = msg; el.dataset.show = "true"; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.dataset.show = "false", 1400); }
+
+/* wiring */
+$("#masterSlider").addEventListener("input", e => {
+  state.master = +e.target.value/100; e.target.style.setProperty("--p", e.target.value + "%"); $("#masterAmt").textContent = e.target.value + "%";
+  liveUpdate();
+});
+$("#addRule").addEventListener("click", () => { RULES.push({ id:"r"+Date.now(), when:"a new condition you choose", then:"do", em:"a new action" }); renderRules(); toast("Rule added — tap to edit"); });
+$("#coverChange").addEventListener("click", () => {
+  const p = $("#coverPicker"); p.dataset.open = p.dataset.open === "true" ? "false" : "true";
+});
+$("#fab").addEventListener("click", () => setTab("tune"));
+/* close the per-card picker on any outside tap */
+document.addEventListener("pointerdown", (e) => {
+  if (pickerTarget && !e.target.closest("#cardPicker") && !e.target.closest("[data-cover-btn]") && !e.target.closest("[data-lenscover-btn]")) closePicker();
+}, true);
+$$('.tab').forEach(t => t.addEventListener("click", () => setTab(t.dataset.tab)));
+$("#tuneScrim").addEventListener("click", closeSheets);
+$("#youScrim").addEventListener("click", closeSheets);
+$("#tuneDone").addEventListener("click", closeSheets);
+$("#youDone").addEventListener("click", closeSheets);
+$("#saveLens").addEventListener("click", saveAsLens);
+
+/* init */
+renderCoverPicker();
+renderLensChooser();
+renderRules();
+applyLens("deep", false);
+</script>
+</body>
+</html>

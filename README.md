@@ -58,6 +58,7 @@ See:
 - [Personalized recommendation engine](./src/personalized-recommendation-engine.js)
 - [Proactive guidance](./src/proactive-guidance.js)
 - [Personalization design spec](./docs/design/2026-05-28-personalization-layer-design.md)
+- [Leverage as a disposition (BFO/CCO stub)](./docs/ontology/leverage-as-disposition.md)
 - [Proof test](./test/format-match-engine.test.js)
 - [Recommendation proof test](./test/reminder-recommendation-engine.test.js)
 

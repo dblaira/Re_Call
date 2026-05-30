@@ -1,0 +1,195 @@
+@prefix recall: <https://understood.app/ontology/project-recall#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/> .
+@prefix ro: <http://purl.obolibrary.org/obo/> .
+@prefix obo: <http://purl.obolibrary.org/obo/> .
+@prefix cco: <https://www.commoncoreontologies.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# Leverage-as-Disposition stub (additive, Protégé-ready)
+#
+# This file is intentionally NOT loaded by the runtime engine. It is a
+# modeling stub that aligns Re_Call's "Leverage" concept to BFO 2020 + CCO
+# so leverage stays a formal, reasoned-over entity instead of a loose tag.
+#
+# BFO realizable-entity vocabulary used here:
+#   bfo:BFO_0000017  realizable entity (parent of the three below)
+#   bfo:BFO_0000016  disposition  -- an internally-grounded tendency to behave
+#                                     a certain way IF realized; need not ever
+#                                     be realized; lost only by physical change
+#                                     to the bearer.
+#   bfo:BFO_0000034  function     -- a disposition that exists because the
+#                                     bearer was selected/designed for it.
+#   bfo:BFO_0000023  role         -- realizable that is externally grounded
+#                                     (contextual, optional, can come and go
+#                                     without changing the bearer's physics).
+#   bfo:BFO_0000015  process      -- the occurrent in which a realizable is
+#                                     realized.
+#   bfo:BFO_0000054  realized in  -- links a realizable to the process that
+#                                     realizes it.
+#
+# WHY Disposition (not Function, not Role):
+#   Leverage is a *tendency* a configuration (a habit stack, a decision point,
+#   a bottleneck) has to amplify outcomes when acted on. It is grounded in how
+#   the bearer is actually structured (Disposition), not assigned by external
+#   context (Role), and Re_Call does not claim it was teleologically designed
+#   for that purpose (Function). It may sit latent until a process realizes it.
+#################################################################
+
+
+#################################################################
+# Class
+#################################################################
+
+recall:LeverageDisposition
+    a owl:Class ;
+    rdfs:subClassOf bfo:BFO_0000016 ;   # bfo:disposition
+    rdfs:label "Leverage disposition" ;
+    rdfs:comment "A disposition borne by some Re_Call entity (a habit stack, a decision point, a bottleneck) to produce outsized change in downstream outcomes when it is realized in a process. Modeled as a Disposition because it is internally grounded in the bearer's structure and may remain unrealized until acted on, unlike a Role (externally assigned) or a Function (selected/designed for the effect)." .
+
+
+#################################################################
+# Object properties
+#################################################################
+
+# Realizable-bearer relation: which entity HAS the leverage disposition.
+#
+# NOTE ON IRI: the prompt suggested obo:BFO_0000186, but that IRI is NOT
+# "has disposition" in BFO 2020 (it is a continuant-part relation). The
+# correct realizable->bearer relation is RO 'has disposition' = obo:RO_0000091
+# (inverse: obo:RO_0000092 'disposition of'), which specializes the general
+# BFO bearer relation obo:BFO_0000196 'bearer of'. We therefore subproperty
+# from obo:RO_0000091. FLAG: verify RO_0000091 against your loaded BFO/RO build.
+recall:hasLeverage
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf obo:RO_0000091 ;   # ro:'has disposition' (NOT BFO_0000186)
+    rdfs:domain bfo:BFO_0000004 ;          # bfo:independent continuant (the bearer)
+    rdfs:range recall:LeverageDisposition ;
+    rdfs:label "has leverage" ;
+    rdfs:comment "Relates a bearer to the leverage disposition that inheres in it. Subproperty of RO 'has disposition' (obo:RO_0000091), the realizable->bearer relation for dispositions." .
+
+# A leverage disposition is realized in some process.
+recall:realizedIn
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf bfo:BFO_0000054 ;   # bfo:'realized in'
+    rdfs:domain recall:LeverageDisposition ;
+    rdfs:range bfo:BFO_0000015 ;            # bfo:process
+    rdfs:label "realized in" ;
+    rdfs:comment "Links a latent leverage disposition to the process (an occurrent) in which it is actually exercised." .
+
+# The realizing process is causally upstream of (amplifies) some outcome.
+#
+# NOTE ON IRI: the prompt cited RO_0002506. The canonical RO term for
+# "causally upstream of or within" is obo:RO_0002418 (with obo:RO_0002411
+# 'causally upstream of'). RO_0002506 is 'causal relation between processes'.
+# We use obo:RO_0002418 here as the most precise fit and FLAG that the exact
+# RO IRI should be confirmed against your RO build before reasoning.
+recall:amplifiesOutcomeOf
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf obo:RO_0002418 ;   # ro:'causally upstream of or within' (prompt said RO_0002506 -- FLAG)
+    rdfs:domain bfo:BFO_0000015 ;          # bfo:process
+    rdfs:range bfo:BFO_0000015 ;           # bfo:process
+    rdfs:label "amplifies outcome of" ;
+    rdfs:comment "A realized-leverage process is causally upstream of an outcome process whose probability or magnitude it raises. Subproperty of RO 'causally upstream of or within'." .
+
+recall:increasesProbabilityOf
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf recall:amplifiesOutcomeOf ;
+    rdfs:label "increases probability of" ;
+    rdfs:comment "Specialization of amplification: the leverage process makes the downstream outcome more likely to occur." .
+
+recall:increasesMagnitudeOf
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf recall:amplifiesOutcomeOf ;
+    rdfs:label "increases magnitude of" ;
+    rdfs:comment "Specialization of amplification: the leverage process makes the downstream outcome larger in effect when it does occur." .
+
+# CCO mid-level clarity: distinguish what feeds a process from what it yields.
+#
+# NOTE ON IRIs: CCO's current release publishes its Extended Relation Ontology
+# terms under opaque ont-style IRIs (e.g. cco:ont00001816). The exact
+# has_input / has_output IRIs were NOT verified here, so the two properties
+# below are declared as LOCAL recall: aliases and mapped to cco: with
+# rdfs:seeAlso PLACEHOLDERS that MUST be replaced with the real CCO IRIs
+# before relying on CCO interoperability. They are flagged, not invented as
+# real-looking IRIs.
+recall:hasInput
+    a owl:ObjectProperty ;
+    rdfs:label "has input" ;
+    rdfs:comment "Mid-level CCO-aligned relation: a process has some entity as input. PLACEHOLDER alias for CCO 'has_input' (Extended Relation Ontology) -- replace seeAlso with the verified CCO ont IRI." ;
+    rdfs:seeAlso <https://www.commoncoreontologies.org/has_input> .   # FLAG: placeholder, confirm CCO ont IRI
+
+recall:hasOutput
+    a owl:ObjectProperty ;
+    rdfs:label "has output" ;
+    rdfs:comment "Mid-level CCO-aligned relation: a process has some entity as output. PLACEHOLDER alias for CCO 'has_output' (Extended Relation Ontology) -- replace seeAlso with the verified CCO ont IRI." ;
+    rdfs:seeAlso <https://www.commoncoreontologies.org/has_output> .  # FLAG: placeholder, confirm CCO ont IRI
+
+
+#################################################################
+# Datatype property
+#################################################################
+
+recall:leverageScore
+    a owl:DatatypeProperty ;
+    rdfs:domain recall:LeverageDisposition ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "leverage score" ;
+    rdfs:comment "Numeric estimate of how much a leverage disposition amplifies outcomes when realized. Conventionally 0-1 (0 = none, 1 = maximal within the modeled set) but left unbounded so unusually high-leverage points can exceed 1." .
+
+
+#################################################################
+# Example instances -- grounded in real Re_Call entities
+#
+# These triples connect the disposition pattern to the LIVE graph in
+# reminder-recommendation.ttl: the recall:LeverageAwareness and
+# recall:ExecutionLeverage user strengths, and the leverage templates such
+# as recall:NameSmallInputAndOutcome and recall:FindBottleneckBlockingOutcomes.
+#################################################################
+
+# A concrete bearer: the user's morning-review habit stack.
+recall:HabitStack_MorningReview
+    a owl:NamedIndividual ;
+    rdfs:label "Habit stack: morning review" ;
+    rdfs:comment "An independent continuant (an arranged routine) that bears a leverage disposition." ;
+    recall:hasLeverage recall:Leverage_MorningReview .
+
+recall:Leverage_MorningReview
+    a recall:LeverageDisposition ;
+    rdfs:label "Leverage of the morning review" ;
+    recall:leverageScore "0.9"^^xsd:decimal ;
+    recall:realizedIn recall:MorningReviewProcess ;
+    # Tie back to the live strength graph: realizing this disposition is how the
+    # user's LeverageAwareness / ExecutionLeverage strengths actually pay off.
+    rdfs:seeAlso recall:LeverageAwareness, recall:ExecutionLeverage .
+
+# The process in which the disposition is realized.
+recall:MorningReviewProcess
+    a owl:NamedIndividual ;     # instance of bfo:process (BFO_0000015)
+    a bfo:BFO_0000015 ;
+    rdfs:label "Morning review process" ;
+    recall:amplifiesOutcomeOf recall:SchedulingDecisions ;
+    recall:increasesProbabilityOf recall:SchedulingDecisions .
+
+# The downstream outcome process being amplified.
+recall:SchedulingDecisions
+    a owl:NamedIndividual ;
+    a bfo:BFO_0000015 ;
+    rdfs:label "Scheduling decisions" ;
+    recall:hasOutput recall:ProtectedTransitionTime .
+
+recall:ProtectedTransitionTime
+    a owl:NamedIndividual ;
+    rdfs:label "Protected transition time" ;
+    rdfs:comment "The output the leverage chain protects: calendar time reserved for transitions, the payoff Re_Call's time-awareness templates aim at." .
+
+# Connect the disposition to the existing leverage TEMPLATES so the stub is
+# anchored to the live recommendation graph rather than floating free. These
+# templates already exist in reminder-recommendation.ttl and deepen the
+# LeverageAwareness / ExecutionLeverage strengths.
+recall:Leverage_MorningReview
+    recall:hasInput recall:NameSmallInputAndOutcome ;
+    recall:hasInput recall:FindBottleneckBlockingOutcomes .

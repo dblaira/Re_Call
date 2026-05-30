@@ -8,6 +8,19 @@ The Vercel surface is intentionally small:
 
 - `GET /api/health`
 - `POST /api/recommendations`
+- `POST /api/signal`
+
+`POST /api/recommendations` runs the universal graph recommender by default. If the request body
+includes a `userId`, it loads that user's signal history + declared goal weights from Supabase and
+returns a personalized re-ranking instead (still within the deeper-not-broader set).
+
+`POST /api/signal` records one feedback signal — body `{ userId, templateId, signalType }`,
+`signalType` ∈ `edit | positive | accept | dismiss` — as append-only rows in
+`recall.user_strength_events`.
+
+Both personalization paths forward an incoming `Authorization: Bearer <jwt>` to Supabase so the
+`recall.*` RLS policies enforce `user_id = auth.uid()`. With no bearer token they fall back to the
+service-role key (trusted server-side path — single-user verification and goal-weight seeding).
 
 The build command is `npm test`, so deployment fails if the deterministic graph contracts fail.
 
@@ -33,6 +46,21 @@ Project: `Re_Call`
 - Edge Function auth: JWT required
 - Current production row counts: `recall.rdf_prefixes` 9, `recall.rdf_terms` 56, `recall.rdf_triples` 107, `recall.neo4j_edges` 77, `recall.neo4j_node_properties` 30.
 - Supabase does not currently have a GitHub repository connected. That is expected for now; see `docs/supabase-github-connection.md`.
+
+### Personalization persistence (live adapter)
+
+The personalization read/write paths use `@supabase/supabase-js` via `src/supabase-client.js`
+(client factory) and `src/supabase-personalization-db.js` (the `recall.*` adapter). Env vars used
+at runtime: `SUPABASE_URL`, `SUPABASE_ANON_KEY` (user-JWT path), `SUPABASE_SERVICE_ROLE_KEY`
+(server path). Move to the user-JWT path for multi-user beta by having the client sign in to
+Supabase Auth and send its JWT; the `auth.uid()` policies then enforce per-user access with no
+code or schema change.
+
+**Required Supabase setting:** the personalization tables live in the `recall` schema, which the
+PostgREST Data API does not expose by default. Add `recall` to **Project Settings → API (Data API)
+→ Exposed schemas** (alongside `public`), or `supabase-js` `.schema("recall")` calls are rejected
+with PGRST106. This applies to **every** key — the service role bypasses row-level security but not
+PostgREST's schema-exposure gate — so it is required for both the service-role and user-JWT paths.
 
 ## RDF And Neo4j Shape
 

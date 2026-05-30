@@ -33,6 +33,48 @@ xcodebuild -project ios/ReCall.xcodeproj -scheme ReCall \
 > `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` (or run
 > `sudo xcode-select -s /Applications/Xcode.app`).
 
+## Code signing / running on device
+
+Signing is **Automatic** (Xcode-managed provisioning). The settings live in `project.yml`
+and are baked into `ReCall.xcodeproj` on every `xcodegen generate`:
+
+- `CODE_SIGN_STYLE = Automatic`
+- `DEVELOPMENT_TEAM = 7FKUS5M5QS` (Adam Blair — **Personal Team**, Apple ID `adamblair1@mac.com`)
+- `CODE_SIGN_IDENTITY = "Apple Development"`
+- `PRODUCT_BUNDLE_IDENTIFIER = app.understood.recall`
+
+> **Note on the team ID:** an earlier config used `YQT2TQ53UN`, which came from a stale
+> certificate whose team is **not** signed into Xcode. The team that is actually signed in is
+> the free Personal Team `7FKUS5M5QS`, so that's what the project uses.
+
+### One-time Xcode setup (GUI)
+
+Automatic signing needs the Apple ID present in Xcode (**Settings ▸ Accounts**) so it can
+create the provisioning profile. The Apple ID `adamblair1@mac.com` is already signed in, so
+`xcodebuild ... -allowProvisioningUpdates` creates the personal-team development cert +
+profile non-interactively. If you ever sign in on a fresh machine, add the Apple ID under
+**Xcode ▸ Settings ▸ Accounts ▸ +** first.
+
+> **Free / personal team caveat:** `7FKUS5M5QS` is a free (personal) team, not a paid Apple
+> Developer Program team. Apps signed with it expire after **7 days** and must be re-installed
+> from Xcode. A paid membership removes this limit.
+
+### Build for a device from the command line
+
+```bash
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
+  -project ios/ReCall.xcodeproj -scheme ReCall \
+  -destination 'generic/platform=iOS' -allowProvisioningUpdates build
+```
+
+`-allowProvisioningUpdates` lets `xcodebuild` register the device and create the profile
+non-interactively. The build fails with `No Account for Team "<id>"` only if the matching
+Apple ID isn't signed into Xcode's Accounts.
+
+> As with the simulator build, prefix with
+> `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` because the system
+> `xcode-select` points at CommandLineTools rather than full Xcode.
+
 ## How the web bundle is wired
 
 ```

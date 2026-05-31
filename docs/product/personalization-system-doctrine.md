@@ -1,5 +1,7 @@
 # Re_Call Personalization System Doctrine
 
+This doctrine pairs with two constraint docs that every build references: the [Design Philosophy](../design/design-philosophy.md) (how it should look and feel) and the [Shop / Ship / Undertow product loop](./shop-ship-undertow.md) (how the personalization engine is merchandised to the user).
+
 ## Product Center
 
 Re_Call is a personalization system for picking up where a person left off with themselves.

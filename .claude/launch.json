@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "visual-edit",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["wireframes/_visual-edit/serve.mjs"],
+      "port": 5173
+    }
+  ]
+}

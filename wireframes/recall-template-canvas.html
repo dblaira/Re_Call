@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReCall • Template Canvas</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=SF+Pro+Display:wght@400;600;700&amp;display=swap');
+  
+  :root {
+    --black-coral: #555A6B;
+    --coral-deep: #000000;
+    --lapis: #286498;
+    --cerulean: #5E99BD;
+    --silver: #C9CFD3;
+    --gold: #C49E30;
+    --gold-lite: #D9BC5E;
+    --ink-hi: #E6EAEC;
+    --ink: #C9CFD3;
+    --ink-dim: #AAB4BA;
+    --ink-faint: #7F8A92;
+    --glass: #000000;
+    --glass-2: #111111;
+    --hairline: #3A3A3A;
+    --radius: 18px;
+  }
+  
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #000;
+    color: var(--ink);
+  }
+  
+  .ios-dark {
+    background: #000;
+    color: var(--ink-hi);
+  }
+  
+  .preview-card {
+    background: #000;
+    border: 1px solid var(--hairline);
+    border-radius: 22px;
+    box-shadow: 0 20px 60px -15px rgba(0,0,0,0.9),
+                inset 0 1px 0 rgba(255,255,255,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .field-block {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    user-select: none;
+    transition: box-shadow .1s, border-color .1s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    cursor: move;
+    overflow: hidden;
+  }
+  
+  .field-block.selected {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(196, 158, 48, 0.25),
+                0 10px 30px -10px rgba(0,0,0,0.6);
+    z-index: 50 !important;
+  }
+  
+  .field-block .field-content {
+    padding: 0 12px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+  }
+  
+  .resize-handle {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    right: -1px;
+    bottom: -1px;
+    background: var(--gold);
+    border-radius: 9999px;
+    border: 3px solid #000;
+    cursor: nwse-resize;
+    z-index: 60;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    display: none;
+  }
+  .field-block.selected .resize-handle { display: block; }
+  
+  .palette-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 12px;
+    cursor: grab;
+    transition: all .1s;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .palette-item:hover {
+    background: #1a1a1a;
+    border-color: #333;
+    transform: translateY(-1px);
+  }
+  .palette-item:active { cursor: grabbing; transform: scale(0.985); }
+  
+  .section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 0 4px 6px;
+  }
+  
+  .inspector-input {
+    background: #111;
+    border: 1px solid #222;
+    color: var(--ink-hi);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  .nav {
+    background: #000;
+    border-bottom: 1px solid var(--hairline);
+  }
+  
+  .template-pill {
+    font-size: 11px;
+    padding: 4px 10px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .template-pill:hover { border-color: #444; }
+  
+  .field-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+  
+  .mono { font-variant-numeric: tabular-nums; }
+  
+  .canvas-grid {
+    background-image: 
+      linear-gradient(#1a1a1a 1px, transparent 1px),
+      linear-gradient(90deg, #1a1a1a 1px, transparent 1px);
+    background-size: 16px 16px;
+    opacity: 0.4;
+  }
+</style>
+</head>
+<body>
+<div class="flex flex-col h-screen">
+  <!-- Header -->
+  <div class="nav px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-xl bg-gradient-to-br from-[#C49E30] to-[#D9BC5E] flex items-center justify-center">
+          <span class="text-black text-sm font-bold tracking-[-1px]">R</span>
+        </div>
+        <div>
+          <span class="font-semibold text-lg tracking-[-0.4px]">ReCall</span>
+          <span class="text-[10px] ml-1.5 px-1.5 py-px rounded bg-white/5 text-white/60 align-middle">iOS</span>
+        </div>
+      </div>
+      <div class="h-3 w-px bg-white/10"></div>
+      <div class="text-[15px] font-semibold tracking-[-0.2px] text-white/90">Template Canvas</div>
+      <div class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-white/50 font-mono">v0.9 • dark</div>
+    </div>
+    
+    <div class="flex items-center gap-2">
+      <button onclick="loadPreset(0)" class="template-pill">Post-Workout</button>
+      <button onclick="loadPreset(1)" class="template-pill">Location Cue</button>
+      <button onclick="loadPreset(2)" class="template-pill">Morning Stack</button>
+      <button onclick="loadPreset(3)" class="template-pill">Minimal</button>
+      
+      <div class="w-px h-5 bg-white/10 mx-1"></div>
+      
+      <button onclick="clearCanvas()" 
+              class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-white/10 hover:bg-white/5 active:bg-white/10 transition">
+        Clear
+      </button>
+      <button onclick="distributeVertically()" 
+              class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-white/10 hover:bg-white/5 active:bg-white/10 transition">
+        Stack
+      </button>
+      <button onclick="randomizeAccents()" 
+              class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-white/10 hover:bg-white/5 active:bg-white/10 transition">
+        Randomize
+      </button>
+    </div>
+    
+    <div class="flex items-center gap-2">
+      <button onclick="exportJSON()" 
+              class="px-4 py-2 text-sm font-semibold rounded-2xl border border-white/15 hover:bg-white/5 flex items-center gap-2 active:scale-[0.985]">
+        <span>JSON</span>
+      </button>
+      <button onclick="exportPNG()" 
+              class="px-5 py-2 bg-[#C49E30] hover:bg-[#D9BC5E] active:bg-[#C49E30] text-black font-semibold text-sm rounded-2xl flex items-center gap-2 shadow-inner transition">
+        <span>Export PNG</span>
+        <span class="text-xs opacity-70">⌘E</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Palette -->
+    <div class="w-60 border-r border-white/10 p-4 overflow-y-auto bg-[#050505]">
+      <div class="section-title mb-2">Field Library</div>
+      <div class="grid grid-cols-1 gap-2" id="palette"></div>
+      
+      <div class="mt-6">
+        <div class="section-title mb-2">Canvas</div>
+        <div class="space-y-2 text-xs">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="snapToggle" checked class="accent-[#C49E30]">
+            <span class="text-white/70">Snap to 8px grid</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="gridToggle" class="accent-[#C49E30]">
+            <span class="text-white/70">Show grid</span>
+          </label>
+          <button onclick="addDefaultSet()" 
+                  class="w-full mt-2 py-2 text-xs font-semibold border border-white/10 rounded-2xl hover:bg-white/5">
+            + Add starter set
+          </button>
+        </div>
+      </div>
+      
+      <div class="mt-8 pt-6 border-t border-white/10 text-[10px] text-white/40 leading-tight">
+        Drag fields onto the card.<br>
+        Click to select • Drag to move • Corner to resize.<br>
+        Changes are live.
+      </div>
+    </div>
+
+    <!-- Canvas / Preview -->
+    <div class="flex-1 flex flex-col items-center justify-center bg-[#0a0a0a] p-8 relative overflow-auto" id="canvas-area">
+      <div class="mb-3 flex items-center gap-2">
+        <div class="text-xs font-semibold tracking-[1px] text-white/50">LIVE PREVIEW</div>
+        <div class="text-[10px] px-2 py-px rounded-full bg-white/5 text-white/40 font-mono">iOS 18 • OLED</div>
+      </div>
+      
+      <div id="preview-wrapper" 
+           class="preview-card w-[340px] h-[460px] flex-shrink-0"
+           style="box-shadow: 0 25px 80px -20px rgb(0 0 0 / 0.95), 0 0 0 1px #111;">
+        
+        <!-- The actual composable surface -->
+        <div id="preview" 
+             class="relative w-full h-full bg-black select-none overflow-hidden"
+             style="border-radius: 21px;">
+          
+          <!-- Subtle inner frame -->
+          <div class="absolute inset-0 pointer-events-none" 
+               style="box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04); border-radius: 21px;"></div>
+          
+          <!-- Status bar hint -->
+          <div class="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 pointer-events-none" style="opacity:0.25">
+            <div class="w-8 h-[3px] bg-white/30 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-3 text-[10px] text-white/30 font-mono flex items-center gap-3">
+        <div id="dimensions">340 × 460</div>
+        <div id="element-count">0 fields</div>
+      </div>
+    </div>
+
+    <!-- Inspector -->
+    <div class="w-72 border-l border-white/10 bg-[#050505] p-4 flex flex-col">
+      <div class="section-title">INSPECTOR</div>
+      
+      <div id="inspector-empty" class="flex-1 flex items-center justify-center text-center text-xs text-white/40">
+        Select a field to edit<br>its color, size &amp; content
+      </div>
+      
+      <div id="inspector-panel" class="hidden flex-1 flex flex-col">
+        <div class="mb-3">
+          <div class="text-[10px] text-white/50 mb-1">TYPE</div>
+          <div id="inspector-type" class="font-semibold text-lg tracking-[-0.3px]"></div>
+        </div>
+        
+        <div class="space-y-4">
+          <!-- Content -->
+          <div>
+            <div class="text-[10px] text-white/50 mb-1.5">CONTENT</div>
+            <input id="inspector-content" type="text" class="inspector-input w-full text-sm" 
+                   oninput="updateSelectedFromInspector()">
+          </div>
+          
+          <!-- Colors -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="text-[10px] text-white/50 mb-1.5">BACKGROUND</div>
+              <div class="flex items-center gap-2">
+                <input id="inspector-bg" type="color" class="w-9 h-9 rounded-xl border border-white/10 bg-transparent p-0.5 cursor-pointer" 
+                       oninput="updateSelectedFromInspector()">
+                <div id="inspector-bg-hex" class="font-mono text-xs text-white/50"></div>
+              </div>
+            </div>
+            <div>
+              <div class="text-[10px] text-white/50 mb-1.5">TEXT / ICON</div>
+              <div class="flex items-center gap-2">
+                <input id="inspector-fg" type="color" class="w-9 h-9 rounded-xl border border-white/10 bg-transparent p-0.5 cursor-pointer" 
+                       oninput="updateSelectedFromInspector()">
+                <div id="inspector-fg-hex" class="font-mono text-xs text-white/50"></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Size -->
+          <div>
+            <div class="flex items-baseline justify-between mb-1.5">
+              <div class="text-[10px] text-white/50">SIZE</div>
+              <div id="inspector-size-val" class="font-mono text-xs text-[#C49E30]">16px</div>
+            </div>
+            <input id="inspector-size" type="range" min="9" max="32" step="1" value="16"
+                   class="w-full accent-[#C49E30]" oninput="updateSelectedFromInspector()">
+          </div>
+          
+          <!-- Corner Radius -->
+          <div>
+            <div class="flex items-baseline justify-between mb-1.5">
+              <div class="text-[10px] text-white/50">CORNER RADIUS</div>
+              <div id="inspector-radius-val" class="font-mono text-xs text-[#C49E30]">14px</div>
+            </div>
+            <input id="inspector-radius" type="range" min="4" max="28" step="1" value="14"
+                   class="w-full accent-[#C49E30]" oninput="updateSelectedFromInspector()">
+          </div>
+          
+          <!-- Actions -->
+          <div class="pt-2 flex gap-2">
+            <button onclick="duplicateSelected()" 
+                    class="flex-1 py-2 text-xs font-semibold border border-white/15 rounded-2xl hover:bg-white/5">Duplicate</button>
+            <button onclick="deleteSelected()" 
+                    class="flex-1 py-2 text-xs font-semibold border border-red-500/30 text-red-400/90 rounded-2xl hover:bg-red-950/40">Delete</button>
+          </div>
+          
+          <div class="flex gap-2">
+            <button onclick="bringForward()" class="flex-1 py-1.5 text-xs border border-white/10 rounded-2xl hover:bg-white/5">↑ Layer</button>
+            <button onclick="sendBackward()" class="flex-1 py-1.5 text-xs border border-white/10 rounded-2xl hover:bg-white/5">↓ Layer</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-auto pt-4 border-t border-white/10 text-[10px] text-white/30">
+        Export PNG is 2× retina. JSON is the source of truth for the iOS renderer.
+      </div>
+    </div>
+  </div>
+  
+  <!-- Status bar -->
+  <div class="h-6 bg-black border-t border-white/10 px-4 text-[10px] text-white/30 flex items-center justify-between font-mono">
+    <div>ReCall Template Canvas — drag, style, export. Matches current iOS dark theme.</div>
+    <div id="status">Ready</div>
+  </div>
+</div>
+
+<script>
+// Tailwind script run
+function initTailwind() {
+  document.documentElement.style.setProperty('--accent', '#C49E30');
+}
+
+// Data model
+let elements = [];
+let selectedId = null;
+let snapEnabled = true;
+let gridEnabled = false;
+
+const PREVIEW_W = 340;
+const PREVIEW_H = 460;
+const GRID = 8;
+
+const fieldTypes = [
+  { type: 'PHOTO',   icon: '📷', label: 'Photo',     defW: 132, defH: 132, defBg: '#1C1C1E', defFg: '#9CA3AF', defSize: 13 },
+  { type: 'TIME',    icon: '⏰', label: 'Time',      defW: 168, defH: 36,  defBg: '#1C1C1E', defFg: '#E6EAEC', defSize: 14 },
+  { type: 'CUE',     icon: '💡', label: 'Cue',       defW: 188, defH: 32,  defBg: '#162032', defFg: '#A5C0E0', defSize: 13 },
+  { type: 'PLACE',   icon: '📍', label: 'Place',     defW: 174, defH: 32,  defBg: '#1F2A22', defFg: '#A8D5B8', defSize: 13 },
+  { type: 'TITLE',   icon: '𝐓',  label: 'Title',     defW: 280, defH: 38,  defBg: 'transparent', defFg: '#E6EAEC', defSize: 19 },
+  { type: 'NOTES',   icon: '≡',  label: 'Notes',     defW: 280, defH: 54,  defBg: '#111', defFg: '#9CA3AF', defSize: 12 },
+  { type: 'PRIORITY',icon: '⚡', label: 'Priority',  defW: 92,  defH: 26,  defBg: '#2A1F12', defFg: '#F4D9A3', defSize: 11 },
+  { type: 'TAGS',    icon: '🏷️', label: 'Tags',      defW: 210, defH: 26,  defBg: '#1A1F2E', defFg: '#B8C5E0', defSize: 10 },
+  { type: 'ICON',    icon: '●',  label: 'Icon',      defW: 42,  defH: 42,  defBg: '#1C1C1E', defFg: '#C49E30', defSize: 18 },
+];
+
+function createElement(type, x = 30, y = 60) {
+  const def = fieldTypes.find(f => f.type === type);
+  const id = 'el_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  const el = {
+    id,
+    type,
+    x: Math.max(12, Math.min(PREVIEW_W - (def.defW||120) - 12, x)),
+    y: Math.max(12, Math.min(PREVIEW_H - (def.defH||40) - 12, y)),
+    w: def.defW || 140,
+    h: def.defH || 40,
+    bg: def.defBg,
+    fg: def.defFg,
+    size: def.defSize || 14,
+    radius: 14,
+    content: getDefaultContent(type),
+    z: elements.length + 1
+  };
+  elements.push(el);
+  return el;
+}
+
+function getDefaultContent(type) {
+  switch(type) {
+    case 'PHOTO': return 'Capture moment';
+    case 'TIME': return '8:40 AM  •  Today';
+    case 'CUE': return 'After workout • 14m ago';
+    case 'PLACE': return 'Home Gym • 180m';
+    case 'TITLE': return 'Post-run protein';
+    case 'NOTES': return 'Felt strong on the hills. 2 scoops + berries.';
+    case 'PRIORITY': return 'Priority 1';
+    case 'TAGS': return '#recovery  #protein  #habit';
+    case 'ICON': return '🏃';
+    default: return type;
+  }
+}
+
+function renderPreview() {
+  const preview = document.getElementById('preview');
+  preview.innerHTML = '';
+  
+  // grid overlay
+  if (gridEnabled) {
+    const grid = document.createElement('div');
+    grid.className = 'absolute inset-0 pointer-events-none canvas-grid';
+    grid.style.borderRadius = '21px';
+    preview.appendChild(grid);
+  }
+  
+  // sort by z
+  const sorted = [...elements].sort((a,b) => (a.z||0) - (b.z||0));
+  
+  sorted.forEach(el => {
+    const div = document.createElement('div');
+    div.className = `field-block ${el.id === selectedId ? 'selected' : ''}`;
+    div.style.left = el.x + 'px';
+    div.style.top = el.y + 'px';
+    div.style.width = el.w + 'px';
+    div.style.height = el.h + 'px';
+    div.style.background = el.bg === 'transparent' ? 'transparent' : el.bg;
+    div.style.borderRadius = el.radius + 'px';
+    div.style.zIndex = el.z || 1;
+    div.style.color = el.fg;
+    div.style.fontSize = el.size + 'px';
+    div.style.borderColor = el.id === selectedId ? '#C49E30' : '#3A3A3A';
+    
+    // special rendering per type
+    let inner = '';
+    const icon = fieldTypes.find(f => f.type === el.type)?.icon || '';
+    
+    if (el.type === 'PHOTO') {
+      inner = `
+        <div style="width:100%;height:100%;background:linear-gradient(145deg,#1C1C1E 0%,#111 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;border-radius:${el.radius-1}px">
+          <div style="font-size:${Math.min(42, el.size*2.6)}px;opacity:0.6">${icon}</div>
+          <div style="font-size:10px;opacity:0.45;letter-spacing:0.4px;font-weight:500">${el.content}</div>
+        </div>`;
+    } else if (el.type === 'ICON') {
+      inner = `<div style="font-size:${el.size+12}px;line-height:1">${el.content}</div>`;
+    } else if (el.type === 'TAGS') {
+      inner = `<div class="field-content" style="gap:4px;flex-wrap:wrap;padding:0 8px">
+        ${el.content.split(' ').slice(0,3).map(t => 
+          `<span style="font-size:9px;padding:1px 6px;border-radius:999px;background:rgba(255,255,255,0.06);color:${el.fg}">${t}</span>`
+        ).join('')}
+      </div>`;
+    } else {
+      const showIcon = ['TIME','CUE','PLACE','PRIORITY'].includes(el.type);
+      inner = `
+        <div class="field-content" style="justify-content:flex-start;padding-left:12px;padding-right:12px;gap:${showIcon?9:7}px">
+          ${showIcon ? `<span style="font-size:${el.size+2}px;opacity:0.85">${icon}</span>` : ''}
+          <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${el.content}</span>
+        </div>`;
+    }
+    
+    div.innerHTML = inner;
+    
+    // selection & drag
+    div.onpointerdown = (e) => {
+      if (e.target.closest('.resize-handle')) return;
+      selectElement(el.id);
+      startDrag(e, el, div);
+    };
+    
+    // resize handle
+    const handle = document.createElement('div');
+    handle.className = 'resize-handle';
+    handle.onpointerdown = (e) => {
+      e.stopImmediatePropagation();
+      startResize(e, el, div);
+    };
+    div.appendChild(handle);
+    
+    preview.appendChild(div);
+  });
+  
+  // click on empty area deselects
+  preview.onclick = (e) => {
+    if (e.target.id === 'preview') {
+      selectElement(null);
+    }
+  };
+  
+  updateStatus();
+  updateInspector();
+}
+
+function updateStatus() {
+  document.getElementById('element-count').textContent = `${elements.length} field${elements.length!==1?'s':''}`;
+  document.getElementById('dimensions').textContent = `${PREVIEW_W} × ${PREVIEW_H}`;
+}
+
+function selectElement(id) {
+  selectedId = id;
+  renderPreview();
+}
+
+function startDrag(e, model, domEl) {
+  const startX = e.clientX;
+  const startY = e.clientY;
+  const origX = model.x;
+  const origY = model.y;
+  
+  const move = (ev) => {
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    let nx = origX + dx;
+    let ny = origY + dy;
+    
+    if (snapEnabled) {
+      nx = Math.round(nx / GRID) * GRID;
+      ny = Math.round(ny / GRID) * GRID;
+    }
+    
+    nx = Math.max(6, Math.min(PREVIEW_W - model.w - 6, nx));
+    ny = Math.max(6, Math.min(PREVIEW_H - model.h - 6, ny));
+    
+    model.x = nx;
+    model.y = ny;
+    
+    domEl.style.left = nx + 'px';
+    domEl.style.top = ny + 'px';
+  };
+  
+  const end = () => {
+    document.removeEventListener('pointermove', move);
+    document.removeEventListener('pointerup', end);
+    renderPreview(); // final clean render + z
+  };
+  
+  document.addEventListener('pointermove', move, {passive:true});
+  document.addEventListener('pointerup', end, {once:true});
+}
+
+function startResize(e, model, domEl) {
+  const startX = e.clientX;
+  const startY = e.clientY;
+  const origW = model.w;
+  const origH = model.h;
+  
+  const move = (ev) => {
+    let dw = ev.clientX - startX;
+    let dh = ev.clientY - startY;
+    
+    let nw = Math.max(28, origW + dw);
+    let nh = Math.max(22, origH + dh);
+    
+    if (snapEnabled) {
+      nw = Math.round(nw / GRID) * GRID;
+      nh = Math.round(nh / GRID) * GRID;
+    }
+    
+    nw = Math.min(PREVIEW_W - model.x - 8, nw);
+    nh = Math.min(PREVIEW_H - model.y - 8, nh);
+    
+    model.w = nw;
+    model.h = nh;
+    
+    domEl.style.width = nw + 'px';
+    domEl.style.height = nh + 'px';
+  };
+  
+  const end = () => {
+    document.removeEventListener('pointermove', move);
+    document.removeEventListener('pointerup', end);
+    renderPreview();
+  };
+  
+  document.addEventListener('pointermove', move, {passive:true});
+  document.addEventListener('pointerup', end, {once:true});
+}
+
+function updateSelectedFromInspector() {
+  if (!selectedId) return;
+  const el = elements.find(e => e.id === selectedId);
+  if (!el) return;
+  
+  el.content = document.getElementById('inspector-content').value;
+  el.bg = document.getElementById('inspector-bg').value;
+  el.fg = document.getElementById('inspector-fg').value;
+  el.size = parseInt(document.getElementById('inspector-size').value, 10);
+  el.radius = parseInt(document.getElementById('inspector-radius').value, 10);
+  
+  // live hex labels
+  document.getElementById('inspector-bg-hex').textContent = el.bg.toUpperCase();
+  document.getElementById('inspector-fg-hex').textContent = el.fg.toUpperCase();
+  document.getElementById('inspector-size-val').textContent = el.size + 'px';
+  document.getElementById('inspector-radius-val').textContent = el.radius + 'px';
+  
+  renderPreview();
+}
+
+function updateInspector() {
+  const empty = document.getElementById('inspector-empty');
+  const panel = document.getElementById('inspector-panel');
+  
+  if (!selectedId) {
+    empty.classList.remove('hidden');
+    panel.classList.add('hidden');
+    return;
+  }
+  
+  const el = elements.find(e => e.id === selectedId);
+  if (!el) {
+    selectElement(null);
+    return;
+  }
+  
+  empty.classList.add('hidden');
+  panel.classList.remove('hidden');
+  
+  document.getElementById('inspector-type').innerHTML = `
+    <span class="text-[#C49E30]">${fieldTypes.find(f=>f.type===el.type)?.icon||''}</span> 
+    ${el.type}
+  `;
+  
+  document.getElementById('inspector-content').value = el.content;
+  
+  const bg = document.getElementById('inspector-bg');
+  const fg = document.getElementById('inspector-fg');
+  bg.value = el.bg.startsWith('#') ? el.bg : '#1C1C1E';
+  fg.value = el.fg.startsWith('#') ? el.fg : '#E6EAEC';
+  
+  document.getElementById('inspector-bg-hex').textContent = (el.bg.startsWith('#') ? el.bg : '#1C1C1E').toUpperCase();
+  document.getElementById('inspector-fg-hex').textContent = (el.fg.startsWith('#') ? el.fg : '#E6EAEC').toUpperCase();
+  
+  const sizeSlider = document.getElementById('inspector-size');
+  const radSlider = document.getElementById('inspector-radius');
+  sizeSlider.value = el.size;
+  radSlider.value = el.radius;
+  
+  document.getElementById('inspector-size-val').textContent = el.size + 'px';
+  document.getElementById('inspector-radius-val').textContent = el.radius + 'px';
+}
+
+function deleteSelected() {
+  if (!selectedId) return;
+  elements = elements.filter(e => e.id !== selectedId);
+  selectedId = null;
+  renderPreview();
+}
+
+function duplicateSelected() {
+  if (!selectedId) return;
+  const src = elements.find(e => e.id === selectedId);
+  if (!src) return;
+  const copy = JSON.parse(JSON.stringify(src));
+  copy.id = 'el_' + Date.now().toString(36);
+  copy.x = Math.min(PREVIEW_W - src.w - 20, src.x + 18);
+  copy.y = Math.min(PREVIEW_H - src.h - 20, src.y + 18);
+  copy.z = Math.max(...elements.map(e=>e.z||0), 0) + 1;
+  elements.push(copy);
+  selectedId = copy.id;
+  renderPreview();
+}
+
+function bringForward() {
+  if (!selectedId) return;
+  const el = elements.find(e => e.id === selectedId);
+  if (!el) return;
+  const maxZ = Math.max(...elements.map(e => e.z || 0));
+  el.z = maxZ + 1;
+  renderPreview();
+}
+
+function sendBackward() {
+  if (!selectedId) return;
+  const el = elements.find(e => e.id === selectedId);
+  if (!el) return;
+  const minZ = Math.min(...elements.map(e => e.z || 0));
+  el.z = minZ - 1;
+  renderPreview();
+}
+
+function distributeVertically() {
+  if (elements.length === 0) return;
+  const sorted = [...elements].sort((a,b) => a.y - b.y);
+  let y = 28;
+  const gap = 10;
+  sorted.forEach((el, i) => {
+    el.y = y;
+    el.x = 28;
+    y += el.h + gap;
+  });
+  renderPreview();
+}
+
+function randomizeAccents() {
+  const palettes = [
+    {bg:'#1C1C1E', fg:'#E6EAEC'},
+    {bg:'#162032', fg:'#A5C0E0'},
+    {bg:'#1F2A22', fg:'#A8D5B8'},
+    {bg:'#2A1F12', fg:'#F4D9A3'},
+    {bg:'#1A1F2E', fg:'#B8C5E0'},
+    {bg:'#111', fg:'#C49E30'},
+  ];
+  elements.forEach(el => {
+    if (['PHOTO','ICON'].includes(el.type)) return;
+    const p = palettes[Math.floor(Math.random()*palettes.length)];
+    el.bg = p.bg;
+    el.fg = p.fg;
+  });
+  renderPreview();
+}
+
+function clearCanvas() {
+  if (!confirm('Clear all fields from the canvas?')) return;
+  elements = [];
+  selectedId = null;
+  renderPreview();
+}
+
+// Palette rendering
+function renderPalette() {
+  const container = document.getElementById('palette');
+  container.innerHTML = '';
+  
+  fieldTypes.forEach(ft => {
+    const item = document.createElement('div');
+    item.className = 'palette-item';
+    item.innerHTML = `
+      <span style="font-size:16px;opacity:0.9">${ft.icon}</span>
+      <span style="flex:1">${ft.label}</span>
+      <span style="font-size:9px;opacity:0.35;font-family:monospace">${ft.type}</span>
+    `;
+    
+    // drag start
+    item.draggable = true;
+    item.ondragstart = (e) => {
+      e.dataTransfer.setData('text/plain', ft.type);
+    };
+    
+    // click to add centered
+    item.onclick = () => {
+      const el = createElement(ft.type, 80 + Math.random()*40, 70 + elements.length * 18);
+      selectedId = el.id;
+      renderPreview();
+    };
+    
+    container.appendChild(item);
+  });
+  
+  // drop zone on preview
+  const preview = document.getElementById('preview');
+  preview.ondragover = (e) => { e.preventDefault(); preview.style.outline = '1px solid #C49E30'; };
+  preview.ondragleave = () => { preview.style.outline = 'none'; };
+  preview.ondrop = (e) => {
+    e.preventDefault();
+    preview.style.outline = 'none';
+    const type = e.dataTransfer.getData('text/plain');
+    const rect = preview.getBoundingClientRect();
+    const x = e.clientX - rect.left - 40;
+    const y = e.clientY - rect.top - 18;
+    const newEl = createElement(type, x, y);
+    selectedId = newEl.id;
+    renderPreview();
+  };
+}
+
+function addDefaultSet() {
+  elements = [];
+  const baseY = 38;
+  const defs = [
+    {t:'PHOTO', x:104, y:baseY},
+    {t:'TITLE', x:28, y:baseY + 146},
+    {t:'CUE', x:28, y:baseY + 192},
+    {t:'TIME', x:28, y:baseY + 230},
+    {t:'PLACE', x:28, y:baseY + 272},
+    {t:'NOTES', x:28, y:baseY + 310},
+    {t:'PRIORITY', x:28, y:baseY + 372},
+  ];
+  defs.forEach((d,i) => {
+    const el = createElement(d.t, d.x, d.y);
+    el.z = i + 1;
+    if (d.t === 'PHOTO') el.radius = 16;
+  });
+  selectedId = null;
+  renderPreview();
+}
+
+function loadPreset(idx) {
+  elements = [];
+  const base = 32;
+  
+  if (idx === 0) { // Post-Workout
+    const p0 = createElement('PHOTO', 104, base); p0.w=132; p0.h=118; p0.radius=16;
+    const p1 = createElement('TITLE', 28, base+130); p1.content = 'Post-run recovery';
+    const p2 = createElement('CUE', 28, base+172); p2.content = 'After workout • strength';
+    const p3 = createElement('TIME', 28, base+208);
+    const p4 = createElement('PLACE', 28, base+248);
+    const p5 = createElement('TAGS', 28, base+284);
+  } else if (idx === 1) { // Location
+    const p0 = createElement('PLACE', 28, base); p0.w = 284; p0.h=36;
+    const p1 = createElement('PHOTO', 28, base+50); p1.w=284; p1.h=164; p1.radius=16;
+    const p2 = createElement('CUE', 28, base+226);
+    const p3 = createElement('NOTES', 28, base+264); p3.h=48;
+  } else if (idx === 2) { // Morning
+    const p0 = createElement('ICON', 28, base); p0.content='☀️';
+    const p1 = createElement('TITLE', 78, base+4); p1.content='Morning protocol'; p1.size=18;
+    const p2 = createElement('TIME', 28, base+52);
+    const p3 = createElement('CUE', 28, base+92);
+    const p4 = createElement('NOTES', 28, base+130); p4.h=46;
+    const p5 = createElement('PRIORITY', 28, base+184);
+  } else if (idx === 3) { // Minimal
+    const p0 = createElement('TITLE', 28, base+10); p0.content='Hydrate now';
+    const p1 = createElement('CUE', 28, base+58);
+    const p2 = createElement('TIME', 28, base+96);
+  }
+  
+  selectedId = null;
+  renderPreview();
+}
+
+function updateSelectedModel() {
+  // called from sliders/colors already wired to updateSelectedFromInspector
+}
+
+// PNG Export (retina, vector-sharp text)
+function exportPNG() {
+  const canvas = document.createElement('canvas');
+  const scale = 2;
+  canvas.width = PREVIEW_W * scale;
+  canvas.height = PREVIEW_H * scale;
+  const ctx = canvas.getContext('2d', {alpha:true});
+  ctx.scale(scale, scale);
+  
+  // pure black iOS OLED bg
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, PREVIEW_W, PREVIEW_H);
+  
+  // subtle inner radius clip area (we draw everything inside 21px radius)
+  const sorted = [...elements].sort((a,b) => (a.z||0)-(b.z||0));
+  
+  sorted.forEach(el => {
+    const x = el.x;
+    const y = el.y;
+    const w = el.w;
+    const h = el.h;
+    const r = Math.min(el.radius, w/2, h/2);
+    
+    // rounded rect
+    ctx.fillStyle = el.bg === 'transparent' ? 'transparent' : el.bg;
+    if (el.bg !== 'transparent') {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, r);
+      ctx.fill();
+    }
+    
+    // hairline border
+    ctx.strokeStyle = '#3A3A3A';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(x+0.5, y+0.5, w-1, h-1, r);
+    ctx.stroke();
+    
+    // content
+    ctx.fillStyle = el.fg;
+    ctx.font = `600 ${el.size}px -apple-system, SF Pro, system-ui`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    
+    const icon = fieldTypes.find(f => f.type === el.type)?.icon || '';
+    let textX = x + 14;
+    
+    if (el.type === 'PHOTO') {
+      // photo placeholder
+      ctx.fillStyle = '#1C1C1E';
+      ctx.beginPath();
+      ctx.roundRect(x+1, y+1, w-2, h-2, r-1);
+      ctx.fill();
+      
+      ctx.fillStyle = '#6B7280';
+      ctx.font = `${Math.min(38, el.size*2.4)}px system-ui`;
+      ctx.textAlign = 'center';
+      ctx.fillText('📷', x + w/2, y + h/2 - 6);
+      ctx.font = `500 10px -apple-system`;
+      ctx.fillText(el.content, x + w/2, y + h/2 + 18);
+    } else if (el.type === 'ICON') {
+      ctx.textAlign = 'center';
+      ctx.font = `${el.size + 16}px system-ui`;
+      ctx.fillText(el.content, x + w/2, y + h/2);
+    } else if (el.type === 'TAGS') {
+      const tags = el.content.split(/\s+/).slice(0,4);
+      let tx = x + 10;
+      tags.forEach(tag => {
+        const tw = ctx.measureText(tag).width + 14;
+        ctx.fillStyle = 'rgba(255,255,255,0.07)';
+        ctx.beginPath();
+        ctx.roundRect(tx, y + 5, tw, 16, 999);
+        ctx.fill();
+        ctx.fillStyle = el.fg;
+        ctx.fillText(tag, tx + 7, y + 13);
+        tx += tw + 4;
+      });
+    } else {
+      if (['TIME','CUE','PLACE','PRIORITY'].includes(el.type)) {
+        ctx.fillText(icon + '  ' + el.content, textX, y + h/2);
+      } else {
+        ctx.fillText(el.content, textX, y + h/2);
+      }
+    }
+  });
+  
+  // download
+  const link = document.createElement('a');
+  link.download = `recall-template-${Date.now()}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  
+  document.getElementById('status').textContent = 'PNG exported';
+  setTimeout(() => document.getElementById('status').textContent = 'Ready', 1600);
+}
+
+function exportJSON() {
+  const payload = {
+    version: 1,
+    created: new Date().toISOString(),
+    width: PREVIEW_W,
+    height: PREVIEW_H,
+    fields: elements.map(e => ({
+      type: e.type,
+      x: e.x,
+      y: e.y,
+      w: e.w,
+      h: e.h,
+      bg: e.bg,
+      fg: e.fg,
+      size: e.size,
+      radius: e.radius,
+      content: e.content
+    }))
+  };
+  
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `recall-template-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  document.getElementById('status').textContent = 'JSON exported';
+  setTimeout(() => document.getElementById('status').textContent = 'Ready', 1600);
+}
+
+// Keyboard
+function initKeyboard() {
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'e') {
+      e.preventDefault();
+      exportPNG();
+    }
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      if (selectedId && document.activeElement.tagName === 'BODY') {
+        e.preventDefault();
+        deleteSelected();
+      }
+    }
+    if (e.key.toLowerCase() === 'd' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      if (selectedId) duplicateSelected();
+    }
+  });
+  
+  // toggles
+  document.getElementById('snapToggle').onchange = (e) => { snapEnabled = e.target.checked; };
+  document.getElementById('gridToggle').onchange = (e) => { gridEnabled = e.target.checked; renderPreview(); };
+}
+
+// Boot
+function boot() {
+  initTailwind();
+  renderPalette();
+  initKeyboard();
+  
+  // initial beautiful example
+  loadPreset(0);
+  
+  // make sure preview has proper radius feel
+  const wrapper = document.getElementById('preview-wrapper');
+  wrapper.style.borderRadius = '22px';
+  
+  // random small nudge so user sees it's live
+  setTimeout(() => {
+    document.getElementById('status').textContent = 'Ready — drag fields or use presets';
+  }, 800);
+  
+  // expose for console tinkering if needed
+  window.ReCallCanvas = { getElements: () => elements, reload: renderPreview };
+}
+
+boot();
+</script>
+</body>
+</html>

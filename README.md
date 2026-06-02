@@ -46,6 +46,9 @@ ScanCalendarReminder + PositiveReminderRating -> deeper TimeAwareness recommenda
 See:
 
 - [Product doctrine](./docs/product/personalization-system-doctrine.md)
+- [Design philosophy](./docs/design/design-philosophy.md)
+- [Shop / Ship / Undertow product loop](./docs/product/shop-ship-undertow.md)
+- [iOS feature roadmap](./docs/product/ios-feature-roadmap.md)
 - [API contract: getBestFormat](./docs/api/get-best-format.md)
 - [API contract: getReminderRecommendations](./docs/api/get-reminder-recommendations.md)
 - [Rule fixture](./data/format-match-rules.json)

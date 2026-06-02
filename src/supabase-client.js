@@ -59,3 +59,33 @@ export function bearerTokenFrom(request) {
   const match = /^Bearer\s+(.+)$/i.exec(header.trim());
   return match ? match[1] : undefined;
 }
+
+// Resolve the user identity the request is allowed to act as — NEVER from the request body.
+//
+//   JWT present  -> validate it against Supabase Auth and return its uid. This is the
+//                   per-user identity; the body's userId (if any) is ignored.
+//   JWT absent   -> single-user mode: return process.env.SINGLE_USER_ID if configured,
+//                   otherwise reject. The service-role key bypasses RLS, so without this
+//                   gate a caller could read/write ANY user's rows by passing a userId in
+//                   the body (IDOR). Binding identity to the token / a server env closes that.
+//
+// `client` must be the same client used for the work (built with this request's access token,
+// if any) so getUser() validates the forwarded JWT.
+export async function resolveAuthedUserId(request, client) {
+  const token = bearerTokenFrom(request);
+  if (token) {
+    const { data, error } = await client.auth.getUser();
+    if (error || !data?.user?.id) {
+      const e = new Error("Invalid or expired access token.");
+      e.status = 401;
+      throw e;
+    }
+    return data.user.id;
+  }
+  if (process.env.SINGLE_USER_ID) {
+    return process.env.SINGLE_USER_ID;
+  }
+  const e = new Error("Authentication required: send a Bearer token, or set SINGLE_USER_ID for single-user mode.");
+  e.status = 401;
+  throw e;
+}

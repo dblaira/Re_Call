@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Re_Call — Lenses</title>
+<title>Home</title>
 <style>
   /*
-    Re_Call — interactive prototype (self-contained, no build, opens by double-click).
+    Interactive prototype (self-contained, no build, opens by double-click).
 
-    DIRECTION (Pinterest masonry + gestalt + behavioral science, NO large text):
-      - Home is a scannable MOSAIC of color/data tiles with varied heights (2 columns,
-        imperfectly aligned). Visual interest = COLOR + small DATA, never imagery.
+    DIRECTION (Pinterest masonry + gestalt + behavioral science, NO large/small reading wall):
+      - Home opens straight into a scannable MOSAIC of multi-sized reminder/task
+        templates. Visual interest = varied card scale + real covers + small controls.
       - Practices cluster by strength (similarity + proximity); a glance organizes the field.
       - Behavioral nudges are STRUCTURAL, not copy: tiles look in-progress/editable
         (Zeigarnik), an open "+" slot wants filling, varied tile size = variable reward.
       - NO big headings, NO giant hero number. Numbers appear small, Pinterest-label scale.
 
     KEPT: template editing (drag-reorder / hide / delete / inline-edit + persist),
-    Save-as-Lens, the Scoring stub + live re-sort, Tune sheet, tab bar, palette tokens,
+    Save arrangement, the Scoring stub + live re-sort, Tune sheet, tab bar, palette tokens,
     gold reserved for the primary CTA / FAB, no void states.
 
     SCORING: live numbers come from one client-side stub (`const Scoring`) — NOT the
@@ -26,7 +26,7 @@
 
   :root {
     --black-coral:    #555A6B;
-    --coral-deep:     #2B2E38;
+    --coral-deep:     #000000;
     --lapis-lazuli:   #286498;
     --cerulean-frost: #5E99BD;
     --american-silver:#C9CFD3;
@@ -36,11 +36,11 @@
     --gold:     var(--satin-gold);
     --ink-hi:   #E6EAEC;
     --ink:      var(--american-silver);
-    --ink-dim:  rgba(201,207,211,0.66);
-    --ink-faint:rgba(201,207,211,0.42);
-    --glass:    rgba(94,153,189,0.10);
-    --glass-2:  rgba(94,153,189,0.18);
-    --hairline: rgba(201,207,211,0.16);
+    --ink-dim:  #AAB4BA;
+    --ink-faint:#7F8A92;
+    --glass:    #000000;
+    --glass-2:  #111111;
+    --hairline: #3A3A3A;
 
     --lev:   #286498;
     --time:  #3E79A8;
@@ -57,47 +57,36 @@
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
                  "Helvetica Neue", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-    background: #0a0b10; color: var(--ink);
+    background: #000; color: var(--ink);
     display: flex; flex-direction: column; align-items: center;
-    gap: 22px; padding: 38px 16px 64px;
+    gap: 0; padding: 0;
   }
 
-  .stage-caption { text-align: center; max-width: 430px; }
+  .stage-caption { display: none; text-align: center; max-width: 430px; }
   .stage-caption h1 { margin: 0 0 5px; font-size: 16px; font-weight: 600; color: var(--ink-hi); }
   .stage-caption p  { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-dim); }
 
   .phone {
-    position: relative; width: 393px; height: 852px;
-    border-radius: 56px; padding: 12px; flex: none;
-    background: linear-gradient(160deg, #34384a, #14161d 62%);
-    box-shadow: 0 2px 0 rgba(255,255,255,0.08) inset, 0 50px 90px -30px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.05);
+    position: relative; width: 100vw; max-width: 430px; height: 100dvh; min-height: 760px;
+    border-radius: 0; padding: 0; flex: none;
+    background: #000;
+    box-shadow: none;
   }
-  .screen { position: relative; width: 100%; height: 100%; border-radius: 45px; overflow: hidden; isolation: isolate; background: var(--coral-deep); }
+  .screen { position: relative; width: 100%; height: 100%; border-radius: 0; overflow: hidden; isolation: isolate; background: #000; }
 
   /* faceted ground (kept, restrained) */
-  .ground { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
-  .ground .field { position: absolute; inset: -10%;
-    background:
-      linear-gradient(118deg, rgba(40,100,152,0.45) 0 34%, transparent 34% 100%),
-      linear-gradient(232deg, rgba(30,70,120,0.42) 0 30%, transparent 30% 100%),
-      linear-gradient(180deg, #1b3048 0%, #131f2d 46%, #0d141c 100%); }
-  .ground .facet { position: absolute; filter: blur(2px); mix-blend-mode: screen; opacity: 0.4; }
-  .ground .f1 { inset: -5% 40% 55% -10%; background: linear-gradient(120deg,#3a6f9e,transparent); clip-path: polygon(0 0,100% 0,62% 100%,0 70%); }
-  .ground .f2 { inset: 30% -10% -5% 45%; background: linear-gradient(300deg,#21527e,transparent); clip-path: polygon(38% 0,100% 22%,100% 100%,0 100%); }
-  .ground .vignette { position: absolute; inset: 0; background: radial-gradient(128% 100% at 50% 26%, transparent 34%, rgba(10,11,16,0.6) 76%, #080a0e 100%); }
+  .ground { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #000; }
+  .ground .field,
+  .ground .facet,
+  .ground .vignette { display: none; }
 
-  .statusbar { position: relative; z-index: 30; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; font-size: 15px; font-weight: 600; color: var(--ink-hi); }
-  .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 124px; height: 35px; background: #000; border-radius: 20px; }
-  .sb-right { display: flex; align-items: center; gap: 7px; }
-
-  .view { position: absolute; inset: 54px 0 0 0; z-index: 10; display: none; }
+  .view { position: absolute; inset: 0; z-index: 10; display: none; background: #000; }
   .view[data-active="true"] { display: block; }
-  .scroll { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 4px 16px 150px; }
+  .scroll { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 4px 16px 150px; background: #000; }
   .scroll::-webkit-scrollbar { width: 0; }
 
-  /* ───────── Onboarding: small-text lens chooser (color-block cards) ───────── */
+  /* ───────── Onboarding lens chooser (color-block cards) ───────── */
   #onboard .intro { padding: 18px 4px 4px; }
-  #onboard .brand { font-size: 12px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--ink-dim); }
   #onboard h2 { margin: 8px 0 0; font-size: 17px; font-weight: 700; letter-spacing: -0.2px; color: var(--ink-hi); }
   #onboard .tagline { margin: 8px 0 0; font-size: 13px; line-height: 1.45; color: var(--ink-dim); font-weight: 500; }
   #onboard .tagline em { color: var(--cerulean-frost); font-style: normal; }
@@ -123,33 +112,52 @@
   /* ───────── Home: IRREGULAR masonry — variable widths + heights, size = importance ─────────
      6-col grid + fine auto-rows + dense flow. Each practice is a color block whose
      column/row span comes from its importance bucket (L/M/S from the live score). */
-  #masonry { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 13px; gap: 10px;
-    grid-auto-flow: dense; padding-top: 8px; }
+  #masonry { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 14px; gap: 12px;
+    grid-auto-flow: dense; padding-top: 10px; }
   .cell { position: relative; border-radius: 16px; overflow: hidden; border: 1px solid var(--hairline);
-    box-shadow: inset 0 1px 0 rgba(201,207,211,0.14), 0 14px 30px -24px rgba(0,0,0,0.8);
-    backdrop-filter: blur(12px) saturate(140%); -webkit-backdrop-filter: blur(12px) saturate(140%); }
+    box-shadow: 0 14px 30px -24px rgba(0,0,0,0.8); }
 
-  /* practice tile = color block; bigger = more important (higher depth × weight) */
-  .p-tile { display: flex; flex-direction: column; padding: 9px 10px; cursor: pointer; color: var(--ink-hi);
-    background: linear-gradient(155deg, var(--accent), rgba(8,10,16,0.40));
+  /* practice tile = designed template card; size/color are curated, not signal-uniform */
+  .p-tile { display: flex; flex-direction: column; padding: 11px 12px; cursor: pointer; color: var(--tile-ink, var(--ink-hi));
+    background: var(--tile-bg, #000);
     transition: box-shadow .2s, opacity .3s, transform .2s; }
+  .p-tile::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background: var(--motif, none); opacity: var(--motif-alpha, 1); mix-blend-mode: var(--motif-blend, normal); }
   .p-tile::after { content: ""; position: absolute; inset: 0; background: rgba(8,10,16,var(--mute,0)); pointer-events: none; }
   .p-tile > * { position: relative; z-index: 1; }
+  .p-art { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .p-art .band { position: absolute; inset-block: 0; width: var(--w); left: var(--x); background: var(--c); opacity: var(--o, 1); }
+  .p-art .stack { position: absolute; left: 12%; right: 12%; top: 14%; display: grid; gap: 8px; }
+  .p-art .sw { height: 34px; border-radius: 8px; background: var(--c); box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset; }
+  .p-art .field { position: absolute; inset: 0; background: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.2), transparent 20%), linear-gradient(140deg, var(--a), var(--b)); }
+  .p-art .paper { position: absolute; inset: 10px; border-radius: 12px; background: rgba(253,245,234,0.9); box-shadow: 0 0 0 1px rgba(0,32,48,0.18); }
+  .p-tile[data-size="block"] .p-art .stack { left: 14%; right: 14%; top: 13%; gap: 7px; }
+  .p-tile[data-size="block"] .p-art .sw { height: 27px; }
+  .p-tile[data-size="wide"] .p-art .stack { left: 7%; right: 7%; top: 16%; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+  .p-tile[data-size="wide"] .p-art .sw { height: 68px; }
+  .p-tile[data-size="mini"] .p-art .stack { left: 12px; right: 12px; top: 14px; gap: 5px; }
+  .p-tile[data-size="mini"] .p-art .sw { height: 18px; }
   .p-bar { display: flex; align-items: center; justify-content: space-between; }
-  .p-handle { width: 16px; height: 16px; display: grid; place-items: center; color: rgba(230,234,236,0.72); cursor: grab; touch-action: none; }
+  .p-handle { width: 16px; height: 16px; display: grid; place-items: center; color: color-mix(in srgb, var(--tile-ink, #fff) 70%, transparent); cursor: grab; touch-action: none; }
   .p-handle:active { cursor: grabbing; }
   .p-acts { display: flex; gap: 5px; }
-  .p-eye, .p-del { width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.22);
-    background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.86); display: grid; place-items: center; cursor: pointer; }
+  .p-eye, .p-del { width: 22px; height: 22px; border-radius: 6px; border: 1px solid #E6EAEC;
+    background: #000; color: #E6EAEC; display: grid; place-items: center; cursor: pointer; }
+  .p-tile[data-tone="light"] .p-eye,
+  .p-tile[data-tone="light"] .p-del,
+  .p-tile[data-tone="light"] .p-cover { border-color: #002030; background: #FDF5EA; color: #002030; }
   .p-eye:active, .p-del:active { transform: scale(0.88); }
   .p-short { margin-top: auto; font-size: 12.5px; font-weight: 600; line-height: 1.25; outline: none;
-    text-shadow: 0 1px 8px rgba(8,10,16,0.55); border-radius: 4px; }
-  .p-tile[data-size="L"] .p-short { font-size: 13.5px; }
-  .p-tile[data-size="S"] .p-short { font-size: 11.5px; }
+    text-shadow: var(--text-shadow, 0 1px 8px rgba(8,10,16,0.55)); border-radius: 4px; max-width: 92%; }
+  .p-tile[data-size="hero"] .p-short { font-size: 17px; font-family: Georgia, "Times New Roman", serif; font-weight: 500; }
+  .p-tile[data-size="tall"] .p-short { font-size: 14.5px; }
+  .p-tile[data-size="mini"] .p-short { font-size: 11px; }
+  .p-tile[data-size="wide"] .p-short { max-width: 44%; }
+  .p-tile[data-size="portrait"] .p-short { font-size: 15px; }
   .p-short[contenteditable]:focus { box-shadow: 0 1px 0 rgba(255,255,255,0.6); }
   .p-foot { margin-top: 7px; display: flex; align-items: center; justify-content: space-between; }
-  .p-num { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink-hi); text-shadow: 0 1px 8px rgba(8,10,16,0.55); }
-  .p-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: rgba(230,234,236,0.72); }
+  .p-num { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--tile-ink, var(--ink-hi)); text-shadow: var(--text-shadow, 0 1px 8px rgba(8,10,16,0.55)); }
+  .p-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: color-mix(in srgb, var(--tile-ink, #fff) 72%, transparent); }
   .p-tile[data-on="true"] { box-shadow: 0 0 0 2px var(--ink-hi), 0 16px 32px -18px var(--accent); }
   .p-tile[data-on="true"] .p-tag::after { content: " · kept"; }
   .p-tile[data-hidden="true"] { opacity: 0.42; }
@@ -157,14 +165,14 @@
 
   /* small group-label tile (gestalt anchor, tiny text) */
   .h-tile { display: flex; align-items: center; gap: 8px; padding: 9px 11px;
-    background: linear-gradient(180deg, rgba(94,153,189,0.10), rgba(94,153,189,0.03)); }
+    background: #000; }
   .h-tile .m-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex: none; }
   .h-tile .m-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink); }
   .h-tile .m-count { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
 
   /* fit dial tile (small embedded number) */
   .fit-tile { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px;
-    background: linear-gradient(180deg, rgba(94,153,189,0.12), rgba(94,153,189,0.04)); }
+    background: #000; }
   .recall-ring { position: relative; width: 52px; height: 52px; flex: none; }
   .recall-ring svg { transform: rotate(-90deg); display: block; width: 52px; height: 52px; }
   .recall-ring .fill { transition: stroke-dashoffset .55s cubic-bezier(.2,.9,.3,1), stroke .4s; }
@@ -175,11 +183,11 @@
   .fit-tile .fit-cap b { display: block; font-size: 11px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.4px; }
 
   /* lens chips tile */
-  .lens-tile { padding: 11px; background: linear-gradient(180deg, rgba(94,153,189,0.12), rgba(94,153,189,0.04)); }
+  .lens-tile { padding: 11px; background: #000; }
   .lens-tile .m-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink); margin-bottom: 9px; }
   .m-chips { display: flex; flex-wrap: wrap; gap: 7px; }
   .m-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 20px;
-    border: 1px solid var(--hairline); background: rgba(94,153,189,0.08); color: var(--ink); font-size: 11px; font-weight: 600; cursor: pointer; }
+    border: 1px solid var(--hairline); background: #000; color: var(--ink); font-size: 11px; font-weight: 600; cursor: pointer; }
   .m-chip-sw { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
   .m-chip-num { color: var(--ink-dim); font-size: 10px; font-variant-numeric: tabular-nums; }
   .m-chip.active { background: var(--accent); border-color: var(--accent); color: var(--coral-deep); }
@@ -193,10 +201,10 @@
   .slot-tile .slot-cap { margin-top: 7px; font-size: 10px; color: var(--ink-faint); }
 
   .restore-tile { display: flex; flex-direction: column; gap: 8px; justify-content: center; padding: 12px; text-align: center;
-    background: linear-gradient(180deg, rgba(94,153,189,0.10), rgba(94,153,189,0.03)); }
+    background: #000; }
   .restore-tile .m-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--ink-dim); }
   .restore-tile .m-restore-btn { padding: 9px; border-radius: 12px; border: 1px solid var(--hairline);
-    background: rgba(94,153,189,0.08); color: var(--ink); font-size: 11.5px; font-weight: 600; cursor: pointer; }
+    background: #000; color: var(--ink); font-size: 11.5px; font-weight: 600; cursor: pointer; }
 
   /* ───────── full-screen photo background ───────── */
   .screen-bg { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; display: none; }
@@ -205,7 +213,7 @@
     background: linear-gradient(180deg, rgba(8,10,16,0.22) 0%, rgba(8,10,16,0.34) 24%, rgba(8,10,16,0.5) 58%, rgba(8,10,16,0.64) 100%); }
 
   /* ───────── Notion-style real-photo cover (top banner) ───────── */
-  .cover { position: relative; margin: -4px -16px 0; height: 268px; overflow: hidden; }
+  .cover { position: relative; margin: -4px -16px 0; height: 0; overflow: visible; z-index: 4; }
   /* when a screen background is active, the banner becomes a crisp window onto it (one photo, no fight) */
   .cover[data-defer="true"] .cover-scrim { background: linear-gradient(180deg, transparent 52%, rgba(10,11,16,0.5) 100%); }
   .cover-img { position: absolute; inset: 0; background-size: cover; background-position: center;
@@ -213,32 +221,30 @@
   /* soft scrim: light at top (status bar) → strong at bottom (tiles stay crisp) */
   .cover-scrim { position: absolute; inset: 0; pointer-events: none;
     background: linear-gradient(180deg, rgba(8,10,14,0.34) 0%, transparent 24%, transparent 50%, rgba(10,11,16,0.72) 86%, #0a0b10 100%); }
-  .cover-change { position: absolute; right: 14px; bottom: 30px; z-index: 3; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 16px;
-    font-size: 11px; font-weight: 600; color: var(--ink-hi);
-    background: rgba(20,22,30,0.5); border: 1px solid rgba(255,255,255,0.24);
-    backdrop-filter: blur(10px) saturate(150%); -webkit-backdrop-filter: blur(10px) saturate(150%); }
+  .cover-change { position: absolute; right: 14px; top: 12px; z-index: 3; cursor: pointer;
+    display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0; border-radius: 17px;
+    font-size: 0; font-weight: 600; color: var(--ink-hi);
+    background: #000; border: 1px solid #E6EAEC; }
   .cover-change:active { transform: scale(0.95); }
-  .cover-picker { position: absolute; right: 14px; bottom: 66px; z-index: 4; display: none; gap: 8px; padding: 8px;
-    border-radius: 14px; background: rgba(20,22,30,0.72); border: 1px solid rgba(255,255,255,0.22);
-    backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%);
+  .cover-picker { position: absolute; right: 14px; top: 52px; z-index: 4; display: none; gap: 8px; padding: 8px;
+    border-radius: 14px; background: #000; border: 1px solid #E6EAEC;
     box-shadow: 0 18px 40px -16px rgba(0,0,0,0.7); }
   .cover-picker[data-open="true"] { display: flex; }
   .cover-thumb { width: 48px; height: 34px; border-radius: 8px; background-size: cover; background-position: center;
     cursor: pointer; border: 2px solid transparent; transition: border-color .15s, transform .15s; }
   .cover-thumb:active { transform: scale(0.93); }
   .cover-thumb.active { border-color: var(--ink-hi); }
-  .cover-thumb.cover-none { display: grid; place-items: center; background: rgba(255,255,255,0.06);
+  .cover-thumb.cover-none { display: grid; place-items: center; background: #000;
     border: 1px dashed var(--hairline); color: var(--ink-dim); font-size: 14px; }
   .cover-thumb.cover-none.active { border-color: var(--ink-hi); color: var(--ink-hi); }
   /* content sheet nudges up into the cover bottom (Notion overlap) */
-  .home-body { position: relative; z-index: 2; margin-top: -24px; padding: 14px 0 0;
+  .home-body { position: relative; z-index: 2; margin-top: 0; padding: 0;
     border-top-left-radius: 22px; border-top-right-radius: 22px;
-    background: linear-gradient(180deg, rgba(10,11,16,0.55), rgba(10,11,16,0) 70px); }
+    background: transparent; }
 
   /* per-card cover button (small, unobtrusive) */
-  .p-cover { width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.22);
-    background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.86); display: grid; place-items: center; cursor: pointer; }
+  .p-cover { width: 22px; height: 22px; border-radius: 6px; border: 1px solid #E6EAEC;
+    background: #000; color: #E6EAEC; display: grid; place-items: center; cursor: pointer; }
   .p-cover:active { transform: scale(0.88); }
 
   /* a tile WITH a photo cover: image already set inline; add legibility scrim + translucent text */
@@ -250,8 +256,8 @@
   /* lens card cover button + translucent text over photo */
   .lens-card { position: relative; }
   .lens-card .lc-cover { position: absolute; top: 10px; right: 10px; z-index: 3; width: 24px; height: 24px; border-radius: 7px;
-    border: 1px solid rgba(255,255,255,0.24); background: rgba(20,22,30,0.4); color: rgba(255,255,255,0.88);
-    display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(6px); }
+    border: 1px solid #E6EAEC; background: #000; color: #E6EAEC;
+    display: grid; place-items: center; cursor: pointer; }
   .lens-card .lc-cover:active { transform: scale(0.9); }
   .lens-card[data-hascover="true"]::before { content: ""; position: absolute; inset: 0; border-radius: var(--radius);
     background: linear-gradient(180deg, rgba(8,10,16,0.25), rgba(8,10,16,0.66)); pointer-events: none; }
@@ -263,14 +269,14 @@
 
   /* shared per-card / per-lens cover picker */
   .card-picker { position: absolute; z-index: 55; display: none; flex-wrap: wrap; gap: 6px; width: 188px; padding: 8px;
-    border-radius: 12px; background: rgba(20,22,30,0.84); border: 1px solid rgba(255,255,255,0.22);
-    backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); box-shadow: 0 18px 40px -14px rgba(0,0,0,0.7); }
+    border-radius: 12px; background: #000; border: 1px solid #E6EAEC;
+    box-shadow: 0 18px 40px -14px rgba(0,0,0,0.7); }
   .card-picker[data-open="true"] { display: flex; }
   .card-picker .cp-thumb { width: 48px; height: 34px; border-radius: 7px; background-size: cover; background-position: center;
     cursor: pointer; border: 2px solid transparent; }
   .card-picker .cp-thumb.active { border-color: var(--ink-hi); }
   .card-picker .cp-none { width: 48px; height: 34px; border-radius: 7px; display: grid; place-items: center; cursor: pointer;
-    background: rgba(255,255,255,0.06); border: 1px dashed var(--hairline); color: var(--ink-dim); font-size: 13px; }
+    background: #000; border: 1px dashed var(--hairline); color: var(--ink-dim); font-size: 13px; }
   .card-picker .cp-none.active { border-color: var(--ink-hi); color: var(--ink-hi); }
 
   input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; background: transparent; cursor: pointer; }
@@ -285,20 +291,28 @@
     display: grid; place-items: center; box-shadow: 0 18px 40px -14px var(--gold), inset 0 1px 0 rgba(255,255,255,0.4); transition: transform .18s; }
   .fab:active { transform: scale(0.92); }
   .fab .lbl { position: absolute; bottom: -17px; font-size: 10px; font-weight: 700; color: var(--gold); }
+  .fab .lbl { display: none; }
 
-  .tabbar { position: absolute; left: 14px; right: 14px; bottom: 16px; z-index: 40; height: 64px; border-radius: 32px;
-    display: flex; align-items: center; justify-content: space-around; padding: 0 6px;
-    background: rgba(43,46,56,0.55); border: 1px solid rgba(201,207,211,0.16); box-shadow: 0 20px 50px -18px rgba(0,0,0,0.7);
-    backdrop-filter: blur(28px) saturate(160%); -webkit-backdrop-filter: blur(28px) saturate(160%); }
-  .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; font-size: 10px; font-weight: 600; color: var(--ink-dim); cursor: pointer; }
-  .tab[data-active="true"] { color: var(--ink-hi); }
+  .tabbar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 40; min-height: 78px;
+    display: flex; align-items: center; justify-content: center; gap: 14px; padding: 8px 18px 14px;
+    background: #000; border-top: 1px solid var(--hairline); box-shadow: 0 -10px 30px rgba(0,0,0,0.45); }
+  .tab { display: flex; align-items: center; justify-content: center; min-width: 0; min-height: 48px; border-radius: 10px;
+    font-size: 14px; line-height: 1.1; font-weight: 800; color: var(--ink-hi); cursor: pointer; text-align: center; }
+  .tab svg { display: block; width: 28px; height: 28px; }
+  .tab[data-active="true"] { color: var(--gold-lite); }
+  .tab-add-task, .tab-reminders { padding: 0 14px; border: 1px solid var(--hairline); }
+  .tab-spacer { display: none; }
+  .tab-home { width: 56px; flex: none; }
+  .tabbar[data-current="home"] .tab-home,
+  .tabbar[data-current="tasks"] .tab-add-task,
+  .tabbar[data-current="reminders"] .tab-reminders { display: none; }
 
-  .scrim { position: absolute; inset: 0; z-index: 50; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .26s; }
+  .scrim { position: absolute; inset: 0; z-index: 50; background: #000; opacity: 0; pointer-events: none; transition: opacity .26s; }
   .scrim[data-open="true"] { opacity: 1; pointer-events: auto; }
-  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 51; background: rgba(33,36,46,0.92);
-    border-top-left-radius: 30px; border-top-right-radius: 30px; border-top: 1px solid rgba(201,207,211,0.16);
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 51; background: #000;
+    border-top-left-radius: 30px; border-top-right-radius: 30px; border-top: 1px solid var(--hairline);
     padding: 12px 20px 26px; transform: translateY(100%); transition: transform .4s cubic-bezier(.2,.9,.3,1); max-height: 86%; overflow-y: auto;
-    backdrop-filter: blur(30px) saturate(170%); -webkit-backdrop-filter: blur(30px) saturate(170%); }
+  }
   .sheet::-webkit-scrollbar { width: 0; }
   .sheet[data-open="true"] { transform: translateY(0); }
   .grab { width: 38px; height: 5px; border-radius: 3px; background: rgba(201,207,211,0.28); margin: 0 auto 14px; }
@@ -318,40 +332,69 @@
 
   .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
   .chip-row { display: inline-flex; align-items: center; gap: 7px; padding: 9px 13px; border-radius: 20px; font-size: 12.5px; font-weight: 600;
-    cursor: pointer; background: rgba(94,153,189,0.08); border: 1px solid var(--hairline); color: var(--ink); transition: .18s; }
+    cursor: pointer; background: #000; border: 1px solid var(--hairline); color: var(--ink); transition: .18s; }
   .chip-row .tick { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(201,207,211,0.3); display: grid; place-items: center; }
   .chip-row[data-on="true"] { background: var(--accent); border-color: var(--accent); color: var(--coral-deep); }
   .chip-row[data-on="true"] .tick { background: var(--coral-deep); border-color: var(--coral-deep); }
 
-  .seg { display: flex; gap: 6px; margin-top: 10px; background: rgba(94,153,189,0.07); border: 1px solid var(--hairline); border-radius: 16px; padding: 4px; }
+  .seg { display: flex; gap: 6px; margin-top: 10px; background: #000; border: 1px solid var(--hairline); border-radius: 16px; padding: 4px; }
   .seg button { flex: 1; padding: 9px 0; border: none; border-radius: 12px; cursor: pointer; font-size: 12.5px; font-weight: 600; background: transparent; color: var(--ink-dim); transition: .18s; }
   .seg button[data-on="true"] { background: var(--ink-hi); color: var(--coral-deep); }
 
   .rules-block { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--hairline); }
   .rules-block .t { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 10px; }
-  .rule { display: flex; align-items: flex-start; gap: 10px; padding: 11px 12px; margin-bottom: 8px; border-radius: 14px; background: rgba(94,153,189,0.07); border: 1px solid var(--hairline); }
+  .rule { display: flex; align-items: flex-start; gap: 10px; padding: 11px 12px; margin-bottom: 8px; border-radius: 14px; background: #000; border: 1px solid var(--hairline); }
   .rule .body { flex: 1; min-width: 0; font-size: 12px; line-height: 1.4; }
   .rule .body .when { color: var(--ink); font-weight: 600; }
   .rule .body .when [contenteditable] { outline: none; }
   .rule .body .then { color: var(--ink-dim); margin-top: 3px; }
   .rule .body .then b { color: var(--cerulean-frost); font-weight: 700; }
-  .rule .del { flex: none; width: 26px; height: 26px; border-radius: 50%; border: none; cursor: pointer; background: rgba(201,207,211,0.12); color: var(--ink); font-size: 15px; }
-  .add-rule { width: 100%; margin-top: 2px; padding: 10px; border-radius: 14px; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--ink); background: rgba(94,153,189,0.08); border: 1px dashed var(--hairline); }
+  .rule .del { flex: none; width: 26px; height: 26px; border-radius: 50%; border: none; cursor: pointer; background: #334858; color: var(--ink); font-size: 15px; }
+  .add-rule { width: 100%; margin-top: 2px; padding: 10px; border-radius: 14px; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--ink); background: #000; border: 1px dashed var(--hairline); }
 
   .sheet-cta { width: 100%; margin-top: 16px; padding: 14px; border-radius: 16px; border: none; cursor: pointer; font-size: 14.5px; font-weight: 800; color: #1a1304; background: linear-gradient(135deg, var(--gold-lite), var(--gold)); }
-  .sheet-cta.secondary { background: rgba(94,153,189,0.10); color: var(--ink); border: 1px solid var(--hairline); margin-top: 10px; font-weight: 600; }
+  .sheet-cta.secondary { background: #000; color: var(--ink); border: 1px solid var(--hairline); margin-top: 10px; font-weight: 600; }
   .sheet-cta:active { transform: scale(0.99); }
 
   .you-row { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-top: 1px solid var(--hairline); font-size: 13px; color: var(--ink); }
   .you-row .b { width: 8px; height: 8px; border-radius: 50%; flex: none; }
   .you-row .d { color: var(--ink-hi); font-weight: 700; font-variant-numeric: tabular-nums; }
-  .you-invite { border-radius: 18px; padding: 16px; margin-top: 6px; background: linear-gradient(165deg, rgba(196,158,48,0.16), rgba(94,153,189,0.04)); border: 1px solid rgba(196,158,48,0.32); }
+  .you-invite { border-radius: 18px; padding: 16px; margin-top: 6px; background: #000; border: 1px solid var(--gold); }
   .you-invite .t2 { font-size: 15px; font-weight: 800; color: var(--ink-hi); }
   .you-invite .p2 { font-size: 12.5px; line-height: 1.45; color: var(--ink-dim); margin: 6px 0 12px; }
-  .you-invite .pick { display: flex; align-items: center; gap: 11px; padding: 12px; border-radius: 14px; background: rgba(94,153,189,0.06); border: 1px solid var(--hairline); }
+  .you-invite .pick { display: flex; align-items: center; gap: 11px; padding: 12px; border-radius: 14px; background: #000; border: 1px solid var(--hairline); }
   .you-invite .pick .num2 { flex: none; font-size: 16px; font-weight: 700; color: var(--ink-hi); font-variant-numeric: tabular-nums; }
   .you-invite .pick .pt { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--ink); }
   .you-invite .pick .add { flex: none; padding: 8px 13px; border-radius: 12px; border: none; cursor: pointer; font-size: 12px; font-weight: 700; color: #1a1304; background: linear-gradient(135deg,var(--gold-lite),var(--gold)); }
+
+  .page-head { padding: 16px 4px 6px; }
+  .page-head h2 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 0; color: var(--ink-hi); }
+  .reminder-card, .task-card { padding: 0; margin-top: 18px; background: transparent; border: 0; }
+  .reminder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field label { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .field input, .field textarea { width: 100%; border-radius: 12px; border: 1px solid #5E99BD; background: #000; color: var(--ink-hi); font: inherit; font-size: 17px; padding: 14px 15px; outline: none; }
+  .field input:focus, .field textarea:focus { border-color: var(--gold-lite); box-shadow: 0 0 0 2px rgba(229,202,122,0.28); }
+  .field textarea { min-height: 112px; resize: none; line-height: 1.45; }
+  .field input[type="number"] { font-variant-numeric: tabular-nums; }
+  .reminder-times { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .time-pill { padding: 9px 12px; border-radius: 999px; background: var(--gold); border: 0; color: #1a1304; font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .reminder-status { margin-top: 0; font-size: 15px; color: var(--ink-hi); line-height: 1.4; }
+  .current-list { display: grid; gap: 12px; }
+  .current-empty { color: var(--ink-hi); font-size: 16px; line-height: 1.45; }
+  .current-item { border-radius: 12px; padding: 14px 0; background: transparent; border: 0; border-bottom: 1px solid var(--hairline); }
+  .current-item .ci-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .current-item .ci-title { color: var(--ink-hi); font-size: 18px; font-weight: 800; }
+  .current-item .ci-meta { color: var(--gold-lite); font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .current-item .ci-body { margin-top: 8px; color: var(--ink-hi); font-size: 17px; line-height: 1.42; }
+  .task-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--hairline); }
+  .task-row:first-of-type { border-top: 0; padding-top: 0; }
+  .task-row input { width: 22px; height: 22px; accent-color: var(--gold); }
+  .task-row span { flex: 1; font-size: 17px; color: var(--ink-hi); outline: none; }
+  .task-row[data-done="true"] span { color: var(--ink-faint); text-decoration: line-through; }
+  .task-add { width: 100%; margin-top: 12px; padding: 14px; border-radius: 14px; border: 1px solid #5E99BD; background: transparent; color: var(--ink-hi); font-size: 16px; font-weight: 800; }
+  .page-divider { margin: 22px 0 16px; height: 1px; background: var(--hairline); }
+  .template-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .template-preview { aspect-ratio: 1; border-radius: 12px; display: grid; place-items: center; background: transparent; border: 1px solid var(--hairline); color: var(--ink-hi); font-size: 14px; font-weight: 800; text-align: center; }
 
   .toast { position: absolute; left: 50%; bottom: 180px; transform: translate(-50%, 20px); z-index: 60; background: var(--ink-hi); color: var(--coral-deep);
     font-size: 13px; font-weight: 700; padding: 10px 17px; border-radius: 18px; opacity: 0; pointer-events: none; transition: .3s; box-shadow: 0 18px 40px -16px rgba(0,0,0,0.7); }
@@ -361,12 +404,12 @@
 <body>
 
   <div class="stage-caption">
-    <h1>Re_Call · Lenses</h1>
-    <p>A masonry of color + data tiles, grouped by strength. Reach in to rearrange, hide, delete, and rename — then save the arrangement as a lens.</p>
+    <h1>Home</h1>
+    <p>A masonry of color + data tiles, grouped by strength. Reach in to rearrange, hide, delete, and rename, then save the arrangement.</p>
   </div>
 
   <div class="phone">
-    <div class="screen">
+    <div class="screen" data-bottom="home">
 
       <!-- full-screen photo background (behind everything) -->
       <div class="screen-bg" id="screenBg"></div>
@@ -379,30 +422,20 @@
         <div class="vignette"></div>
       </div>
 
-      <div class="statusbar">
-        <span>9:41</span>
-        <div class="island"></div>
-        <span class="sb-right">
-          <svg width="18" height="12" viewBox="0 0 18 12"><rect y="7" width="3" height="5" rx="1" fill="currentColor"/><rect x="5" y="4" width="3" height="8" rx="1" fill="currentColor"/><rect x="10" y="2" width="3" height="10" rx="1" fill="currentColor"/><rect x="15" width="3" height="12" rx="1" fill="currentColor"/></svg>
-          <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.6" y="0.6" width="21" height="11.8" rx="3.3" stroke="currentColor" stroke-opacity="0.5"/><rect x="2.2" y="2.2" width="17" height="8.6" rx="2" fill="currentColor"/><rect x="23" y="4" width="2" height="5" rx="1" fill="currentColor" fill-opacity="0.5"/></svg>
-        </span>
-      </div>
-
-      <!-- ONBOARDING: small-text lens chooser -->
-      <section class="view" id="onboard" data-active="true">
+      <!-- Template shelf, not the first screen -->
+      <section class="view" id="onboard">
         <div class="scroll">
           <div class="intro">
-            <div class="brand">Re_Call</div>
-            <h2>How do you want to see?</h2>
-            <p class="tagline">Memory is narrative. <em>Your life is relational.</em></p>
-            <div class="prompt">Pick a lens to begin</div>
+            <h2>What should lead?</h2>
+            <p class="tagline">Start from the pressure that matters now.</p>
+            <div class="prompt">Choose what should lead</div>
           </div>
           <div id="lensCarousel"></div>
         </div>
       </section>
 
       <!-- HOME: Notion-style cover + Pinterest masonry -->
-      <section class="view" id="main">
+      <section class="view" id="main" data-active="true">
         <div class="scroll" id="mainScroll">
           <div class="cover" id="cover">
             <div class="cover-img" id="coverImg"></div>
@@ -423,13 +456,76 @@
           <span class="lbl">Tune</span>
         </button>
 
-        <div class="tabbar">
-          <div class="tab" data-tab="home" data-active="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7.5" height="7.5" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2" stroke="currentColor" stroke-width="1.8"/></svg>Mosaic</div>
-          <div class="tab" data-tab="lenses"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="12" r="5.4" stroke="currentColor" stroke-width="1.8"/><circle cx="16" cy="12" r="5.4" stroke="currentColor" stroke-width="1.8"/></svg>Lenses</div>
-          <div class="tab" data-tab="tune"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M8 14v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Tune</div>
-          <div class="tab" data-tab="you"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c0-3.3 3.6-5.5 8-5.5s8 2.2 8 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>You</div>
+      </section>
+
+      <section class="view" id="remindersPage">
+        <div class="scroll">
+          <div class="page-head">
+            <h2>Reminders</h2>
+          </div>
+          <div class="reminder-card">
+            <div class="current-list" id="reminderList"></div>
+            <div class="reminder-status" id="reminderStatus"></div>
+          </div>
+          <div class="reminder-card">
+            <div class="field" style="margin-bottom:10px;">
+              <label for="reminderBody">Reminder</label>
+              <textarea id="reminderBody"></textarea>
+            </div>
+            <div class="reminder-grid">
+              <div class="field"><label for="awakeStart">Awake from</label><input type="time" id="awakeStart" value="08:00" /></div>
+              <div class="field"><label for="awakeEnd">Awake until</label><input type="time" id="awakeEnd" value="22:00" /></div>
+              <div class="field"><label for="reminderInterval">Interval</label><input type="number" id="reminderInterval" min="1" max="12" /></div>
+              <div class="field"><label for="reminderTitle">Title</label><input type="text" id="reminderTitle" /></div>
+            </div>
+            <div class="reminder-times" id="reminderTimes"></div>
+            <button class="sheet-cta" id="scheduleAwakeReminders">Schedule</button>
+          </div>
+          <div class="page-divider"></div>
+          <div class="template-grid" aria-label="Reminder template previews">
+            <div class="template-preview">Preview 1</div>
+            <div class="template-preview">Preview 2</div>
+            <div class="template-preview">Preview 3</div>
+            <div class="template-preview">Preview 4</div>
+          </div>
         </div>
       </section>
+
+      <section class="view" id="tasksPage">
+        <div class="scroll">
+          <div class="page-head">
+            <h2>Tasks</h2>
+          </div>
+          <div class="task-card">
+            <div id="taskList"></div>
+          </div>
+          <div class="task-card">
+            <div class="field">
+              <label for="newTaskText">Task</label>
+              <input type="text" id="newTaskText" />
+            </div>
+            <button class="task-add" id="addTask">+ Add task</button>
+          </div>
+          <div class="page-divider"></div>
+          <div class="template-grid" aria-label="Task template previews">
+            <div class="template-preview">Preview 1</div>
+            <div class="template-preview">Preview 2</div>
+            <div class="template-preview">Preview 3</div>
+            <div class="template-preview">Preview 4</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="tabbar" id="tabbar" data-current="home">
+        <div class="tab tab-add-task" data-tab="addTask" title="Task">Task</div>
+        <div class="tab tab-reminders" data-tab="reminders" title="Reminders">Reminders</div>
+        <div class="tab-spacer" aria-hidden="true"></div>
+        <div class="tab tab-home" data-tab="home" title="Home" aria-label="Home">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 11.2 12 4l8 7.2V20a1 1 0 0 1-1 1h-4.8v-6.2H9.8V21H5a1 1 0 0 1-1-1v-8.8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
 
       <!-- TUNE SHEET -->
       <div class="scrim" id="tuneScrim"></div>
@@ -447,7 +543,7 @@
           <div id="ruleList"></div>
           <button class="add-rule" id="addRule">+ Add a rule</button>
         </div>
-        <button class="sheet-cta" id="saveLens">Save as a Lens</button>
+        <button class="sheet-cta" id="saveLens">Save</button>
         <button class="sheet-cta secondary" id="tuneDone">Done</button>
       </div>
 
@@ -499,7 +595,7 @@ const ANCHORS = {
   fmt:{ txt:"Before replying, choose the format that lets the other person use the message." }
 };
 
-/* Lenses (painterly art intentionally NOT referenced in the UI per Adam's redirect) */
+/* Saved arrangements (painterly art intentionally NOT referenced in the UI per Adam's redirect) */
 /* Real-photo covers ONLY (no AI / impressionist / cosmic imagery).
    Extend by dropping a real photo into wireframes/covers/ and adding ONE line here. */
 const COVER_PHOTOS = [
@@ -515,7 +611,7 @@ let LENSES = [
   { id:"deep",     name:"Deep Work",        feel:"Focused", cover:"tennis", screenCover:"ocean",  grad:"linear-gradient(165deg,#1c2a39,#286498 58%,#3E79A8)", w:{lev:0.95,time:0.35,fmt:0.80}, timeFacets:[],               format:"matrix", master:0.8, accent:"lev" },
   { id:"lowstress",name:"Low-Stress",       feel:"Calm",    cover:"ocean",  screenCover:"ocean",  grad:"linear-gradient(165deg,#22384c,#3E79A8 55%,#5E99BD)", w:{lev:0.30,time:0.95,fmt:0.40}, timeFacets:["stress","prep"], format:null,    master:0.55, accent:"time", cap:3 },
   { id:"decision", name:"Decision Mode",    feel:"Decisive",cover:"desert", screenCover:"desert", grad:"linear-gradient(165deg,#172430,#286498 52%,#5E99BD)", w:{lev:0.85,time:0.40,fmt:0.95}, timeFacets:[],               format:"matrix", master:0.85, accent:"fmt" },
-  { id:"recall",   name:"Recall · Learning",feel:"Curious", cover:"mosque", screenCover:"mosque", grad:"linear-gradient(165deg,#2a4256,#4d86ab 55%,#7FB0CE)", w:{lev:0.50,time:0.50,fmt:0.90}, timeFacets:[],               format:"tree",   master:0.7,  accent:"fmt" },
+  { id:"recall",   name:"Learning",         feel:"Curious", cover:"mosque", screenCover:"mosque", grad:"linear-gradient(165deg,#2a4256,#4d86ab 55%,#7FB0CE)", w:{lev:0.50,time:0.50,fmt:0.90}, timeFacets:[],               format:"tree",   master:0.7,  accent:"fmt" },
   { id:"blank",    name:"Build your own",   feel:"Yours",   cover:null,     screenCover:"ocean",  grad:"linear-gradient(165deg,#2B2E38,#42475a 60%,#555A6B)", w:{lev:0.50,time:0.50,fmt:0.50}, timeFacets:[],               format:null,     master:0.5,  accent:"gold", blank:true }
 ];
 
@@ -523,6 +619,27 @@ const state = {
   lensName:"Deep Work", master:0.7, w:{lev:0.5,time:0.5,fmt:0.5}, timeFacets:new Set(), format:null, chosen:new Set(), cap:99,
   hidden:new Set(), deleted:new Set(), order:null, shortText:{}, cover:DEFAULT_COVER, covers:{}, screenCover:"ocean"
 };
+const reminderState = JSON.parse(localStorage.getItem("recall.reminders.today") || "null") || {
+  title:"",
+  body:"",
+  start:"08:00",
+  end:"22:00",
+  interval:"",
+  times:[]
+};
+let tasks = JSON.parse(localStorage.getItem("recall.tasks.today") || "null") || [
+];
+function isStaleDefaultReminder(title, body) {
+  return /^re_call$/i.test(String(title || "").trim())
+    || /pause, check what is still alive|50\s*g|protein|every\s+four\s+hours/i.test(String(body || ""));
+}
+if (isStaleDefaultReminder(reminderState.title, reminderState.body)) {
+  reminderState.title = "";
+  reminderState.body = "";
+  reminderState.times = [];
+  reminderState.interval = "";
+  localStorage.removeItem("recall.reminders.today");
+}
 let activeLens = null;
 
 let RULES = [
@@ -601,20 +718,61 @@ function renderLensChooser() {
   });
 }
 
-/* ── irregular masonry: variable W+H grid; tile SIZE = importance ── */
-const SPAN = { L:{c:4,r:7}, M:{c:3,r:6}, S:{c:2,r:4}, head:{c:2,r:2}, fit:{c:2,r:4}, lens:{c:4,r:5}, slot:{c:2,r:4} };
+/* ── irregular masonry: variable W+H grid; template cards are intentionally non-uniform ── */
+const SPAN = {
+  hero:{c:4,r:11}, tall:{c:3,r:10}, portrait:{c:3,r:12}, wide:{c:6,r:6},
+  block:{c:3,r:7}, mini:{c:2,r:5}, sliver:{c:2,r:8},
+  head:{c:2,r:2}, fit:{c:2,r:4}, lens:{c:4,r:5}, slot:{c:2,r:4}
+};
 function span(k) { const s = SPAN[k]; return `grid-column:span ${s.c};grid-row:span ${s.r};`; }
-function bucketFor(score, max) { const r = max > 0 ? score / max : 0; return r >= 0.93 ? "L" : r >= 0.84 ? "M" : "S"; }
-const MUTE = { L:0, M:0.14, S:0.26 };
+const DEFAULT_VISUAL = { size:"block", bg:"#00798C", ink:"#FDF5EA", tone:"dark", art:"field", a:"#00798C", b:"#002030" };
+const VISUALS = {
+  NameSmallInputAndOutcome: { size:"hero", bg:"#002030", ink:"#FDF5EA", tone:"dark", art:"bands", bands:[["#002030",0,42],["#00798C",42,18],["#FFA719",60,22],["#CD2C42",82,18]] },
+  ClearGoodIdeasForGreatIdea: { size:"block", bg:"#FFA719", ink:"#1F1300", tone:"light", art:"paper" },
+  AskForVisibleProcessDraft: { size:"block", bg:"#CD2C42", ink:"#FDF5EA", tone:"dark", art:"swatches", swatches:["#002030","#FDF5EA","#FFA719","#00798C"] },
+  FindBottleneckBlockingOutcomes: { size:"portrait", bg:"#00798C", ink:"#FDF5EA", tone:"dark", art:"field", a:"#00798C", b:"#06363D" },
+  DefineSmallestProofTest: { size:"mini", bg:"#FDF5EA", ink:"#002030", tone:"light", art:"paper" },
+  ConvertAbstractTalkToInspectableShape: { size:"tall", bg:"#06363D", ink:"#FDF5EA", tone:"dark", art:"bands", bands:[["#06363D",0,35],["#085558",35,26],["#0D6F73",61,20],["#B4BFBF",81,19]] },
+  ChooseTableMatrixTreeOrNote: { size:"wide", bg:"#E0EDE9", ink:"#111111", tone:"light", art:"swatches", swatches:["#06363D","#085558","#0D6F73","#84B8BF","#E0EDE9"] },
+  SortFeedbackBeforeInterpreting: { size:"block", bg:"#B37A21", ink:"#FDF5EA", tone:"dark", art:"field", a:"#B37A21", b:"#88150C" },
+  AskForProvenanceConstraintsVerification: { size:"sliver", bg:"#FDF5EA", ink:"#002030", tone:"light", art:"bands", bands:[["#FDF5EA",0,55],["#FFA719",55,12],["#00798C",67,16],["#002030",83,17]] },
+  DiagnoseContentStyleTimingFormat: { size:"block", bg:"#CD2C42", ink:"#FDF5EA", tone:"dark", art:"field", a:"#CD2C42", b:"#88150C" },
+  ScanTomorrowForTransitionStress: { size:"mini", bg:"#00798C", ink:"#FDF5EA", tone:"dark", art:"photo", cover:"ocean" },
+  IdentifyMeetingNeedingEmotionalPrep: { size:"block", bg:"#FDF5EA", ink:"#002030", tone:"light", art:"swatches", swatches:["#002030","#CD2C42","#FFA719"] },
+  FindCalendarItemForPrebrief: { size:"tall", bg:"#84B8BF", ink:"#002030", tone:"light", art:"photo", cover:"mosque" },
+  NoticeEnergyOverestimate: { size:"mini", bg:"#FFA719", ink:"#1F1300", tone:"light", art:"field", a:"#FFA719", b:"#C49E30" },
+  ReviewCalendarProtectedBestWork: { size:"portrait", bg:"#002030", ink:"#FDF5EA", tone:"dark", art:"photo", cover:"tennis" }
+};
+const MIXED_TEMPLATE_ORDER = [
+  "NameSmallInputAndOutcome","ScanTomorrowForTransitionStress","ClearGoodIdeasForGreatIdea",
+  "ConvertAbstractTalkToInspectableShape","FindBottleneckBlockingOutcomes","AskForVisibleProcessDraft",
+  "IdentifyMeetingNeedingEmotionalPrep","ChooseTableMatrixTreeOrNote","SortFeedbackBeforeInterpreting",
+  "DefineSmallestProofTest","FindCalendarItemForPrebrief","AskForProvenanceConstraintsVerification",
+  "NoticeEnergyOverestimate","DiagnoseContentStyleTimingFormat","ReviewCalendarProtectedBestWork"
+];
+
+function visualFor(t) { return VISUALS[t.id] || DEFAULT_VISUAL; }
+function visualArt(v) {
+  if (v.art === "bands") {
+    return `<div class="p-art">${(v.bands || []).map(([c,x,w]) => `<span class="band" style="--c:${c};--x:${x}%;--w:${w}%;"></span>`).join("")}</div>`;
+  }
+  if (v.art === "swatches") {
+    return `<div class="p-art"><div class="stack">${(v.swatches || []).map(c => `<span class="sw" style="--c:${c}"></span>`).join("")}</div></div>`;
+  }
+  if (v.art === "paper") return `<div class="p-art"><span class="paper"></span></div>`;
+  if (v.art === "photo" && v.cover) return `<div class="p-art"><span class="field" style="--a:rgba(0,32,48,0.18);--b:rgba(0,0,0,0.18);background-image:linear-gradient(180deg,rgba(0,0,0,0.08),rgba(0,0,0,0.42)),url('${COVER_SRC[v.cover]}');background-size:cover;background-position:center;"></span></div>`;
+  return `<div class="p-art"><span class="field" style="--a:${v.a || v.bg};--b:${v.b || "#002030"}"></span></div>`;
+}
 
 function practiceTileHTML(t, score, max, hidden) {
-  const acc = C[t.signal];
-  const size = hidden ? "S" : bucketFor(score, max);
-  const mute = hidden ? 0.5 : MUTE[size];
+  const v = visualFor(t);
+  const size = hidden ? "mini" : v.size;
+  const mute = hidden ? 0.5 : 0;
   const coverKey = state.covers[t.id];
-  const coverStyle = coverKey ? `background-image:url('${COVER_SRC[coverKey]}');background-size:cover;background-position:center;` : "";
-  return `<div class="cell p-tile" data-id="${t.id}" data-size="${size}" data-hidden="${!!hidden}" data-on="${state.chosen.has(t.id)}" data-hascover="${!!coverKey}"
-      style="${span(size)}--accent:${acc};--mute:${mute};--d:${t.depth}${coverStyle}">
+  const coverStyle = coverKey ? `--tile-bg:linear-gradient(180deg,rgba(0,0,0,0.08),rgba(0,0,0,0.52)),url('${COVER_SRC[coverKey]}');background-size:cover;background-position:center;` : `--tile-bg:${v.bg};`;
+  return `<div class="cell p-tile" data-id="${t.id}" data-size="${size}" data-tone="${v.tone || "dark"}" data-hidden="${!!hidden}" data-on="${state.chosen.has(t.id)}" data-hascover="${!!coverKey}"
+      style="${span(size)}--accent:${v.bg};--tile-ink:${v.ink};--text-shadow:${v.tone === "light" ? "none" : "0 1px 8px rgba(8,10,16,0.55)"};--mute:${mute};--d:${t.depth};${coverStyle}">
+    ${coverKey ? "" : visualArt(v)}
     <div class="p-bar">
       <span class="p-handle" data-handle="${t.id}" title="Drag to reorder">${HANDLE}</span>
       <span class="p-acts">
@@ -645,7 +803,6 @@ function fitTileHTML() {
 }
 function lensTileHTML() {
   return `<div class="cell lens-tile" style="${span('lens')}">
-    <span class="m-label">Lenses</span>
     <div class="m-chips">${LENSES.map(l => {
       const acc = l.accent === "gold" ? "var(--cerulean-frost)" : C[l.accent];
       const active = l.name === state.lensName;
@@ -655,7 +812,7 @@ function lensTileHTML() {
   </div>`;
 }
 function slotTileHTML() {
-  return `<div class="cell slot-tile" id="slotTile" style="${span('slot')}" title="Save this arrangement as a lens">
+  return `<div class="cell slot-tile" id="slotTile" style="${span('slot')}" title="Save this arrangement">
     <div class="plus">+</div><div class="slot-cap">save</div>
   </div>`;
 }
@@ -663,27 +820,25 @@ function restoreTileHTML() {
   const fh = hiddenItems(state)[0];
   const inner = fh
     ? `<span class="m-label">Hidden</span><button class="m-restore-btn" data-restore="${fh.id}">show ${shortOf(fh)}</button>`
-    : `<span class="m-label">Empty</span><button class="m-restore-btn" id="goLenses2">choose a lens</button>`;
+    : `<span class="m-label">Empty</span><button class="m-restore-btn" id="goLenses2">choose what leads</button>`;
   return `<div class="cell restore-tile" style="${span('lens')}">${inner}</div>`;
 }
-/* gestalt: lead with the lens's dominant strength, cluster each group by color */
+/* gestalt: template-shopping board first; metadata controls are mixed in after real cards */
 function renderMasonry() {
   const vis = visibleRanked(state);
-  const max = vis[0]?.s ?? 1;
-  const dom = Object.entries(state.w).sort((a,b)=>b[1]-a[1])[0][0];
-  const order = [dom, ...["time","lev","fmt"].filter(s => s !== dom)];
-  let html = fitTileHTML() + lensTileHTML();
-  let any = false;
-  order.forEach(sig => {
-    const items = vis.filter(r => r.t.signal === sig);
-    const hid = hiddenItems(state).filter(t => t.signal === sig);
-    if (items.length === 0 && hid.length === 0) return;
-    any = true;
-    html += headerTileHTML(sig, items.length);
-    items.forEach(({t,s}) => html += practiceTileHTML(t, s, max, false));
-    hid.forEach(t => html += practiceTileHTML(t, Scoring.score(t, state), max, true));
+  const byId = new Map(vis.map(r => [r.t.id, r]));
+  const mixed = [
+    ...MIXED_TEMPLATE_ORDER.map(id => byId.get(id)).filter(Boolean),
+    ...vis.filter(r => !MIXED_TEMPLATE_ORDER.includes(r.t.id))
+  ];
+  let html = "";
+  mixed.forEach(({t,s}, i) => {
+    html += practiceTileHTML(t, s, 1, false);
+    if (i === 5) html += fitTileHTML();
+    if (i === 8) html += lensTileHTML();
   });
-  if (!any) html += restoreTileHTML();
+  hiddenItems(state).forEach(t => html += practiceTileHTML(t, Scoring.score(t, state), 1, true));
+  if (mixed.length === 0) html += restoreTileHTML();
   html += slotTileHTML();
   $("#masonry").innerHTML = html;
   bindMasonry(); updateRing();
@@ -940,7 +1095,7 @@ function saveAsLens() {
   const n = LENSES.filter(l => l.id.startsWith("custom")).length + 1;
   const dom = Object.entries(state.w).sort((a,b)=>b[1]-a[1])[0][0];
   const grads = { lev:"linear-gradient(165deg,#1c2a39,#286498 58%,#3E79A8)", time:"linear-gradient(165deg,#22384c,#3E79A8 55%,#5E99BD)", fmt:"linear-gradient(165deg,#2a4256,#4d86ab 55%,#7FB0CE)" };
-  const lens = { id:"custom"+n, name:"My Lens "+n, feel:"Tuned", cover:state.cover, covers:{ ...state.covers }, screenCover:state.screenCover, grad:grads[dom], w:{...state.w}, timeFacets:[...state.timeFacets], format:state.format, master:state.master, accent:dom,
+  const lens = { id:"custom"+n, name:"Custom "+n, feel:"Tuned", cover:state.cover, covers:{ ...state.covers }, screenCover:state.screenCover, grad:grads[dom], w:{...state.w}, timeFacets:[...state.timeFacets], format:state.format, master:state.master, accent:dom,
     order: state.order ? [...state.order] : [...visibleRanked(state).map(r => r.t.id)],
     hidden: [...state.hidden], deleted: [...state.deleted], shortText: { ...state.shortText } };
   LENSES.splice(LENSES.length-1, 0, lens);
@@ -949,11 +1104,26 @@ function saveAsLens() {
   toast("Saved as " + lens.name);
 }
 
+function setActiveView(id) {
+  $$(".view").forEach(view => view.dataset.active = (view.id === id));
+  const current = id === "remindersPage" ? "reminders" : id === "tasksPage" ? "tasks" : "home";
+  $("#tabbar").dataset.current = current;
+  $("#"+id+" .scroll")?.scrollTo({ top: 0 });
+}
 function setTab(name) {
+  ["tuneScrim","tuneSheet","youScrim","youSheet"].forEach(id => $("#"+id).dataset.open="false");
   $$('.tab').forEach(t => t.dataset.active = (t.dataset.tab === name));
   if (name === "tune") openSheet("tune");
   else if (name === "you") { renderYou(); openSheet("you"); }
-  else if (name === "lenses") { $("#main").dataset.active = "false"; $("#onboard").dataset.active = "true"; $("#onboard .scroll").scrollTo({ top: 0 }); }
+  else if (name === "addTask") {
+    renderTasks();
+    setActiveView("tasksPage");
+    $("#newTaskText")?.focus();
+  }
+  else if (name === "reminders") { renderReminders(); setActiveView("remindersPage"); }
+  else if (name === "tasks") { renderTasks(); setActiveView("tasksPage"); }
+  else if (name === "lenses") { setActiveView("onboard"); }
+  else { setActiveView("main"); }
 }
 function openSheet(which) {
   if (which === "tune") { $("#tuneScrim").dataset.open="true"; $("#tuneSheet").dataset.open="true"; }
@@ -961,13 +1131,13 @@ function openSheet(which) {
 }
 function closeSheets() {
   ["tuneScrim","tuneSheet","youScrim","youSheet"].forEach(id => $("#"+id).dataset.open="false");
-  $$('.tab').forEach(t => t.dataset.active = (t.dataset.tab === "home"));
+  $$('.tab').forEach(t => t.dataset.active = false);
 }
 function renderYou() {
   const list = $("#youChosen");
   if (state.chosen.size === 0) {
     const vis = visibleRanked(state);
-    if (vis.length === 0) { list.innerHTML = `<div class="you-invite"><div class="t2">Reload practices</div><div class="p2">Choose a lens to fill your mosaic again.</div></div>`; return; }
+    if (vis.length === 0) { list.innerHTML = `<div class="you-invite"><div class="t2">Reload practices</div><div class="p2">Choose what should lead to fill your home again.</div></div>`; return; }
     const top = vis[0].t;
     list.innerHTML = `<div class="you-invite"><div class="t2">Keep what fits you.</div>
       <div class="p2">Tap a tile in the mosaic to keep it. Start with this one.</div>
@@ -979,6 +1149,151 @@ function renderYou() {
     const t = TEMPLATES.find(x => x.id === id);
     return `<div class="you-row"><span class="b" style="background:${C[t.signal]}"></span><span style="flex:1">${shortOf(t)}</span><span class="d">${t.depth.toFixed(2)}</span></div>`;
   }).join("");
+}
+
+function esc(text) {
+  return String(text).replace(/[&<>"']/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch]));
+}
+function minutesOf(time) {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+}
+function timeOf(minutes) {
+  const h = String(Math.floor(minutes / 60)).padStart(2, "0");
+  const m = String(minutes % 60).padStart(2, "0");
+  return `${h}:${m}`;
+}
+function displayTime(time) {
+  const [hh, mm] = time.split(":").map(Number);
+  const suffix = hh >= 12 ? "PM" : "AM";
+  const h = hh % 12 || 12;
+  return `${h}:${String(mm).padStart(2, "0")} ${suffix}`;
+}
+function buildReminderTimes() {
+  const start = minutesOf($("#awakeStart").value || "08:00");
+  const end = minutesOf($("#awakeEnd").value || "22:00");
+  const interval = +$("#reminderInterval").value;
+  if (!interval) return [];
+  const step = Math.max(1, interval) * 60;
+  const times = [];
+  for (let t = start; t <= end; t += step) times.push(timeOf(t));
+  return times;
+}
+function saveReminderState() {
+  reminderState.title = $("#reminderTitle").value.trim();
+  reminderState.body = $("#reminderBody").value.trim();
+  reminderState.start = $("#awakeStart").value || "08:00";
+  reminderState.end = $("#awakeEnd").value || "22:00";
+  reminderState.interval = $("#reminderInterval").value ? Math.max(1, +$("#reminderInterval").value) : "";
+  reminderState.times = buildReminderTimes();
+  localStorage.setItem("recall.reminders.today", JSON.stringify(reminderState));
+}
+function renderReminderTimes() {
+  const times = buildReminderTimes();
+  $("#reminderTimes").innerHTML = times.map(t => `<span class="time-pill">${displayTime(t)}</span>`).join("");
+  $("#reminderStatus").textContent = "";
+}
+function renderReminderList() {
+  const list = $("#reminderList");
+  const times = (reminderState.times && reminderState.times.length)
+    ? reminderState.times
+    : (reminderState.interval ? buildReminderTimes() : []);
+  if (!times.length) {
+    list.innerHTML = "";
+    return;
+  }
+  const title = reminderState.title ? `<span class="ci-title">${esc(reminderState.title)}</span>` : "";
+  const body = reminderState.body ? `<div class="ci-body">${esc(reminderState.body)}</div>` : "";
+  list.innerHTML = times.map(time => `
+    <div class="current-item">
+      <div class="ci-top">${title}<span class="ci-meta">${displayTime(time)}</span></div>
+      ${body}
+    </div>
+  `).join("");
+}
+function renderReminders() {
+  $("#reminderTitle").value = reminderState.title;
+  $("#reminderBody").value = reminderState.body;
+  $("#awakeStart").value = reminderState.start;
+  $("#awakeEnd").value = reminderState.end;
+  $("#reminderInterval").value = reminderState.interval;
+  renderReminderTimes();
+  renderReminderList();
+  requestNativeReminderList();
+}
+function scheduleAwakeReminders() {
+  saveReminderState();
+  renderReminderTimes();
+  renderReminderList();
+  if (window.webkit?.messageHandlers?.recallReminders) {
+    window.webkit.messageHandlers.recallReminders.postMessage({
+      action:"schedule",
+      title:reminderState.title,
+      body:reminderState.body,
+      times:reminderState.times
+    });
+    $("#reminderStatus").textContent = "";
+  } else {
+    $("#reminderStatus").textContent = "";
+  }
+  toast("Reminder schedule saved");
+}
+window.recallReminderNativeResult = result => {
+  if (Array.isArray(result.pending)) {
+    const pending = result.pending.filter(item => !isStaleDefaultReminder(item.title, item.body));
+    reminderState.times = pending.map(item => item.time).filter(Boolean);
+    const first = pending[0];
+    if (first) {
+      if (!reminderState.title && first.title) reminderState.title = first.title;
+      if (!reminderState.body && first.body) reminderState.body = first.body;
+      $("#reminderTitle").value = reminderState.title;
+      $("#reminderBody").value = reminderState.body;
+    }
+    if (pending.length) {
+      localStorage.setItem("recall.reminders.today", JSON.stringify(reminderState));
+    } else if (!reminderState.title && !reminderState.body) {
+      localStorage.removeItem("recall.reminders.today");
+    }
+    renderReminderList();
+    return;
+  }
+  $("#reminderStatus").textContent = "";
+  renderReminderList();
+  toast(result.success ? "iOS reminders scheduled" : "Reminder permission needed");
+};
+
+function requestNativeReminderList() {
+  if (window.webkit?.messageHandlers?.recallReminders) {
+    window.webkit.messageHandlers.recallReminders.postMessage({ action:"list" });
+  }
+}
+
+function saveTasks() {
+  localStorage.setItem("recall.tasks.today", JSON.stringify(tasks));
+}
+function renderTasks() {
+  if (!tasks.length) {
+    $("#taskList").innerHTML = "";
+    return;
+  }
+  $("#taskList").innerHTML = tasks.map(task => `
+    <label class="task-row" data-id="${task.id}" data-done="${task.done}">
+      <input type="checkbox" ${task.done ? "checked" : ""} />
+      <span contenteditable="true">${esc(task.text)}</span>
+    </label>
+  `).join("");
+  $$(".task-row").forEach(row => {
+    const task = tasks.find(t => t.id === row.dataset.id);
+    $("input", row).addEventListener("change", e => {
+      task.done = e.target.checked;
+      row.dataset.done = task.done;
+      saveTasks();
+    });
+    $("span", row).addEventListener("blur", e => {
+      task.text = e.target.textContent.trim();
+      saveTasks();
+    });
+  });
 }
 
 let toastTimer;
@@ -1004,11 +1319,30 @@ $("#youScrim").addEventListener("click", closeSheets);
 $("#tuneDone").addEventListener("click", closeSheets);
 $("#youDone").addEventListener("click", closeSheets);
 $("#saveLens").addEventListener("click", saveAsLens);
+["reminderTitle","reminderBody","awakeStart","awakeEnd","reminderInterval"].forEach(id => {
+  $("#"+id).addEventListener("input", () => { saveReminderState(); renderReminderTimes(); renderReminderList(); });
+});
+$("#scheduleAwakeReminders").addEventListener("click", scheduleAwakeReminders);
+$("#addTask").addEventListener("click", () => {
+  const input = $("#newTaskText");
+  const text = input.value.trim();
+  if (!text) return;
+  tasks.push({ id:"task-" + Date.now(), text, done:false });
+  input.value = "";
+  saveTasks();
+  renderTasks();
+  toast("Task added");
+});
+$("#newTaskText").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); $("#addTask").click(); }
+});
 
 /* init */
 renderCoverPicker();
 renderLensChooser();
 renderRules();
+renderReminders();
+renderTasks();
 applyLens("deep", false);
 </script>
 </body>

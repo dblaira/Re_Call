@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>Re_Call — Reminder &amp; Task Template Subjects</title>
+  </head>
+  <body>
+    <outline text="Re_Call — Template Subjects">
+      <outline text="Layer A — 38 Standard Subjects (plain onboarding set)">
+        <outline text="Health &amp; Body (most evidenced)">
+          <outline text="Take medication / vitamins — 51.5% forget meds"/>
+          <outline text="Drink water — 8 glasses, fixed times"/>
+          <outline text="Exercise / gym — 3x/week, 30 min, 8,500 steps"/>
+          <outline text="Sleep — 8 hrs, bed before midnight"/>
+          <outline text="Meditate / stretch / yoga"/>
+          <outline text="Doctor &amp; dentist appointments"/>
+          <outline text="5 servings fruit + veg"/>
+        </outline>
+        <outline text="Home &amp; Errands">
+          <outline text="Grocery list — reusable, shared, location-triggered"/>
+          <outline text="Buy milk when at store — classic location reminder"/>
+          <outline text="Water the plants"/>
+          <outline text="Laundry / chores"/>
+          <outline text="Trash &amp; recycling (recurring)"/>
+          <outline text="Pay bills / rent / invoices"/>
+          <outline text="Home maintenance — filters, etc."/>
+        </outline>
+        <outline text="People &amp; Relationships">
+          <outline text="Call mom / family check-in"/>
+          <outline text="Birthdays &amp; anniversaries — alert 1-3 days before + day-of"/>
+          <outline text="Reply to messages / emails"/>
+          <outline text="Plan a date / quality time"/>
+          <outline text="Send thank-you / gift"/>
+        </outline>
+        <outline text="Work &amp; Money">
+          <outline text="Weekly review (GTD) — most-used template"/>
+          <outline text="1-on-1 meetings"/>
+          <outline text="Deep work block"/>
+          <outline text="Project tracker / deadlines"/>
+          <outline text="Accounting / taxes / invoices"/>
+          <outline text="Job hunt"/>
+          <outline text="Budget &amp; savings check"/>
+        </outline>
+        <outline text="Growth &amp; Mind">
+          <outline text="Reading — 20 min/day or reading list"/>
+          <outline text="Study / course / vocabulary"/>
+          <outline text="Journal / daily reflection / gratitude"/>
+          <outline text="Goal tracker / resolutions"/>
+          <outline text="Blog / writing"/>
+          <outline text="Learn a skill / language / instrument"/>
+        </outline>
+        <outline text="Life Admin &amp; Transitions">
+          <outline text="Trip planning / packing"/>
+          <outline text="Moving checklist"/>
+          <outline text="Annual review"/>
+        </outline>
+      </outline>
+      <outline text="Layer B — Profile-Tuned Bends (inspiration fuel)">
+        <outline text="Values: Adventure, Beauty, Discovery, Catalyze, Mastery, Spiritual, Win"/>
+        <outline text="Aptitudes: Number Facility 85th, Numerical 75th, Graphoria 70th, ENTJ"/>
+        <outline text="Adventure (Speculation + Experiment)">
+          <outline text="Plan one micro-adventure this week"/>
+          <outline text="Experiment log — try one new thing, track result"/>
+        </outline>
+        <outline text="Beauty (Taste)">
+          <outline text="Curate something beautiful today"/>
+          <outline text="Plain templates stay plain — your bend is the visible delta"/>
+        </outline>
+        <outline text="Catalyze (Turn on / Stimulate)">
+          <outline text="Spark someone — intro two people"/>
+          <outline text="Energize the team (ENTJ catalytic nudge)"/>
+        </outline>
+        <outline text="Discovery (Discern) + Win (numbers)">
+          <outline text="Research rabbit hole / question of the week"/>
+          <outline text="Beat my last number / metric check / streak / net-worth"/>
+        </outline>
+        <outline text="Mastery + Spiritual">
+          <outline text="Set a new standard for X — deliberate-practice rep"/>
+          <outline text="What lit me up today? — passion check-in"/>
+        </outline>
+      </outline>
+      <outline text="Standard Subject -> Your Bend">
+        <outline text="Take medication -> Hit today's body metrics (streak)"/>
+        <outline text="Exercise 3x/week -> Beat last week's number"/>
+        <outline text="Read 20 min -> Discovery rabbit hole"/>
+        <outline text="Call mom -> Spark someone today"/>
+        <outline text="Trip planning -> Micro-adventure this week"/>
+        <outline text="Weekly review -> What lit me up?"/>
+        <outline text="Grocery list -> Curate something beautiful"/>
+        <outline text="Budget check -> Net-worth + streak (Number Facility 85th)"/>
+      </outline>
+      <outline text="Re_Call Takeaway">
+        <outline text="Ship Layer A as the standard gallery — plain, low-friction onboarding"/>
+        <outline text="Layer B is the recommendation target — what the ontology learns to suggest"/>
+        <outline text="Every bend = a value signal feeding the strength graph (the flywheel)"/>
+      </outline>
+    </outline>
+  </body>
+</opml>

@@ -57,6 +57,11 @@
       <outline text="Layer B — Profile-Tuned Bends (inspiration fuel)">
         <outline text="Values: Adventure, Beauty, Discovery, Catalyze, Mastery, Spiritual, Win"/>
         <outline text="Aptitudes: Number Facility 85th, Numerical 75th, Graphoria 70th, ENTJ"/>
+        <outline text="Articulation Layer (copy reveals fit)">
+          <outline text="Same subject, different wording: plain utility copy is baseline onboarding; intense, performance, recovery, beauty, or duty copy is the personalization probe."/>
+          <outline text="Drink water -> Hydrate now, so you can push harder later and recover quickly"/>
+          <outline text="A user who chooses or edits toward harder-driving wording is revealing value and strength fit before many ratings exist."/>
+        </outline>
         <outline text="Adventure (Speculation + Experiment)">
           <outline text="Plan one micro-adventure this week"/>
           <outline text="Experiment log — try one new thing, track result"/>
@@ -80,6 +85,7 @@
       </outline>
       <outline text="Standard Subject -> Your Bend">
         <outline text="Take medication -> Hit today's body metrics (streak)"/>
+        <outline text="Drink water -> Hydrate now, so you can push harder later and recover quickly"/>
         <outline text="Exercise 3x/week -> Beat last week's number"/>
         <outline text="Read 20 min -> Discovery rabbit hole"/>
         <outline text="Call mom -> Spark someone today"/>
@@ -91,6 +97,7 @@
       <outline text="Re_Call Takeaway">
         <outline text="Ship Layer A as the standard gallery — plain, low-friction onboarding"/>
         <outline text="Layer B is the recommendation target — what the ontology learns to suggest"/>
+        <outline text="Wording is a first-class signal: the same reminder subject can expose different motives depending on how it is articulated."/>
         <outline text="Every bend = a value signal feeding the strength graph (the flywheel)"/>
       </outline>
     </outline>

@@ -53,9 +53,25 @@ Capture a real signal from life or work.
 Classify what kind of signal it is.
 Choose the best translation format, not just the best text.
 Show a template that sparks the user to personalize it.
+Capture which articulation the user accepts, edits, or rejects.
 Store the personalization as a rule.
 Use that rule to make the next reminder more aligned.
 ```
+
+## Articulation Is Signal
+
+The wording of a reminder is not decoration. The subject tells Re_Call what area of life the reminder belongs to. The articulation tells Re_Call what motive makes that subject come alive for this user.
+
+Example:
+
+```text
+baseline: Drink water — 8 glasses, fixed times
+performance bend: Hydrate now, so you can push harder later and recover quickly.
+```
+
+The baseline version is useful for plain onboarding. The bend is useful for personalization. If a user chooses, edits toward, or rejects harder-driving copy, Re_Call learns sooner whether they respond to performance, recovery, discipline, care, beauty, social duty, or another motive.
+
+Treat title, notes, and body-copy edits as first-class user signals alongside subject, trigger, cadence, location, tags, and ratings.
 
 ## First Technical Proof
 

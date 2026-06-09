@@ -99,7 +99,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					D8E0E697E99FA37C82A72A9B = {
-						DevelopmentTeam = YQT2TQ53UN;
+						DevelopmentTeam = 7FKUS5M5QS;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -165,7 +165,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = sh.notorious.app;
+				PRODUCT_BUNDLE_IDENTIFIER = app.understood.recall;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -312,7 +312,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = sh.notorious.app;
+				PRODUCT_BUNDLE_IDENTIFIER = app.understood.recall;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

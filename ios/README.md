@@ -1,6 +1,6 @@
-# Re_Call — iOS App
+# Notorious Recall — iOS App
 
-A real iPhone app that renders the existing Re_Call prototype full-screen, edge-to-edge,
+A real iPhone app that renders the existing Notorious Recall prototype full-screen, edge-to-edge,
 inside a `WKWebView` (no Safari chrome). The HTML prototype remains the design source of
 truth; this target ships a bundled copy of it so the app runs offline as a native iPhone app.
 
@@ -19,7 +19,7 @@ open ios/ReCall.xcodeproj
 3. Press **Run** (⌘R).
 
 - Bundle id: `app.understood.recall`
-- Display name: **Re_Call**
+- Display name: **Notorious Recall**
 - Deployment target: iOS 17.0+
 
 ## Build from the command line

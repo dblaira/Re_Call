@@ -3,33 +3,33 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Re_Call</title>
+<title>Notorious Recall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,600;6..96,700&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #000;
-    --panel: #171719;
-    --panel-2: #242426;
-    --line: rgba(255,255,255,.13);
-    --ink: #f5f5f7;
-    --muted: #aaaab2;
-    --dim: #6f6f78;
-    --gold: #d2ae42;
-    --cream: #f2e8d3;
-    --teal: #0b818c;
-    --red: #cc3150;
-    --green: #1e2d25;
-    --navy: #102b33;
+    --shell: #C8CCD2;      /* silver canvas */
+    --card: #ffffff;       /* white cards */
+    --panel-2: #CFD3D9;    /* silver alt (glyph chips, one tile) */
+    --line: rgba(0,0,0,.10);
+    --ink: #000000;
+    --muted: #666666;
+    --dim: #999999;
+    --crimson: #DC143C;    /* accent */
+    --sand: #EAD3B0;       /* header band */
+    --black: #000000;
+    --secondary: #1A1A1A;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-  html,
-  body {
+  html, body {
     margin: 0;
     min-height: 100%;
-    background: var(--bg);
+    background: var(--shell);
     color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     font-synthesis: none;
   }
@@ -44,516 +44,306 @@
     min-height: 760px;
     margin: 0 auto;
     overflow: hidden;
-    background: var(--bg);
+    background: var(--shell);
   }
 
   .scroll {
     position: absolute;
     inset: 0;
     overflow-y: auto;
-    padding: calc(env(safe-area-inset-top) + 14px) 14px calc(118px + env(safe-area-inset-bottom));
-    display: flex;
-    flex-direction: column;
+    padding: 0 0 calc(96px + env(safe-area-inset-bottom));
+    display: none;
   }
-
+  .scroll.active { display: block; }
   .scroll::-webkit-scrollbar { width: 0; }
+
+  /* sandy header band — full bleed */
+  .hero {
+    background: var(--sand);
+    padding: calc(env(safe-area-inset-top) + 22px) 16px 18px;
+  }
+  .hero.tall { padding-bottom: 16px; }
 
   .top {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 14px;
-    order: 1;
-  }
-
-  .brand {
-    min-width: 0;
   }
 
   .brand h1 {
     margin: 0;
-    font-size: 30px;
-    line-height: 1;
+    font-family: "Bodoni Moda", Georgia, "Times New Roman", serif;
+    font-size: 40px;
+    line-height: 1.02;
     letter-spacing: 0;
-    font-weight: 900;
-  }
-
-  .brand p {
-    margin: 5px 0 0;
-    color: var(--muted);
-    font-size: 14px;
     font-weight: 700;
+    color: var(--crimson);
+    max-width: 7ch;
   }
 
-  .icon-row {
-    display: flex;
-    gap: 8px;
-    flex: none;
-  }
+  .icon-row { display: flex; gap: 8px; flex: none; }
 
   .round {
-    width: 42px;
-    height: 42px;
+    width: 42px; height: 42px;
     border-radius: 50%;
     border: 1px solid var(--line);
-    background: var(--panel);
+    background: var(--card);
     color: var(--ink);
-    display: grid;
-    place-items: center;
+    display: grid; place-items: center;
   }
+  .round svg { width: 22px; height: 22px; }
 
-  .round svg {
-    width: 22px;
-    height: 22px;
-  }
-
-  .gallery {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-auto-rows: 22px;
-    gap: 10px;
-    grid-auto-flow: dense;
-  }
-
-  .latest-section { order: 2; margin-top: 0; }
-  .tasks-section { order: 3; }
-  .starter-heading { order: 4; }
-  .starter-gallery { order: 5; }
-  .more-heading { order: 6; }
-  .more-gallery { order: 7; }
-
-  .tile {
-    position: relative;
-    min-width: 0;
-    overflow: hidden;
-    border-radius: 8px;
-    border: 1px solid var(--line);
-    background: var(--fill, var(--panel-2));
-    color: var(--fg, var(--ink));
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    cursor: pointer;
-  }
-
-  .tile:active { transform: scale(.985); }
-  .tile[data-selected="true"] { outline: 2px solid var(--gold); outline-offset: -2px; }
-
-  .wide { grid-column: span 6; grid-row: span 3; }
-  .half { grid-column: span 3; grid-row: span 4; }
-  .tall { grid-column: span 3; grid-row: span 5; }
-  .small { grid-column: span 2; grid-row: span 3; }
-  .feature { grid-column: span 4; grid-row: span 5; }
-  .tile.light { --fg: #161613; }
-
-  .handle {
-    width: 17px;
-    height: 26px;
-    display: grid;
-    grid-template-columns: repeat(2, 3px);
-    gap: 3px;
-    opacity: .58;
-  }
-
-  .handle i {
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: currentColor;
-  }
-
-  .name {
-    margin-top: auto;
-    font-size: 21px;
-    line-height: 1.02;
-    font-weight: 900;
-    letter-spacing: 0;
-    max-width: 88%;
-  }
-
-  .wide .name { font-size: 21px; max-width: 78%; }
-  .tall .name { font-size: 22px; }
-  .small .name { font-size: 14px; max-width: 100%; }
-
-  .slots {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 11px;
-  }
-
-  .slot {
-    min-height: 22px;
-    border-radius: 999px;
-    padding: 4px 8px;
-    background: rgba(255,255,255,.16);
-    color: currentColor;
-    display: inline-flex;
-    align-items: center;
-    font-size: 9px;
-    font-weight: 850;
-    text-transform: uppercase;
-    letter-spacing: .3px;
-  }
-
-  .tile.light .slot { background: rgba(0,0,0,.09); }
-
-  .paper-lines {
-    position: absolute;
-    inset: 18px;
-    border-radius: 8px;
-    background: repeating-linear-gradient(180deg, transparent 0 33px, rgba(0,0,0,.12) 33px 35px);
-    opacity: .5;
-    pointer-events: none;
-  }
-
-  .tile > *:not(.paper-lines) {
-    position: relative;
-    z-index: 1;
-  }
-
-  .section {
-    margin-top: 18px;
-  }
+  .body { padding: 16px; display: flex; flex-direction: column; gap: 18px; }
 
   .section-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+    display: flex; align-items: baseline; justify-content: space-between;
     gap: 12px;
-    margin-bottom: 8px;
   }
-
   .section-head h2 {
-    margin: 0;
-    font-size: 19px;
-    line-height: 1;
-    font-weight: 900;
-    letter-spacing: 0;
+    margin: 0; font-size: 19px; line-height: 1; font-weight: 800; letter-spacing: 0;
   }
+  .section-head button { border: 0; background: transparent; color: var(--crimson); padding: 0; font-size: 14px; font-weight: 800; }
 
-  .section-head button {
-    border: 0;
-    background: transparent;
-    color: var(--gold);
-    padding: 0;
-    font-size: 14px;
-    font-weight: 850;
-  }
-
-  .list {
-    display: grid;
-    gap: 8px;
-  }
-
+  /* list cards */
+  .list { display: grid; gap: 8px; }
   .item {
     min-height: 66px;
     border-radius: 8px;
     border: 1px solid var(--line);
-    background: var(--panel);
+    background: var(--card);
     padding: 11px 12px;
     display: grid;
     grid-template-columns: 34px 1fr auto;
     align-items: center;
     gap: 10px;
   }
+  .glyph { width: 34px; height: 34px; border-radius: 10px; background: var(--panel-2); color: var(--muted); display: grid; place-items: center; }
+  .glyph svg { width: 19px; height: 19px; }
+  .copy { min-width: 0; }
+  .copy strong { display: block; color: var(--ink); font-size: 16px; line-height: 1.12; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .copy span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meta { color: var(--crimson); font-size: 13px; font-weight: 800; white-space: nowrap; }
 
-  .glyph {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    background: var(--panel-2);
-    color: var(--muted);
-    display: grid;
-    place-items: center;
-  }
+  /* tasks */
+  .segs { display: flex; gap: 8px; }
+  .seg { padding: 8px 16px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); color: var(--muted); font-size: 13px; font-weight: 800; }
+  .seg.active { background: var(--crimson); border-color: transparent; color: #fff; }
+  .task { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  .check { width: 24px; height: 24px; border-radius: 12px; border: 2px solid var(--dim); display: grid; place-items: center; }
+  .check.done { background: var(--crimson); border-color: var(--crimson); color: #fff; }
+  .check.done svg { width: 14px; height: 14px; }
+  .task .copy strong { white-space: normal; }
+  .task.done .copy strong { color: var(--muted); text-decoration: line-through; }
 
-  .glyph svg {
-    width: 19px;
-    height: 19px;
-  }
-
-  .copy {
-    min-width: 0;
-  }
-
-  .copy strong {
-    display: block;
-    color: var(--ink);
-    font-size: 16px;
-    line-height: 1.12;
-    font-weight: 850;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .copy span {
-    display: block;
-    margin-top: 4px;
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 650;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .meta {
-    color: var(--gold);
-    font-size: 13px;
-    font-weight: 850;
-    white-space: nowrap;
-  }
-
-  .task-check {
-    width: 24px;
-    height: 24px;
-    border-radius: 12px;
-    border: 2px solid var(--dim);
-  }
-
-  .bottom {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: calc(88px + env(safe-area-inset-bottom));
-    background: rgba(0,0,0,.9);
-    border-top: 1px solid var(--line);
-    display: flex;
-    align-items: start;
-    gap: 12px;
-    padding: 12px 18px calc(18px + env(safe-area-inset-bottom));
-  }
-
-  .bottom button {
-    height: 54px;
+  /* masonry shapes */
+  .gallery { columns: 2; column-gap: 10px; }
+  .tile {
+    break-inside: avoid;
+    margin: 0 0 10px;
     border-radius: 8px;
     border: 1px solid var(--line);
-    background: #0b0b0c;
-    color: #fff;
-    padding: 0 20px;
-    font-size: 18px;
-    font-weight: 900;
+    background: var(--fill, var(--card));
+    color: var(--fg, var(--ink));
+    padding: 12px;
+    display: flex; flex-direction: column;
+    cursor: pointer;
   }
+  .tile.dark { border-color: rgba(255,255,255,.14); }
+  .tile:active { transform: scale(.985); }
+  .tile[data-selected="true"] { outline: 2px solid var(--crimson); outline-offset: -2px; }
+  .tile .pad-tall { padding-bottom: 34px; }
+  .tile .pad-mid { padding-bottom: 18px; }
+  .handle { width: 17px; height: 26px; display: grid; grid-template-columns: repeat(2, 3px); gap: 3px; opacity: .5; margin-bottom: 26px; }
+  .handle i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
+  .name { font-size: 21px; line-height: 1.04; font-weight: 800; letter-spacing: 0; }
+  .slots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+  .slot { border-radius: 999px; padding: 4px 8px; background: rgba(255,255,255,.16); color: currentColor; display: inline-flex; align-items: center; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .3px; }
+  .tile.light .slot { background: rgba(0,0,0,.06); }
+
+  /* calendar */
+  .cal-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 8px; }
+  .dow, .week { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .dow div { text-align: center; font-size: 11px; font-weight: 800; color: var(--dim); padding: 4px 0; }
+  .day { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; }
+  .day .num { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 15px; font-weight: 700; }
+  .day.muted .num { color: var(--dim); }
+  .day.today .num { background: var(--crimson); color: #fff; }
+  .day .dot { width: 5px; height: 5px; border-radius: 50%; }
+  .agenda { display: grid; grid-template-columns: 44px 8px 1fr; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  .agenda .time { color: var(--crimson); font-size: 13px; font-weight: 800; }
+  .agenda .adot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* bottom tab bar */
+  .tabs {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: calc(78px + env(safe-area-inset-bottom));
+    background: rgba(255,255,255,.94);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line);
+    display: flex; align-items: flex-start;
+    padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+  }
+  .tab { flex: 1; background: transparent; border: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--dim); font-size: 11px; font-weight: 800; }
+  .tab svg { width: 24px; height: 24px; }
+  .tab.active { color: var(--crimson); }
 
   .fab {
-    position: absolute;
-    right: 22px;
-    bottom: calc(64px + env(safe-area-inset-bottom));
-    width: 74px;
-    height: 74px;
-    border-radius: 50%;
-    background: var(--gold);
-    color: #14110a;
-    border: 0;
-    display: grid;
-    place-items: center;
-    box-shadow: 0 16px 34px rgba(0,0,0,.34);
-    z-index: 5;
+    position: absolute; right: 20px;
+    bottom: calc(94px + env(safe-area-inset-bottom));
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--crimson); color: #fff; border: 0;
+    display: grid; place-items: center;
+    box-shadow: 0 14px 30px rgba(0,0,0,.28); z-index: 5;
   }
-
-  .fab svg { width: 31px; height: 31px; }
+  .fab svg { width: 28px; height: 28px; }
 
   .toast {
-    position: absolute;
-    left: 50%;
-    bottom: calc(170px + env(safe-area-inset-bottom));
-    transform: translate(-50%, 20px);
-    opacity: 0;
-    pointer-events: none;
-    transition: .24s;
-    z-index: 10;
-    background: var(--ink);
-    color: #111;
-    padding: 10px 14px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 850;
-    white-space: nowrap;
+    position: absolute; left: 50%; bottom: calc(150px + env(safe-area-inset-bottom));
+    transform: translate(-50%, 20px); opacity: 0; pointer-events: none; transition: .24s; z-index: 10;
+    background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 999px; font-size: 13px; font-weight: 800; white-space: nowrap;
   }
-
-  .toast[data-show="true"] {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
+  .toast[data-show="true"] { opacity: 1; transform: translate(-50%, 0); }
 
   @media (min-width: 760px) {
-    body {
-      display: grid;
-      place-items: center;
-      min-height: 100vh;
-    }
-
-    .app {
-      height: 920px;
-      max-height: calc(100vh - 68px);
-      border-radius: 38px;
-      box-shadow: 0 30px 90px rgba(0,0,0,.56);
-    }
+    body { display: grid; place-items: center; min-height: 100vh; }
+    .app { height: 920px; max-height: calc(100vh - 68px); border-radius: 38px; box-shadow: 0 30px 90px rgba(0,0,0,.4); }
   }
 </style>
 </head>
 <body>
 <main class="app">
-  <div class="scroll">
-    <header class="top">
-      <div class="brand">
-        <h1>Re_Call</h1>
-        <p>Choose a reminder shape</p>
-      </div>
-      <div class="icon-row">
-        <button class="round" aria-label="Search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
-        </button>
-        <button class="round" aria-label="Add">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-        </button>
+
+  <!-- ===== REMINDERS ===== -->
+  <section class="scroll active" data-screen="reminders">
+    <header class="hero">
+      <div class="top">
+        <div class="brand"><h1>Notorious Recall</h1></div>
+        <div class="icon-row">
+          <button class="round" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg></button>
+          <button class="round" aria-label="Add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
       </div>
     </header>
+    <div class="body">
+      <section>
+        <div class="section-head"><h2>Latest reminders</h2><button>See all</button></div>
+        <div class="list">
+          <article class="item">
+            <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+            <div class="copy"><strong>Stretch after legs</strong><span>Add one movement</span></div>
+            <div class="meta">Today</div>
+          </article>
+          <article class="item">
+            <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11z"/><circle cx="12" cy="10" r="2"/></svg></div>
+            <div class="copy"><strong>Return library book</strong><span>Bring this when I leave</span></div>
+            <div class="meta">Office</div>
+          </article>
+        </div>
+      </section>
+      <section>
+        <div class="section-head"><h2>Reminder shapes</h2><button>Edit</button></div>
+        <div class="gallery">
+          <article class="tile dark" data-title="Add one movement" style="--fill:var(--black);--fg:#fff">
+            <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="name pad-tall">Add one movement</div>
+            <div class="slots"><span class="slot">photo</span><span class="slot">time</span><span class="slot">url</span></div>
+          </article>
+          <article class="tile light" data-title="Pay before due" style="--fill:var(--card);--fg:var(--ink)">
+            <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="name">Pay before due</div>
+            <div class="slots"><span class="slot">date</span></div>
+          </article>
+          <article class="tile light" data-title="Bring this when I leave" style="--fill:var(--panel-2);--fg:var(--ink)">
+            <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="name pad-mid">Bring this when I leave</div>
+            <div class="slots"><span class="slot">place</span><span class="slot">photo</span></div>
+          </article>
+          <article class="tile dark" data-title="Text them back" style="--fill:var(--crimson);--fg:#fff">
+            <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="name pad-mid">Text them back</div>
+            <div class="slots"><span class="slot">person</span></div>
+          </article>
+          <article class="tile dark" data-title="Do this after workout" style="--fill:var(--secondary);--fg:#fff">
+            <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="name pad-mid">Do this after workout</div>
+            <div class="slots"><span class="slot">time</span><span class="slot">cue</span></div>
+          </article>
+        </div>
+      </section>
+    </div>
+  </section>
 
-    <section class="section starter-heading">
-      <div class="section-head">
-        <h2>Reminder shapes</h2>
-        <button>Edit</button>
+  <!-- ===== TASKS ===== -->
+  <section class="scroll" data-screen="tasks">
+    <header class="hero tall">
+      <div class="top">
+        <div class="brand"><h1>Tasks</h1></div>
+        <div class="icon-row">
+          <button class="round" aria-label="Filter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button>
+          <button class="round" aria-label="Add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
       </div>
-    </section>
-
-    <section class="gallery starter-gallery" aria-label="Reminder template gallery">
-      <article class="tile feature" data-title="Add one movement" style="--fill:var(--green)">
-        <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div>
-          <div class="name">Add one movement</div>
-          <div class="slots"><span class="slot">photo</span><span class="slot">time</span><span class="slot">url</span></div>
-        </div>
-      </article>
-
-      <article class="tile small light" data-title="Pay before due" style="--fill:var(--cream)">
-        <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div>
-          <div class="name">Pay before due</div>
-          <div class="slots"><span class="slot">date</span></div>
-        </div>
-      </article>
-
-      <article class="tile small" data-title="Text them back" style="--fill:#111">
-        <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div>
-          <div class="name">Text them back</div>
-          <div class="slots"><span class="slot">person</span></div>
-        </div>
-      </article>
-
-      <article class="tile half" data-title="Bring this when I leave" style="--fill:var(--navy)">
-        <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div>
-          <div class="name">Bring this when I leave</div>
-          <div class="slots"><span class="slot">place</span><span class="slot">photo</span></div>
-        </div>
-      </article>
-
-      <article class="tile tall" data-title="Do this after workout" style="--fill:var(--teal)">
-        <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div>
-          <div class="name">Do this after workout</div>
-          <div class="slots"><span class="slot">time</span><span class="slot">cue</span></div>
-        </div>
-      </article>
-    </section>
-
-    <section class="section latest-section" aria-label="Latest reminders">
-      <div class="section-head">
-        <h2>Latest reminders</h2>
-        <button>See all</button>
+      <div class="segs" style="margin-top:14px">
+        <button class="seg active">Today</button>
+        <button class="seg">Upcoming</button>
+        <button class="seg">Done</button>
       </div>
-      <div class="list">
-        <article class="item">
-          <div class="glyph">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-          </div>
-          <div class="copy">
-            <strong>Stretch after legs</strong>
-            <span>Add one movement</span>
-          </div>
-          <div class="meta">Today</div>
-        </article>
-        <article class="item">
-          <div class="glyph">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11z"/><circle cx="12" cy="10" r="2"/></svg>
-          </div>
-          <div class="copy">
-            <strong>Return library book</strong>
-            <span>Bring this when I leave</span>
-          </div>
-          <div class="meta">Office</div>
-        </article>
-      </div>
-    </section>
-
-    <section class="section tasks-section" aria-label="Tasks">
-      <div class="section-head">
-        <h2>Tasks</h2>
-        <button>New</button>
-      </div>
-      <div class="list">
-        <article class="item">
-          <div class="task-check"></div>
-          <div class="copy">
-            <strong>Pick YouTube form link</strong>
-            <span>For the movement template</span>
-          </div>
-          <div class="meta">8m</div>
-        </article>
-      </div>
-    </section>
-
-    <section class="section more-heading">
-      <div class="section-head">
-        <h2>More shapes</h2>
-        <button>Edit</button>
-      </div>
-    </section>
-
-    <section class="gallery more-gallery" aria-label="More reminder templates">
-
-      <article class="tile wide light" data-title="Prepare for appointment" style="--fill:#f7ecd3">
-        <div class="paper-lines"></div>
-        <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div>
-          <div class="name">Prepare for appointment</div>
-          <div class="slots"><span class="slot">date</span><span class="slot">notes</span><span class="slot">file</span></div>
+    </header>
+    <div class="body">
+      <section>
+        <div class="section-head"><h2>Today</h2><button style="color:var(--crimson)">4 left</button></div>
+        <div class="list">
+          <article class="task"><div class="check"></div><div class="copy"><strong>Commit to the semantic web — or pivot</strong><span>Flagged IMPORTANT twice</span></div><div class="meta">now</div></article>
+          <article class="task"><div class="check"></div><div class="copy"><strong>Foam roll quads, hips, calves</strong><span>Skipped yesterday</span></div><div class="meta">10m</div></article>
+          <article class="task"><div class="check"></div><div class="copy"><strong>Reorder Retatrutide</strong><span>~4 day lead time</span></div><div class="meta">4d</div></article>
+          <article class="task done"><div class="check done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg></div><div class="copy"><strong>Pick YouTube form link</strong><span>For the movement template</span></div></article>
         </div>
-      </article>
-
-      <article class="tile half light" data-title="Use this link later" style="--fill:#f4e5c9">
-        <div class="paper-lines"></div>
-        <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div>
-          <div class="name">Use this link later</div>
-          <div class="slots"><span class="slot">url</span><span class="slot">note</span></div>
+      </section>
+      <section>
+        <div class="section-head"><h2>Upcoming</h2></div>
+        <div class="list">
+          <article class="task"><div class="check"></div><div class="copy"><strong>Wire Resurface nudges</strong><span>Notorious Recall · iOS</span></div><div class="meta">Thu</div></article>
+          <article class="task"><div class="check"></div><div class="copy"><strong>Ask Stephanie before next big spend</strong><span>Pattern flagged by Re_Call</span></div><div class="meta">—</div></article>
         </div>
-      </article>
+      </section>
+    </div>
+  </section>
 
-      <article class="tile half" data-title="Ask one question" style="--fill:var(--red)">
-        <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div>
-          <div class="name">Ask one question</div>
-          <div class="slots"><span class="slot">person</span><span class="slot">time</span></div>
+  <!-- ===== CALENDAR ===== -->
+  <section class="scroll" data-screen="calendar">
+    <header class="hero">
+      <div class="top">
+        <div class="brand"><h1>Calendar</h1></div>
+        <div class="icon-row">
+          <button class="round" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button class="round" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg></button>
         </div>
-      </article>
-    </section>
-  </div>
+      </div>
+    </header>
+    <div class="body">
+      <div class="cal-card">
+        <div class="dow"><div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div></div>
+        <div class="week" id="cal-grid"></div>
+      </div>
+      <section>
+        <div class="section-head"><h2>Today</h2><button>Tue, Jun 9</button></div>
+        <div class="list">
+          <article class="agenda"><span class="time">7:30</span><span class="adot" style="background:var(--ink)"></span><div class="copy"><strong>Stephanie's meeting</strong><span>Taking it here · be quiet</span></div></article>
+          <article class="agenda"><span class="time">10:30</span><span class="adot" style="background:var(--crimson)"></span><div class="copy"><strong>Retatrutide · 2mg</strong><span>3rd dose — check protocol</span></div></article>
+          <article class="agenda"><span class="time">11:15</span><span class="adot" style="background:var(--dim)"></span><div class="copy"><strong>Bucked Up pre-workout</strong><span>Caffeine</span></div></article>
+          <article class="agenda"><span class="time">4:20</span><span class="adot" style="background:var(--secondary)"></span><div class="copy"><strong>Workout @ NBAC</strong><span>Close the rings</span></div></article>
+        </div>
+      </section>
+    </div>
+  </section>
 
-  <button class="fab" aria-label="Adjust templates">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4 7h10M18 7h2M8 17h12M4 17h1"/><circle cx="16" cy="7" r="2"/><circle cx="7" cy="17" r="2"/></svg>
-  </button>
+  <button class="fab" aria-label="New"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
 
-  <nav class="bottom" aria-label="Navigation">
-    <button>Add task</button>
-    <button>Reminders</button>
+  <nav class="tabs" aria-label="Navigation">
+    <button class="tab active" data-go="reminders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Reminders</button>
+    <button class="tab" data-go="tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Tasks</button>
+    <button class="tab" data-go="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>Calendar</button>
   </nav>
 
   <div class="toast" id="toast">Template selected</div>
@@ -561,24 +351,40 @@
 
 <script>
 (() => {
-  const tiles = [...document.querySelectorAll(".tile")];
+  // build June 2026 calendar grid
+  const grid = document.getElementById("cal-grid");
+  const cells = [
+    [31,"muted"],[1],[2],[3],[4],[5],[6],
+    [7,"",1],[8,"",2],[9,"today"],[10],[11],[12],[13],
+    [14],[15],[16],[17],[18],[19],[20],
+    [21],[22],[23],[24],[25],[26],[27],
+    [28],[29],[30],[1,"muted"],[2,"muted"],[3,"muted"],[4,"muted"]
+  ];
+  const dotColor = { 1: "var(--ink)", 2: "var(--crimson)" };
+  grid.innerHTML = cells.map(([d, cls, dot]) =>
+    `<div class="day ${cls||""}"><span class="num">${d}</span><span class="dot" ${dot?`style="background:${dotColor[dot]}"`:""}></span></div>`
+  ).join("");
+
+  // tab switching
+  const screens = [...document.querySelectorAll(".scroll")];
+  const tabs = [...document.querySelectorAll(".tab")];
+  tabs.forEach(tab => tab.addEventListener("click", () => {
+    const go = tab.dataset.go;
+    screens.forEach(s => s.classList.toggle("active", s.dataset.screen === go));
+    tabs.forEach(t => t.classList.toggle("active", t === tab));
+  }));
+
+  // tile select toast
   const toast = document.querySelector("#toast");
   let toastTimer;
-
-  function showToast(text) {
-    toast.textContent = text;
+  document.querySelectorAll(".tile").forEach(tile => tile.addEventListener("click", () => {
+    document.querySelectorAll(".tile").forEach(t => t.dataset.selected = "false");
+    tile.dataset.selected = "true";
+    toast.textContent = tile.dataset.title || "Template selected";
     toast.dataset.show = "true";
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { toast.dataset.show = "false"; }, 1000);
-  }
-
-  tiles.forEach(tile => {
-    tile.addEventListener("click", () => {
-      tiles.forEach(item => { item.dataset.selected = "false"; });
-      tile.dataset.selected = "true";
-      showToast(tile.dataset.title || "Template selected");
-    });
-  });
+  }));
 })();
 </script>
 </body>

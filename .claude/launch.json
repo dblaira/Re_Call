@@ -6,6 +6,12 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["wireframes/_visual-edit/serve.mjs"],
       "port": 5173
+    },
+    {
+      "name": "notorious-recall",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "5174", "--directory", "ios/ReCall/Web"],
+      "port": 5174
     }
   ]
 }

@@ -291,8 +291,8 @@
       </div>
     </header>
     <div class="body">
-      <section>
-        <div class="section-head"><h2>Today</h2><button style="color:var(--crimson)">4 left</button></div>
+      <section id="today-sec" data-seg="today">
+        <div class="section-head"><h2>Today</h2><button id="left-count" style="color:var(--crimson)">4 left</button></div>
         <div class="list">
           <article class="task"><div class="check"></div><div class="copy"><strong>Commit to the semantic web — or pivot</strong><span>Flagged IMPORTANT twice</span></div><div class="meta">now</div></article>
           <article class="task"><div class="check"></div><div class="copy"><strong>Foam roll quads, hips, calves</strong><span>Skipped yesterday</span></div><div class="meta">10m</div></article>
@@ -300,7 +300,7 @@
           <article class="task done"><div class="check done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg></div><div class="copy"><strong>Pick YouTube form link</strong><span>For the movement template</span></div></article>
         </div>
       </section>
-      <section>
+      <section id="up-sec" data-seg="upcoming">
         <div class="section-head"><h2>Upcoming</h2></div>
         <div class="list">
           <article class="task"><div class="check"></div><div class="copy"><strong>Wire Resurface nudges</strong><span>Notorious Recall · iOS</span></div><div class="meta">Thu</div></article>
@@ -351,7 +351,17 @@
 
 <script>
 (() => {
-  // build June 2026 calendar grid
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>';
+  const toast = document.querySelector("#toast");
+  let toastTimer;
+  const flash = (msg) => {
+    toast.textContent = msg;
+    toast.dataset.show = "true";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.dataset.show = "false"; }, 1100);
+  };
+
+  // ---- June 2026 calendar grid ----
   const grid = document.getElementById("cal-grid");
   const cells = [
     [31,"muted"],[1],[2],[3],[4],[5],[6],
@@ -364,8 +374,15 @@
   grid.innerHTML = cells.map(([d, cls, dot]) =>
     `<div class="day ${cls||""}"><span class="num">${d}</span><span class="dot" ${dot?`style="background:${dotColor[dot]}"`:""}></span></div>`
   ).join("");
+  // tap a day -> move the highlight
+  grid.querySelectorAll(".day").forEach(day => day.addEventListener("click", () => {
+    if (day.classList.contains("muted")) return;
+    grid.querySelectorAll(".day").forEach(d => d.classList.remove("today"));
+    day.classList.add("today");
+    flash("Jun " + day.querySelector(".num").textContent);
+  }));
 
-  // tab switching
+  // ---- tab switching ----
   const screens = [...document.querySelectorAll(".scroll")];
   const tabs = [...document.querySelectorAll(".tab")];
   tabs.forEach(tab => tab.addEventListener("click", () => {
@@ -374,16 +391,75 @@
     tabs.forEach(t => t.classList.toggle("active", t === tab));
   }));
 
-  // tile select toast
-  const toast = document.querySelector("#toast");
-  let toastTimer;
+  // ---- reminder tiles: select ----
   document.querySelectorAll(".tile").forEach(tile => tile.addEventListener("click", () => {
     document.querySelectorAll(".tile").forEach(t => t.dataset.selected = "false");
     tile.dataset.selected = "true";
-    toast.textContent = tile.dataset.title || "Template selected";
-    toast.dataset.show = "true";
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toast.dataset.show = "false"; }, 1000);
+    flash(tile.dataset.title || "Template selected");
+  }));
+
+  // ---- task checkboxes: toggle done + live count ----
+  const updateCount = () => {
+    const el = document.getElementById("left-count");
+    if (!el) return;
+    const left = document.querySelectorAll('#today-sec .task:not(.done)').length;
+    el.textContent = left + " left";
+  };
+  const wireTask = (task) => {
+    task.addEventListener("click", () => {
+      const done = task.classList.toggle("done");
+      const box = task.querySelector(".check");
+      box.classList.toggle("done", done);
+      box.innerHTML = done ? CHECK : "";
+      updateCount();
+    });
+  };
+  document.querySelectorAll(".task").forEach(wireTask);
+  updateCount();
+
+  // ---- segmented control: Today / Upcoming / Done ----
+  const todaySec = document.getElementById("today-sec");
+  const upSec = document.getElementById("up-sec");
+  document.querySelectorAll(".seg").forEach(seg => seg.addEventListener("click", () => {
+    document.querySelectorAll(".seg").forEach(s => s.classList.remove("active"));
+    seg.classList.add("active");
+    const mode = seg.textContent.trim().toLowerCase();
+    const allTasks = document.querySelectorAll("#tasks .task, [data-screen=tasks] .task");
+    // reset
+    [todaySec, upSec].forEach(s => s.style.display = "");
+    allTasks.forEach(t => t.style.display = "");
+    if (mode === "today") { upSec.style.display = "none"; }
+    else if (mode === "upcoming") { todaySec.style.display = "none"; }
+    else if (mode === "done") {
+      allTasks.forEach(t => { if (!t.classList.contains("done")) t.style.display = "none"; });
+      // hide a section if it has no done tasks
+      [todaySec, upSec].forEach(s => {
+        const anyDone = s.querySelector(".task.done");
+        s.style.display = anyDone ? "" : "none";
+      });
+    }
+  }));
+
+  // ---- buttons that don't navigate yet: give feedback ----
+  document.querySelectorAll(".fab").forEach(fab => fab.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const active = document.querySelector(".scroll.active").dataset.screen;
+    if (active === "tasks") {
+      const list = todaySec.querySelector(".list");
+      const t = document.createElement("article");
+      t.className = "task";
+      t.innerHTML = '<div class="check"></div><div class="copy"><strong>New task</strong><span>Tap to complete</span></div><div class="meta">now</div>';
+      list.prepend(t);
+      wireTask(t);
+      updateCount();
+      flash("Task added");
+    } else {
+      flash("New " + (active === "calendar" ? "event" : "reminder"));
+    }
+  }));
+  document.querySelectorAll(".round, .section-head button").forEach(b => b.addEventListener("click", (e) => {
+    e.stopPropagation();
+    flash((b.getAttribute("aria-label") || b.textContent || "OK").trim());
   }));
 })();
 </script>

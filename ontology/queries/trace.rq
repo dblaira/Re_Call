@@ -1,0 +1,8 @@
+PREFIX recall: <http://recall.app/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?subjectLabel ?relation ?objectLabel WHERE {
+  VALUES ?relation { recall:conflictsWith recall:causes recall:blocks recall:resurfaces recall:correlatesWith }
+  ?s ?relation ?o .
+  ?s rdfs:label ?subjectLabel .
+  ?o rdfs:label ?objectLabel .
+} ORDER BY ?relation

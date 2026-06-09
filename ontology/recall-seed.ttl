@@ -1,0 +1,135 @@
+@prefix recall: <http://recall.app/ontology#> .
+@prefix adam:   <http://recall.app/data/adam#> .
+@prefix bfo:    <http://purl.obolibrary.org/obo/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+
+#################################################################
+#  Re_Call seed ontology — user-zero corpus (Adam), 2026-06-07/08
+#  Grounded in Basic Formal Ontology (BFO 2020). Generated from the
+#  raw friction log "Notorious Recalls.md". This is the structured
+#  KG layer: entities -> classes, the log's relationships -> triples.
+#################################################################
+
+<http://recall.app/ontology>
+    a owl:Ontology ;
+    owl:imports <http://purl.obolibrary.org/obo/bfo.owl> ;
+    dct:title "Re_Call Seed Ontology"@en ;
+    dct:description "Externalized-mind knowledge graph seeded from Adam's raw daily friction log."@en ;
+    owl:versionInfo "0.1.0 (seed, 2026-06-08)" .
+
+#################################################################
+#  Upper classes — aligned to BFO
+#################################################################
+
+recall:Agent       a owl:Class ; rdfs:subClassOf bfo:BFO_0000030 ;   # object
+                   rdfs:label "Agent"@en .
+recall:Substance   a owl:Class ; rdfs:subClassOf bfo:BFO_0000030 ;   # object (ingested/injected material)
+                   rdfs:label "Substance"@en .
+recall:Peptide     a owl:Class ; rdfs:subClassOf recall:Substance ; rdfs:label "Peptide"@en .
+recall:Food        a owl:Class ; rdfs:subClassOf recall:Substance ; rdfs:label "Food"@en .
+
+recall:Process     a owl:Class ; rdfs:subClassOf bfo:BFO_0000015 ;   # process
+                   rdfs:label "Process"@en .
+recall:Decision    a owl:Class ; rdfs:subClassOf recall:Process ; rdfs:label "Decision"@en .
+recall:Action      a owl:Class ; rdfs:subClassOf recall:Process ; rdfs:label "Action"@en .
+
+recall:Quality     a owl:Class ; rdfs:subClassOf bfo:BFO_0000019 ;   # quality
+                   rdfs:label "Quality"@en .
+recall:MentalState a owl:Class ; rdfs:subClassOf bfo:BFO_0000019 ;   # specifically dependent continuant
+                   rdfs:label "Mental State"@en .
+
+recall:Information a owl:Class ; rdfs:subClassOf bfo:BFO_0000031 ;   # generically dependent continuant
+                   rdfs:label "Information Content Entity"@en .
+recall:Pattern     a owl:Class ; rdfs:subClassOf recall:Information ; rdfs:label "Pattern"@en .
+recall:OpenLoop    a owl:Class ; rdfs:subClassOf recall:Information ; rdfs:label "Open Loop"@en .
+recall:Protocol    a owl:Class ; rdfs:subClassOf recall:Information ; rdfs:label "Protocol"@en .
+
+#################################################################
+#  Object properties — the relations the Undertow traces
+#################################################################
+
+recall:correlatesWith a owl:ObjectProperty , owl:SymmetricProperty ;
+    rdfs:label "correlates with"@en .
+recall:triggers       a owl:ObjectProperty ; rdfs:label "triggers"@en .
+recall:leadsTo        a owl:ObjectProperty ; rdfs:label "leads to"@en .
+recall:causes         a owl:ObjectProperty ; rdfs:label "causes"@en .
+recall:repairedBy     a owl:ObjectProperty ; rdfs:label "repaired by"@en .
+recall:conflictsWith  a owl:ObjectProperty , owl:SymmetricProperty ;
+    rdfs:label "conflicts with"@en .
+recall:blocks         a owl:ObjectProperty ; rdfs:label "blocks"@en .
+recall:resurfaces     a owl:ObjectProperty ; rdfs:label "resurfaces"@en .
+
+#################################################################
+#  Datatype properties
+#################################################################
+
+recall:dosedTimes a owl:DatatypeProperty ; rdfs:range xsd:integer ; rdfs:label "dosed times"@en .
+recall:doseMg     a owl:DatatypeProperty ; rdfs:range xsd:decimal ; rdfs:label "dose (mg)"@en .
+recall:observedOn a owl:DatatypeProperty ; rdfs:range xsd:date ;    rdfs:label "observed on"@en .
+recall:flaggedImportant a owl:DatatypeProperty ; rdfs:range xsd:boolean ; rdfs:label "flagged important"@en .
+
+#################################################################
+#  Individuals — extracted from the log
+#################################################################
+
+adam:Adam a recall:Agent ; rdfs:label "Adam"@en .
+
+# --- Peptide dosing contradiction (lines 88-89 vs 281) ---
+adam:Retatrutide a recall:Peptide ; rdfs:label "Retatrutide (GLP-3)"@en ;
+    recall:doseMg "2.0"^^xsd:decimal ;
+    recall:dosedTimes "3"^^xsd:integer ;
+    recall:observedOn "2026-06-08"^^xsd:date .
+adam:MilesProtocol a recall:Protocol ; rdfs:label "Miles' dosing protocol: 1/2 dose every 3-4 days"@en ;
+    recall:observedOn "2026-06-08"^^xsd:date .
+adam:Retatrutide recall:conflictsWith adam:MilesProtocol .
+
+# --- Potassium -> wellbeing correlation (line 79) ---
+adam:PotassiumIntake a recall:Food ; rdfs:label "Potassium intake (cantaloupe, banana)"@en ;
+    recall:observedOn "2026-06-08"^^xsd:date .
+adam:WellbeingImproved a recall:Quality ; rdfs:label "Feeling better than usual"@en .
+adam:PotassiumIntake recall:correlatesWith adam:WellbeingImproved .
+
+# --- Unilateral spend -> hurt -> repair (lines 48, 68-69) ---
+adam:UnilateralSpendDecision a recall:Decision ;
+    rdfs:label "Non-negotiable laptop purchase announced without consulting Stephanie"@en ;
+    recall:observedOn "2026-06-07"^^xsd:date .
+adam:StephanieHurt a recall:MentalState ; rdfs:label "Stephanie hurt / left out of the loop"@en .
+adam:Apology2045 a recall:Action ; rdfs:label "Apology at ~8:45pm"@en .
+adam:UnilateralSpendDecision recall:causes adam:StephanieHurt .
+adam:StephanieHurt recall:repairedBy adam:Apology2045 .
+
+# --- Ambition -> anxiety -> avoidance (lines 31, 273, 288) ---
+adam:AmbitionSpike a recall:MentalState ; rdfs:label "Upward spike in ambition (billion-dollar company)"@en .
+adam:Anxiety a recall:MentalState ; rdfs:label "Anxiety"@en .
+adam:Avoidance a recall:Action ; rdfs:label "Avoidance behavior (hours not happy with)"@en .
+adam:AmbitionSpike recall:triggers adam:Anxiety .
+adam:Anxiety recall:leadsTo adam:Avoidance .
+
+# --- The core freeze: idea too big blocks articulation (line 288) ---
+adam:IdeaTooBig a recall:Information ; rdfs:label "Idea too big / too complex to articulate"@en .
+adam:Articulation a recall:Process ; rdfs:label "Articulating the idea"@en .
+adam:IdeaTooBig recall:blocks adam:Articulation .
+
+# --- Detected patterns (category, not instance) ---
+adam:Pattern_UnilateralDecision a recall:Pattern ;
+    rdfs:label "Unilateral decision -> hurt -> repair"@en ; recall:flaggedImportant true .
+adam:Pattern_AmbitionAvoidance a recall:Pattern ;
+    rdfs:label "Ambition spike -> anxiety -> avoidance/freeze"@en ; recall:flaggedImportant true .
+adam:Pattern_CaptureAntidote a recall:Pattern ;
+    rdfs:label "Real-time capture is the antidote to horizon-anxiety"@en ; recall:flaggedImportant true .
+
+# --- Open loops the system refuses to drop ---
+adam:OpenLoop_SemanticWeb a recall:OpenLoop ;
+    rdfs:label "Commit or pivot on the semantic web; how to reliably test its importance"@en ;
+    recall:flaggedImportant true ; recall:observedOn "2026-06-08"^^xsd:date .
+adam:OpenLoop_AskStephanie a recall:OpenLoop ;
+    rdfs:label "Ask Stephanie what she wants rather than guessing (before next non-negotiable spend)"@en ;
+    recall:flaggedImportant true .
+
+# --- Resurface links: pattern/open-loop -> the moment it should reappear ---
+adam:Pattern_UnilateralDecision recall:resurfaces adam:OpenLoop_AskStephanie .
+adam:Retatrutide recall:resurfaces adam:MilesProtocol .

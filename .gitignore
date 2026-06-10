@@ -7,3 +7,6 @@ dist/
 coverage/
 .vercel/
 .vercel
+test-results/
+playwright-report/
+ios/build/

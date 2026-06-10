@@ -10,13 +10,26 @@
 		0554BA371B9D9FB3FE365777 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFE45B7861104DB1ACF54C56 /* WebView.swift */; };
 		134FDD757C7A6C7FC746EF94 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1204A47B34D6B6201D2B3472 /* Assets.xcassets */; };
 		19845D503271B60B97E779E1 /* ReCallApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D059ADF056549352B1B7CBD /* ReCallApp.swift */; };
+		45BBBDEA593671D0262699AB /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 575C1741D3B349AB4757A98D /* SmokeTests.swift */; };
 		8A6E477479BD7E2877F5B81F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85E54626A8DE911BCEC1324 /* ContentView.swift */; };
 		DB8165B735EBA06612CFABDC /* Web in Resources */ = {isa = PBXBuildFile; fileRef = EB03A60A77BF4626FE52C6BF /* Web */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		3C7B32609C47CB492CAADBFF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B47C34EB153F026C8951D29A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D8E0E697E99FA37C82A72A9B;
+			remoteInfo = ReCall;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		1204A47B34D6B6201D2B3472 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3D059ADF056549352B1B7CBD /* ReCallApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReCallApp.swift; sourceTree = "<group>"; };
+		4079AAC3EA2A59744AF1F729 /* ReCallUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReCallUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		575C1741D3B349AB4757A98D /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		AFE45B7861104DB1ACF54C56 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		C7116D79FD34A726158C3D32 /* ReCall.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ReCall.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D85E54626A8DE911BCEC1324 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -28,6 +41,7 @@
 			isa = PBXGroup;
 			children = (
 				C7116D79FD34A726158C3D32 /* ReCall.app */,
+				4079AAC3EA2A59744AF1F729 /* ReCallUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -46,8 +60,17 @@
 			isa = PBXGroup;
 			children = (
 				3E475665A79681B465B66A3A /* ReCall */,
+				BE266225A248BDEA8CA596AC /* ReCallUITests */,
 				0028E5CF458CBA5B4FB16400 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		BE266225A248BDEA8CA596AC /* ReCallUITests */ = {
+			isa = PBXGroup;
+			children = (
+				575C1741D3B349AB4757A98D /* SmokeTests.swift */,
+			);
+			path = ReCallUITests;
 			sourceTree = "<group>";
 		};
 		D66B9F9B1E3F6DD0AE2632BF /* Resources */ = {
@@ -71,12 +94,31 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		1B3058E4AF76047BF72CA228 /* ReCallUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F498DF00F8E8ACCF560CC169 /* Build configuration list for PBXNativeTarget "ReCallUITests" */;
+			buildPhases = (
+				FE00909DBFF23910D98AC407 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5B97CBAE8D28FB58F8A5E0CC /* PBXTargetDependency */,
+			);
+			name = ReCallUITests;
+			packageProductDependencies = (
+			);
+			productName = ReCallUITests;
+			productReference = 4079AAC3EA2A59744AF1F729 /* ReCallUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		D8E0E697E99FA37C82A72A9B /* ReCall */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C86A5BF57CC28404A1A90BED /* Build configuration list for PBXNativeTarget "ReCall" */;
 			buildPhases = (
 				367186F19813695432411EE8 /* Sources */,
 				9C7934354432260F1BA5A66B /* Resources */,
+				69C3297E042C3C41A4D0E32C /* Stamp web bundle fingerprint */,
 			);
 			buildRules = (
 			);
@@ -98,6 +140,11 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					1B3058E4AF76047BF72CA228 = {
+						DevelopmentTeam = 7FKUS5M5QS;
+						ProvisioningStyle = Automatic;
+						TestTargetID = D8E0E697E99FA37C82A72A9B;
+					};
 					D8E0E697E99FA37C82A72A9B = {
 						DevelopmentTeam = 7FKUS5M5QS;
 						ProvisioningStyle = Automatic;
@@ -119,6 +166,7 @@
 			projectRoot = "";
 			targets = (
 				D8E0E697E99FA37C82A72A9B /* ReCall */,
+				1B3058E4AF76047BF72CA228 /* ReCallUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -135,6 +183,28 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		69C3297E042C3C41A4D0E32C /* Stamp web bundle fingerprint */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Stamp web bundle fingerprint";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\nWEB_SRC=\"$SRCROOT/ReCall/Web/index.html\"\nWEB_DST=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Web/index.html\"\n[ -f \"$WEB_DST\" ] || { echo \"error: bundled web missing at $WEB_DST\"; exit 1; }\nSRC_MD5=$(md5 -q \"$WEB_SRC\")\nGIT_SHA=$(cd \"$SRCROOT/..\" && git rev-parse --short HEAD 2>/dev/null || echo unknown)\nDIRTY=\"\"\n(cd \"$SRCROOT/..\" && [ -n \"$(git status --porcelain 2>/dev/null)\" ]) && DIRTY=\"*\"\nsed -i '' \"s/__SRC_MD5__/$SRC_MD5/g; s/__BUILD_SHA__/$GIT_SHA$DIRTY/g\" \"$WEB_DST\"\nxattr -cr \"$TARGET_BUILD_DIR/$FULL_PRODUCT_NAME\" || true\necho \"stamped web bundle: sha=$GIT_SHA$DIRTY md5=$SRC_MD5\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		367186F19813695432411EE8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -146,7 +216,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FE00909DBFF23910D98AC407 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				45BBBDEA593671D0262699AB /* SmokeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5B97CBAE8D28FB58F8A5E0CC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D8E0E697E99FA37C82A72A9B /* ReCall */;
+			targetProxy = 3C7B32609C47CB492CAADBFF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		150EEECDA8FBE1B4716ACA07 /* Debug */ = {
@@ -296,6 +382,23 @@
 			};
 			name = Debug;
 		};
+		9B981AE8BFB6AB61A131511D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.understood.recall.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ReCall;
+			};
+			name = Debug;
+		};
 		ACFAE5761E94CB57F92BF8DF /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -318,6 +421,23 @@
 			};
 			name = Release;
 		};
+		FEC661D45C72F1B4C1E41215 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.understood.recall.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ReCall;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -335,6 +455,15 @@
 			buildConfigurations = (
 				685471A37B3C57E1808B47B3 /* Debug */,
 				32BDB198A3B480287CAB37BD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F498DF00F8E8ACCF560CC169 /* Build configuration list for PBXNativeTarget "ReCallUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9B981AE8BFB6AB61A131511D /* Debug */,
+				FEC661D45C72F1B4C1E41215 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

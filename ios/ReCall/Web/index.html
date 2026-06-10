@@ -205,6 +205,13 @@
   }
   .toast[data-show="true"] { opacity: 1; transform: translate(-50%, 0); }
 
+  .build-info {
+    position: absolute; right: 10px;
+    bottom: calc(82px + env(safe-area-inset-bottom));
+    font-size: 9px; font-weight: 700; color: var(--dim);
+    z-index: 4; pointer-events: none; opacity: .8;
+  }
+
   @media (min-width: 760px) {
     body { display: grid; place-items: center; min-height: 100vh; }
     .app { height: 920px; max-height: calc(100vh - 68px); border-radius: 38px; box-shadow: 0 30px 90px rgba(0,0,0,.4); }
@@ -228,7 +235,7 @@
     <div class="body">
       <section>
         <div class="section-head"><h2>Latest reminders</h2><button>See all</button></div>
-        <div class="list">
+        <div class="list" id="latest-list" data-testid="latest-list">
           <article class="item">
             <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
             <div class="copy"><strong>Stretch after legs</strong><span>Add one movement</span></div>
@@ -328,7 +335,7 @@
       </div>
       <section>
         <div class="section-head"><h2>Today</h2><button>Tue, Jun 9</button></div>
-        <div class="list">
+        <div class="list" id="agenda-list" data-testid="agenda-list">
           <article class="agenda"><span class="time">7:30</span><span class="adot" style="background:var(--ink)"></span><div class="copy"><strong>Stephanie's meeting</strong><span>Taking it here · be quiet</span></div></article>
           <article class="agenda"><span class="time">10:30</span><span class="adot" style="background:var(--crimson)"></span><div class="copy"><strong>Retatrutide · 2mg</strong><span>3rd dose — check protocol</span></div></article>
           <article class="agenda"><span class="time">11:15</span><span class="adot" style="background:var(--dim)"></span><div class="copy"><strong>Bucked Up pre-workout</strong><span>Caffeine</span></div></article>
@@ -347,6 +354,7 @@
   </nav>
 
   <div class="toast" id="toast">Template selected</div>
+  <div class="build-info" id="build-info" data-testid="build-info" data-src-md5="__SRC_MD5__">__BUILD_SHA__</div>
 </main>
 
 <script>
@@ -440,7 +448,8 @@
     }
   }));
 
-  // ---- buttons that don't navigate yet: give feedback ----
+  // ---- FAB: adds the right thing for the active screen ----
+  const CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
   document.querySelectorAll(".fab").forEach(fab => fab.addEventListener("click", (e) => {
     e.stopPropagation();
     const active = document.querySelector(".scroll.active").dataset.screen;
@@ -453,8 +462,21 @@
       wireTask(t);
       updateCount();
       flash("Task added");
-    } else {
-      flash("New " + (active === "calendar" ? "event" : "reminder"));
+    } else if (active === "reminders") {
+      const item = document.createElement("article");
+      item.className = "item";
+      item.innerHTML = '<div class="glyph">' + CLOCK + '</div><div class="copy"><strong>New reminder</strong><span>Tap to edit</span></div><div class="meta">now</div>';
+      document.getElementById("latest-list").prepend(item);
+      flash("Reminder added");
+    } else if (active === "calendar") {
+      const now = new Date();
+      const hh = ((now.getHours() + 11) % 12) + 1;
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const ev = document.createElement("article");
+      ev.className = "agenda";
+      ev.innerHTML = '<span class="time">' + hh + ":" + mm + '</span><span class="adot" style="background:var(--crimson)"></span><div class="copy"><strong>New event</strong><span>Tap to edit</span></div>';
+      document.getElementById("agenda-list").prepend(ev);
+      flash("Event added");
     }
   }));
   document.querySelectorAll(".round, .section-head button").forEach(b => b.addEventListener("click", (e) => {

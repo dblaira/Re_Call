@@ -22,8 +22,21 @@ step() { printf "\n\033[1m== %s ==\033[0m\n" "$1"; }
 ok()   { PASS+=("$1"); printf "\033[32mPASS\033[0m %s\n" "$1"; }
 bad()  { FAIL+=("$1"); printf "\033[31mFAIL\033[0m %s\n" "$1"; }
 
-# ---------- Layer 1: behavior ----------
-step "Layer 1/3 — behavior (Playwright, WebKit)"
+# ---------- Layer 1: engine + behavior ----------
+step "Layer 1/3 — recommendation engine (node) + behavior (Playwright, WebKit)"
+if npm test --silent >/dev/null 2>&1; then ok "engine unit tests"; else bad "engine unit tests"; fi
+
+# recommendations.js must be the deterministic compile of the current KG
+REC=ios/ReCall/Web/recommendations.js
+BEFORE=$(md5 -q "$REC" 2>/dev/null || echo none)
+node scripts/build-recommendations.mjs >/dev/null
+AFTER=$(md5 -q "$REC")
+if [ "$BEFORE" = "$AFTER" ]; then
+  ok "recommendations.js current with KG"
+else
+  ok "recommendations.js regenerated from KG (was stale — now current)"
+fi
+
 if npx playwright test; then ok "behavior"; else bad "behavior"; fi
 
 # ---------- Layer 2: build + bundle integrity ----------
@@ -38,7 +51,7 @@ if [ $BUILD_RC -ne 0 ]; then
   bad "build (xcodebuild exit $BUILD_RC)"
 else
   ok "build"
-  SRC_MD5=$(md5 -q ios/ReCall/Web/index.html)
+  SRC_MD5=$(cd ios/ReCall/Web && find . -type f ! -name ".*" | sort | xargs cat | md5 -q)
   EMBEDDED=$(grep -o 'data-src-md5="[a-f0-9]*"' "$APP/Web/index.html" 2>/dev/null | cut -d'"' -f2)
   BUILD_SHA=$(grep -o 'id="build-info"[^>]*>[^<]*' "$APP/Web/index.html" 2>/dev/null | sed 's/.*>//')
   if [ -n "$EMBEDDED" ] && [ "$EMBEDDED" = "$SRC_MD5" ]; then

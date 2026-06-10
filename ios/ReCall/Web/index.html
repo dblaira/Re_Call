@@ -55,7 +55,7 @@
     position: absolute;
     inset: 0;
     overflow-y: auto;
-    padding: 0 0 calc(96px + env(safe-area-inset-bottom));
+    padding: 0 0 calc(180px + env(safe-area-inset-bottom));
     display: none;
   }
   .scroll.active { display: block; }
@@ -227,6 +227,23 @@
     z-index: 4; pointer-events: none; opacity: .8;
   }
 
+  /* Resurface — KG-derived recommendation cards */
+  .rec { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--crimson); border-radius: 8px; padding: 12px; }
+  .rec-head { font-size: 16px; font-weight: 800; line-height: 1.15; }
+  .rec-sub { margin-top: 3px; font-size: 13px; font-weight: 500; color: var(--muted); }
+  .why { margin-top: 8px; padding: 8px 10px; background: rgba(220,20,60,.05); border-radius: 6px; font-size: 11px; line-height: 1.5; color: var(--muted); font-style: italic; }
+  .why b { color: var(--crimson); font-style: normal; }
+  .rec-acts { display: flex; gap: 6px; margin-top: 10px; }
+  .rec-acts button { border: 1px solid var(--line); background: var(--shell); border-radius: 999px; padding: 6px 11px; font-size: 12px; font-weight: 800; color: var(--ink); }
+  .rec-acts [data-act="dismiss"] { margin-left: auto; color: var(--dim); border-color: transparent; }
+
+  /* user-created items: delete control + recently-deleted bin */
+  [data-del] { border: 0; background: transparent; color: var(--dim); font-size: 15px; font-weight: 800; padding: 2px 6px; }
+  .bin { border: 1px dashed var(--line); border-radius: 8px; padding: 10px 12px; }
+  .bin .bin-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .bin [data-restore] { border: 0; background: transparent; color: var(--crimson); font-size: 13px; font-weight: 800; }
+  .bin h3 { margin: 0 0 4px; font-size: 12px; font-weight: 800; letter-spacing: 1px; color: var(--dim); text-transform: uppercase; }
+
   @media (min-width: 760px) {
     body { display: grid; place-items: center; min-height: 100vh; }
     .app { height: 920px; max-height: calc(100vh - 68px); border-radius: 38px; box-shadow: 0 30px 90px rgba(0,0,0,.4); }
@@ -263,6 +280,11 @@
           </article>
         </div>
       </section>
+      <section>
+        <div class="section-head"><h2>Resurface</h2><button>From your graph</button></div>
+        <div class="list" id="resurface-list" data-testid="resurface-list"></div>
+      </section>
+      <section id="deleted-sec-reminders" class="bin" hidden></section>
       <section>
         <div class="section-head"><h2>Reminder shapes</h2><button>Edit</button></div>
         <div class="gallery">
@@ -329,6 +351,8 @@
           <article class="task"><div class="check"></div><div class="copy"><strong>Ask Stephanie before next big spend</strong><span>Pattern flagged by Re_Call</span></div><div class="meta">—</div></article>
         </div>
       </section>
+      <section id="deleted-sec" class="bin" hidden>
+      </section>
     </div>
   </section>
 
@@ -357,6 +381,7 @@
           <article class="agenda"><span class="time">4:20</span><span class="adot" style="background:var(--secondary)"></span><div class="copy"><strong>Workout @ NBAC</strong><span>Close the rings</span></div></article>
         </div>
       </section>
+      <section id="deleted-sec-events" class="bin" hidden></section>
     </div>
   </section>
 
@@ -372,6 +397,7 @@
   <div class="build-info" id="build-info" data-testid="build-info" data-src-md5="__SRC_MD5__">__BUILD_SHA__</div>
 </main>
 
+<script src="recommendations.js"></script>
 <script>
 (() => {
   const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>';
@@ -463,41 +489,172 @@
     }
   }));
 
-  // ---- FAB: adds the right thing for the active screen ----
-  const CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+  // ---- FAB: adds the right thing for the active screen (persists) ----
   document.querySelectorAll(".fab").forEach(fab => fab.addEventListener("click", (e) => {
     e.stopPropagation();
     const active = document.querySelector(".scroll.active").dataset.screen;
-    if (active === "tasks") {
-      const list = todaySec.querySelector(".list");
-      const t = document.createElement("article");
-      t.className = "task";
-      t.innerHTML = '<div class="check"></div><div class="copy"><strong>New task</strong><span>Tap to complete</span></div><div class="meta">now</div>';
-      list.prepend(t);
-      wireTask(t);
-      updateCount();
-      flash("Task added");
-    } else if (active === "reminders") {
-      const item = document.createElement("article");
-      item.className = "item";
-      item.innerHTML = '<div class="glyph">' + CLOCK + '</div><div class="copy"><strong>New reminder</strong><span>Tap to edit</span></div><div class="meta">now</div>';
-      document.getElementById("latest-list").prepend(item);
-      flash("Reminder added");
-    } else if (active === "calendar") {
-      const now = new Date();
-      const hh = ((now.getHours() + 11) % 12) + 1;
-      const mm = String(now.getMinutes()).padStart(2, "0");
-      const ev = document.createElement("article");
-      ev.className = "agenda";
-      ev.innerHTML = '<span class="time">' + hh + ":" + mm + '</span><span class="adot" style="background:var(--crimson)"></span><div class="copy"><strong>New event</strong><span>Tap to edit</span></div>';
-      document.getElementById("agenda-list").prepend(ev);
-      flash("Event added");
-    }
+    const kind = active === "tasks" ? "task" : active === "calendar" ? "event" : "reminder";
+    const names = { task: "New task", event: "New event", reminder: "New reminder" };
+    createItem(kind, names[kind], kind === "task" ? "Tap to complete" : "Tap to edit");
+    flash(({ task: "Task", event: "Event", reminder: "Reminder" })[kind] + " added");
   }));
   document.querySelectorAll(".round, .section-head button").forEach(b => b.addEventListener("click", (e) => {
     e.stopPropagation();
     flash((b.getAttribute("aria-label") || b.textContent || "OK").trim());
   }));
+
+  /* ============================================================
+     The capture→infer loop.
+     Recommendations are compiled from the knowledge graph at build
+     time (recommendations.js). Every accept/dismiss records a signal;
+     signals re-rank the deck on-device. Created items persist in
+     localStorage with soft delete + restore.
+     ============================================================ */
+  const RECS = window.RECALL_RECS || { personal: [], depth: [], adjacency: {}, strengths: [], signalDeltas: {} };
+  const dbGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch (e) { return d; } };
+  const dbSet = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+  let items = dbGet("recall.items", []);
+  let signals = dbGet("recall.signals", []);
+  let dismissed = new Set(dbGet("recall.dismissed", []));
+  const persist = () => { dbSet("recall.items", items); dbSet("recall.signals", signals); dbSet("recall.dismissed", [...dismissed]); };
+  const uid = () => "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  function recordSignal(recId, signalType, strengths) {
+    signals.push({ recId, signalType, at: new Date().toISOString(), strengths: strengths || [] });
+    persist();
+  }
+
+  // on-device affinity (ported from src/user-affinity.js): fold signals, propagate over the strength graph
+  function affinity() {
+    const raw = {};
+    (RECS.strengths || []).forEach(s => { raw[s] = 1.0; });
+    for (const sig of signals) {
+      const d = RECS.signalDeltas[sig.signalType] || 0;
+      for (const st of sig.strengths || []) raw[st] = (raw[st] ?? 1.0) + d;
+    }
+    const out = {};
+    for (const [s, v] of Object.entries(raw)) {
+      let n = 0;
+      for (const [nb, w] of Object.entries(RECS.adjacency[s] || {})) n += w * (raw[nb] ?? 1.0);
+      out[s] = v + 0.3 * n;
+    }
+    return out;
+  }
+
+  function allCards() { return (RECS.personal || []).concat(RECS.depth || []); }
+
+  function deck() {
+    const accepted = new Set(items.filter(i => i.recId).map(i => i.recId));
+    const live = c => !dismissed.has(c.id) && !accepted.has(c.id);
+    const personal = (RECS.personal || []).filter(live).sort((a, b) => (b.weight || 0) - (a.weight || 0));
+    const aff = affinity();
+    const score = c => {
+      const ss = c.deepensStrengths || [];
+      if (!ss.length) return c.score || 0;
+      return (c.score || 0) * ss.reduce((a, s) => a + (aff[s] ?? 1.0), 0) / ss.length;
+    };
+    const depth = (RECS.depth || []).filter(live).sort((a, b) => score(b) - score(a)).slice(0, 2);
+    return personal.concat(depth);
+  }
+
+  function whyHtml(c) {
+    return (c.why || []).map(w => esc(w).replace(/— (.*?) →/g, "— <b>$1</b> →")).join("<br>");
+  }
+
+  function renderRecs() {
+    const list = document.getElementById("resurface-list");
+    if (!list) return;
+    list.innerHTML = deck().map(c => `<article class="rec" data-rec="${c.id}">
+      <div class="rec-head">${esc(c.title)}</div>
+      <div class="rec-sub">${esc(c.sub || "")}</div>
+      <div class="why">${whyHtml(c)}</div>
+      <div class="rec-acts"><button data-act="reminder">+ Reminder</button><button data-act="task">+ Task</button><button data-act="event">+ Event</button><button data-act="dismiss">✕</button></div>
+    </article>`).join("");
+    list.querySelectorAll(".rec").forEach(card => {
+      const id = card.dataset.rec;
+      card.querySelectorAll("[data-act]").forEach(btn => btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const c = allCards().find(x => x.id === id);
+        if (!c) return;
+        if (btn.dataset.act === "dismiss") {
+          dismissed.add(id);
+          recordSignal(id, "dismiss", c.deepensStrengths);
+          persist(); renderAll(); flash("Dismissed");
+        } else {
+          createItem(btn.dataset.act, c.title, c.sub || "From your graph", id, c.deepensStrengths);
+          flash(({ reminder: "Reminder", task: "Task", event: "Event" })[btn.dataset.act] + " added");
+        }
+      }));
+    });
+  }
+
+  function createItem(type, title, sub, recId, strengths) {
+    const now = new Date();
+    const hh = ((now.getHours() + 11) % 12) + 1, mm = String(now.getMinutes()).padStart(2, "0");
+    items.push({ id: uid(), type, title, sub, meta: type === "event" ? hh + ":" + mm : "now", status: "active", createdAt: now.toISOString(), recId: recId || null });
+    if (recId) recordSignal(recId, "accept", strengths);
+    persist(); renderAll();
+  }
+
+  function delBtn(id) {
+    const b = document.createElement("button");
+    b.setAttribute("data-del", ""); b.textContent = "✕";
+    b.addEventListener("click", e => {
+      e.stopPropagation();
+      const it = items.find(x => x.id === id);
+      if (it) { it.status = "deleted"; persist(); renderAll(); flash("Deleted — restore below"); }
+    });
+    return b;
+  }
+
+  function renderUserItems() {
+    document.querySelectorAll("[data-user]").forEach(n => n.remove());
+    for (const it of items.filter(i => i.status === "active")) {
+      if (it.type === "task") {
+        const t = document.createElement("article");
+        t.className = "task"; t.setAttribute("data-user", "");
+        t.innerHTML = `<div class="check"></div><div class="copy"><strong>${esc(it.title)}</strong><span>${esc(it.sub)}</span></div>`;
+        t.appendChild(delBtn(it.id));
+        todaySec.querySelector(".list").prepend(t);
+        wireTask(t);
+      } else if (it.type === "reminder") {
+        const a = document.createElement("article");
+        a.className = "item"; a.setAttribute("data-user", "");
+        a.innerHTML = `<div class="glyph">◷</div><div class="copy"><strong>${esc(it.title)}</strong><span>${esc(it.sub)}</span></div>`;
+        a.appendChild(delBtn(it.id));
+        document.getElementById("latest-list").prepend(a);
+      } else {
+        const a = document.createElement("article");
+        a.className = "agenda"; a.setAttribute("data-user", "");
+        a.style.gridTemplateColumns = "44px 8px 1fr auto";
+        a.innerHTML = `<span class="time">${esc(it.meta)}</span><span class="adot" style="background:var(--crimson)"></span><div class="copy"><strong>${esc(it.title)}</strong><span>${esc(it.sub)}</span></div>`;
+        a.appendChild(delBtn(it.id));
+        document.getElementById("agenda-list").prepend(a);
+      }
+    }
+    updateCount();
+  }
+
+  function renderBins() {
+    const cfg = { task: "deleted-sec", reminder: "deleted-sec-reminders", event: "deleted-sec-events" };
+    for (const [type, secId] of Object.entries(cfg)) {
+      const el = document.getElementById(secId);
+      if (!el) continue;
+      const del = items.filter(i => i.status === "deleted" && i.type === type);
+      if (!del.length) { el.hidden = true; el.innerHTML = ""; continue; }
+      el.hidden = false;
+      el.innerHTML = "<h3>Recently deleted</h3>" + del.map(d =>
+        `<div class="bin-row"><span>${esc(d.title)}</span><button data-restore data-id="${d.id}">Restore</button></div>`).join("");
+      el.querySelectorAll("[data-restore]").forEach(b => b.addEventListener("click", () => {
+        const it = items.find(x => x.id === b.dataset.id);
+        if (it) { it.status = "active"; persist(); renderAll(); flash("Restored"); }
+      }));
+    }
+  }
+
+  function renderAll() { renderRecs(); renderUserItems(); renderBins(); }
+  renderAll();
 })();
 </script>
 </body>

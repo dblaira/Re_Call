@@ -42,10 +42,9 @@ targets:
         basedOnDependencyAnalysis: false
         script: |
           set -e
-          WEB_SRC="$SRCROOT/ReCall/Web/index.html"
           WEB_DST="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Web/index.html"
           [ -f "$WEB_DST" ] || { echo "error: bundled web missing at $WEB_DST"; exit 1; }
-          SRC_MD5=$(md5 -q "$WEB_SRC")
+          SRC_MD5=$(cd "$SRCROOT/ReCall/Web" && find . -type f ! -name ".*" | sort | xargs cat | md5 -q)
           GIT_SHA=$(cd "$SRCROOT/.." && git rev-parse --short HEAD 2>/dev/null || echo unknown)
           DIRTY=""
           (cd "$SRCROOT/.." && [ -n "$(git status --porcelain 2>/dev/null)" ]) && DIRTY="*"

@@ -201,7 +201,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nWEB_SRC=\"$SRCROOT/ReCall/Web/index.html\"\nWEB_DST=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Web/index.html\"\n[ -f \"$WEB_DST\" ] || { echo \"error: bundled web missing at $WEB_DST\"; exit 1; }\nSRC_MD5=$(md5 -q \"$WEB_SRC\")\nGIT_SHA=$(cd \"$SRCROOT/..\" && git rev-parse --short HEAD 2>/dev/null || echo unknown)\nDIRTY=\"\"\n(cd \"$SRCROOT/..\" && [ -n \"$(git status --porcelain 2>/dev/null)\" ]) && DIRTY=\"*\"\nsed -i '' \"s/__SRC_MD5__/$SRC_MD5/g; s/__BUILD_SHA__/$GIT_SHA$DIRTY/g\" \"$WEB_DST\"\nxattr -cr \"$TARGET_BUILD_DIR/$FULL_PRODUCT_NAME\" || true\necho \"stamped web bundle: sha=$GIT_SHA$DIRTY md5=$SRC_MD5\"\n";
+			shellScript = "set -e\nWEB_DST=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Web/index.html\"\n[ -f \"$WEB_DST\" ] || { echo \"error: bundled web missing at $WEB_DST\"; exit 1; }\nSRC_MD5=$(cd \"$SRCROOT/ReCall/Web\" && find . -type f ! -name \".*\" | sort | xargs cat | md5 -q)\nGIT_SHA=$(cd \"$SRCROOT/..\" && git rev-parse --short HEAD 2>/dev/null || echo unknown)\nDIRTY=\"\"\n(cd \"$SRCROOT/..\" && [ -n \"$(git status --porcelain 2>/dev/null)\" ]) && DIRTY=\"*\"\nsed -i '' \"s/__SRC_MD5__/$SRC_MD5/g; s/__BUILD_SHA__/$GIT_SHA$DIRTY/g\" \"$WEB_DST\"\nxattr -cr \"$TARGET_BUILD_DIR/$FULL_PRODUCT_NAME\" || true\necho \"stamped web bundle: sha=$GIT_SHA$DIRTY md5=$SRC_MD5\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

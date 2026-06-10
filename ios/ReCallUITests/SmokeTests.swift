@@ -15,7 +15,7 @@ final class SmokeTests: XCTestCase {
 
         // The web content must expose the brand header — proves index.html
         // loaded from the bundle, not a blank or error page.
-        let brand = web.staticTexts["Notorious Recall"]
+        let brand = web.staticTexts["Notorious"]
         XCTAssertTrue(brand.waitForExistence(timeout: 20), "Web UI did not render (brand title missing)")
     }
 }

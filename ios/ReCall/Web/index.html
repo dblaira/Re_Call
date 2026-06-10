@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,600;6..96,700&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --shell: #C8CCD2;      /* silver canvas */
+    --shell: #EAD3B0;      /* body canvas — light sand */
     --card: #ffffff;       /* white cards */
     --panel-2: #CFD3D9;    /* silver alt (glyph chips, one tile) */
     --line: rgba(0,0,0,.10);
@@ -17,7 +17,7 @@
     --muted: #666666;
     --dim: #999999;
     --crimson: #DC143C;    /* accent */
-    --sand: #EAD3B0;       /* header band */
+    --sand: #C8CCD2;       /* hero band — silver gray */
     --black: #000000;
     --secondary: #1A1A1A;
   }
@@ -73,13 +73,12 @@
 
   .brand h1 {
     margin: 0;
-    font-family: "Bodoni Moda", Georgia, "Times New Roman", serif;
+    font-family: "Bodoni 72 Smallcaps", "Bodoni Moda", Georgia, "Times New Roman", serif;
     font-size: 40px;
     line-height: 1.02;
     letter-spacing: 0;
     font-weight: 700;
     color: var(--crimson);
-    max-width: 7ch;
   }
 
   .icon-row { display: flex; gap: 8px; flex: none; }
@@ -225,7 +224,7 @@
   <section class="scroll active" data-screen="reminders">
     <header class="hero">
       <div class="top">
-        <div class="brand"><h1>Notorious Recall</h1></div>
+        <div class="brand"><h1>Notorious</h1></div>
         <div class="icon-row">
           <button class="round" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg></button>
           <button class="round" aria-label="Add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -234,7 +233,7 @@
     </header>
     <div class="body">
       <section>
-        <div class="section-head"><h2>Latest reminders</h2><button>See all</button></div>
+        <div class="section-head"><h2>ReCall</h2><button>See all</button></div>
         <div class="list" id="latest-list" data-testid="latest-list">
           <article class="item">
             <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>

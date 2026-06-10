@@ -25,8 +25,11 @@ test("agenda shows 4 events for today", async ({ page }) => {
   await expect(page.locator("#agenda-list .agenda")).toHaveCount(4);
 });
 
-test("+ button adds a new event to the agenda", async ({ page }) => {
+test("+ button opens the composer and adds an event", async ({ page }) => {
   await page.click(".fab");
+  await expect(page.locator("#composer-title")).toHaveText("New Event");
+  await page.fill("#composer-name", "Cold plunge");
+  await page.click("#composer [data-add]");
   await expect(page.locator("#agenda-list .agenda")).toHaveCount(5);
-  await expect(page.locator("#agenda-list .agenda").first().locator("strong")).toHaveText("New event");
+  await expect(page.locator("#agenda-list .agenda").first().locator("strong")).toHaveText("Cold plunge");
 });

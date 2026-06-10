@@ -22,10 +22,13 @@ test("tapping a tile selects it and shows its name in the toast", async ({ page 
   await expect(tile).toHaveAttribute("data-selected", "false");
 });
 
-test("+ button adds a new reminder to Latest reminders", async ({ page }) => {
+test("+ button opens the composer and adds a reminder", async ({ page }) => {
   await page.click(".fab");
+  await expect(page.locator("#composer-title")).toHaveText("New Reminder");
+  await page.fill("#composer-name", "Water the plants");
+  await page.click("#composer [data-add]");
   await expect(page.locator("#latest-list .item")).toHaveCount(3);
-  await expect(page.locator("#latest-list .item").first().locator("strong")).toHaveText("New reminder");
+  await expect(page.locator("#latest-list .item").first().locator("strong")).toHaveText("Water the plants");
 });
 
 test("tab bar navigates between all three screens", async ({ page }) => {

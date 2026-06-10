@@ -26,7 +26,10 @@
     --secondary: #1A1A1A;
   }
 
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  [hidden] { display: none !important; }
+  html { -webkit-text-size-adjust: 100%; }
+  button, .task, .item, .agenda, .day, .tile, .tab, .seg, .rec { cursor: pointer; }
 
   html, body {
     margin: 0;
@@ -107,7 +110,7 @@
   .section-head h2 {
     margin: 0; font-size: 19px; line-height: 1; font-weight: 800; letter-spacing: 0;
   }
-  .section-head button { border: 0; background: transparent; color: var(--crimson); padding: 0; font-size: 14px; font-weight: 800; }
+  .section-head button { border: 0; background: transparent; color: var(--crimson); padding: 0; font-size: 15px; font-weight: 800; }
 
   /* list cards */
   .list { display: grid; gap: 8px; }
@@ -125,18 +128,18 @@
   .glyph { width: 34px; height: 34px; border-radius: 10px; background: var(--panel-2); color: var(--muted); display: grid; place-items: center; }
   .glyph svg { width: 19px; height: 19px; }
   .copy { min-width: 0; }
-  .copy strong { display: block; color: var(--ink); font-size: 16px; line-height: 1.12; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .copy span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .meta { color: var(--crimson); font-size: 13px; font-weight: 800; white-space: nowrap; }
+  .copy strong { display: block; color: var(--ink); font-size: 17px; line-height: 1.12; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .copy span { display: block; margin-top: 4px; color: var(--muted); font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meta { color: var(--crimson); font-size: 14px; font-weight: 800; white-space: nowrap; }
 
   /* tasks */
   .segs { display: flex; gap: 8px; }
-  .seg { padding: 8px 16px; border-radius: 999px; background: #141414; border: 1px solid rgba(255,255,255,.18); color: #999; font-size: 13px; font-weight: 800; }
+  .seg { padding: 8px 16px; border-radius: 999px; background: #141414; border: 1px solid rgba(255,255,255,.18); color: #999; font-size: 15px; font-weight: 800; }
   .seg.active { background: var(--crimson); border-color: transparent; color: #fff; }
 
   /* featured band — cream strip with black editorial cards (News app system) */
   .band { margin: -16px -16px 0; padding: 14px 16px 16px; background: var(--cream); }
-  .band .section-head h2 { letter-spacing: 2.5px; font-size: 14px; color: #6F6F6F; }
+  .band .section-head h2 { letter-spacing: 2.5px; font-size: 15px; color: #6F6F6F; }
   .band .item { background: #0A0A0A; border-color: rgba(255,255,255,.08); }
   .band .item strong {
     color: #fff; white-space: normal;
@@ -175,20 +178,20 @@
   .handle i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
   .name { font-size: 21px; line-height: 1.04; font-weight: 800; letter-spacing: 0; }
   .slots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
-  .slot { border-radius: 999px; padding: 4px 8px; background: rgba(255,255,255,.16); color: currentColor; display: inline-flex; align-items: center; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .3px; }
+  .slot { border-radius: 999px; padding: 4px 8px; background: rgba(255,255,255,.16); color: currentColor; display: inline-flex; align-items: center; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .3px; }
   .tile.light .slot { background: rgba(0,0,0,.06); }
 
   /* calendar */
   .cal-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 8px; }
   .dow, .week { display: grid; grid-template-columns: repeat(7, 1fr); }
-  .dow div { text-align: center; font-size: 11px; font-weight: 800; color: var(--dim); padding: 4px 0; }
+  .dow div { text-align: center; font-size: 12px; font-weight: 800; color: var(--dim); padding: 4px 0; }
   .day { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; }
-  .day .num { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 15px; font-weight: 700; }
+  .day .num { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 16px; font-weight: 700; }
   .day.muted .num { color: var(--dim); }
   .day.today .num { background: var(--crimson); color: #fff; }
   .day .dot { width: 5px; height: 5px; border-radius: 50%; }
-  .agenda { display: grid; grid-template-columns: 44px 8px 1fr; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
-  .agenda .time { color: var(--crimson); font-size: 13px; font-weight: 800; }
+  .agenda { display: grid; grid-template-columns: 48px 8px 1fr; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  .agenda .time { color: var(--crimson); font-size: 14px; font-weight: 800; }
   .agenda .adot { width: 8px; height: 8px; border-radius: 50%; }
 
   /* bottom tab bar */
@@ -199,7 +202,7 @@
     display: flex; align-items: flex-start;
     padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
   }
-  .tab { flex: 1; background: transparent; border: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--tan-ink); font-size: 11px; font-weight: 800; }
+  .tab { flex: 1; background: transparent; border: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--tan-ink); font-size: 13px; font-weight: 800; }
   .tab svg { width: 24px; height: 24px; }
   .tab.active { color: var(--tan-active); }
 
@@ -223,26 +226,39 @@
   .build-info {
     position: absolute; right: 10px;
     bottom: calc(82px + env(safe-area-inset-bottom));
-    font-size: 9px; font-weight: 700; color: var(--dim);
+    font-size: 10px; font-weight: 700; color: var(--dim);
     z-index: 4; pointer-events: none; opacity: .8;
   }
 
-  /* Resurface — KG-derived recommendation cards */
-  .rec { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--crimson); border-radius: 8px; padding: 12px; }
-  .rec-head { font-size: 16px; font-weight: 800; line-height: 1.15; }
-  .rec-sub { margin-top: 3px; font-size: 13px; font-weight: 500; color: var(--muted); }
-  .why { margin-top: 8px; padding: 8px 10px; background: rgba(220,20,60,.05); border-radius: 6px; font-size: 11px; line-height: 1.5; color: var(--muted); font-style: italic; }
-  .why b { color: var(--crimson); font-style: normal; }
-  .rec-acts { display: flex; gap: 6px; margin-top: 10px; }
-  .rec-acts button { border: 1px solid var(--line); background: var(--shell); border-radius: 999px; padding: 6px 11px; font-size: 12px; font-weight: 800; color: var(--ink); }
-  .rec-acts [data-act="dismiss"] { margin-left: auto; color: var(--dim); border-color: transparent; }
+  /* Suggested rows — identical to normal reminder rows, plus a single + */
+  .sug .copy strong { white-space: normal; }
+  .sug-add { border: 0; background: transparent; color: var(--crimson); font-size: 30px; font-weight: 600; line-height: 1; padding: 4px 10px; min-width: 44px; min-height: 44px; }
+
+  /* composer sheet — new reminder / task / event */
+  .sheet-back { position: absolute; inset: 0; background: rgba(0,0,0,.32); z-index: 20; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 21; background: var(--card); border-radius: 16px 16px 0 0; padding: 18px 16px calc(24px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0,0,0,.18); }
+  .sheet h3 { margin: 0 0 12px; font-size: 19px; font-weight: 800; }
+  .sheet input { display: block; width: 100%; border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 12px 2px; font: inherit; font-size: 17px; color: var(--ink); outline: none; }
+  .sheet input::placeholder { color: var(--dim); }
+  .sheet-acts { display: flex; justify-content: space-between; margin-top: 18px; }
+  .sheet-acts button { border: 0; background: transparent; font-size: 17px; font-weight: 700; padding: 10px 6px; min-height: 44px; }
+  .sheet-acts [data-cancel] { color: var(--muted); }
+  .sheet-acts [data-add] { color: var(--crimson); font-weight: 800; }
+
+  /* sidebar drawer */
+  .drawer-back { position: absolute; inset: 0; background: rgba(0,0,0,.32); z-index: 30; }
+  .drawer { position: absolute; top: 0; bottom: 0; left: 0; width: 280px; z-index: 31; background: var(--card); box-shadow: 12px 0 40px rgba(0,0,0,.18); padding: calc(env(safe-area-inset-top) + 26px) 0 16px; display: flex; flex-direction: column; }
+  .drawer h2 { margin: 0 16px 14px; font-family: "Bodoni 72 Smallcaps", "Bodoni Moda", Georgia, serif; font-size: 28px; font-weight: 700; color: var(--crimson); }
+  .drawer button { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; background: transparent; padding: 14px 18px; font-size: 17px; font-weight: 600; color: var(--ink); text-align: left; }
+  .drawer button.dim { color: var(--dim); }
+  .drawer hr { border: 0; border-top: 1px solid var(--line); margin: 8px 0; width: 100%; }
 
   /* user-created items: delete control + recently-deleted bin */
-  [data-del] { border: 0; background: transparent; color: var(--dim); font-size: 15px; font-weight: 800; padding: 2px 6px; }
+  [data-del] { border: 0; background: transparent; color: var(--dim); font-size: 20px; font-weight: 800; padding: 10px 12px; min-width: 44px; min-height: 44px; }
   .bin { border: 1px dashed var(--line); border-radius: 8px; padding: 10px 12px; }
-  .bin .bin-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 0; font-size: 13px; font-weight: 600; color: var(--muted); }
-  .bin [data-restore] { border: 0; background: transparent; color: var(--crimson); font-size: 13px; font-weight: 800; }
-  .bin h3 { margin: 0 0 4px; font-size: 12px; font-weight: 800; letter-spacing: 1px; color: var(--dim); text-transform: uppercase; }
+  .bin .bin-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 0; font-size: 15px; font-weight: 600; color: var(--muted); }
+  .bin [data-restore] { border: 0; background: transparent; color: var(--crimson); font-size: 15px; font-weight: 800; padding: 10px 12px; min-height: 44px; }
+  .bin h3 { margin: 0 0 4px; font-size: 13px; font-weight: 800; letter-spacing: 1px; color: var(--dim); text-transform: uppercase; }
 
   @media (min-width: 760px) {
     body { display: grid; place-items: center; min-height: 100vh; }
@@ -258,10 +274,7 @@
     <header class="hero">
       <div class="top">
         <div class="brand"><h1>Notorious</h1></div>
-        <div class="icon-row">
-          <button class="round" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg></button>
-          <button class="round" aria-label="Add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
-        </div>
+        <div class="icon-row"><button class="round" aria-label="Menu" data-menu><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
       </div>
     </header>
     <div class="body">
@@ -281,7 +294,7 @@
         </div>
       </section>
       <section>
-        <div class="section-head"><h2>Resurface</h2><button>From your graph</button></div>
+        <div class="section-head"><h2>Suggested</h2></div>
         <div class="list" id="resurface-list" data-testid="resurface-list"></div>
       </section>
       <section id="deleted-sec-reminders" class="bin" hidden></section>
@@ -323,10 +336,7 @@
     <header class="hero tall">
       <div class="top">
         <div class="brand"><h1>Tasks</h1></div>
-        <div class="icon-row">
-          <button class="round" aria-label="Filter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button>
-          <button class="round" aria-label="Add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
-        </div>
+        <div class="icon-row"><button class="round" aria-label="Menu" data-menu><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
       </div>
       <div class="segs" style="margin-top:14px">
         <button class="seg active">Today</button>
@@ -361,10 +371,7 @@
     <header class="hero">
       <div class="top">
         <div class="brand"><h1>Calendar</h1></div>
-        <div class="icon-row">
-          <button class="round" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg></button>
-          <button class="round" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg></button>
-        </div>
+        <div class="icon-row"><button class="round" aria-label="Menu" data-menu><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
       </div>
     </header>
     <div class="body">
@@ -392,6 +399,25 @@
     <button class="tab" data-go="tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Tasks</button>
     <button class="tab" data-go="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>Calendar</button>
   </nav>
+
+  <div class="sheet-back" id="sheet-back" hidden></div>
+  <form class="sheet" id="composer" hidden>
+    <h3 id="composer-title">New Reminder</h3>
+    <input id="composer-name" placeholder="Title" autocomplete="off" />
+    <input id="composer-notes" placeholder="Notes" autocomplete="off" />
+    <div class="sheet-acts"><button type="button" data-cancel>Cancel</button><button type="submit" data-add>Add</button></div>
+  </form>
+
+  <div class="drawer-back" id="drawer-back" hidden></div>
+  <aside class="drawer" id="drawer" hidden>
+    <h2>Notorious</h2>
+    <button data-nav="reminders">Reminders</button>
+    <button data-nav="tasks">Tasks</button>
+    <button data-nav="calendar">Calendar</button>
+    <hr>
+    <button class="dim">Lists</button>
+    <button class="dim">Settings</button>
+  </aside>
 
   <div class="toast" id="toast">Template selected</div>
   <div class="build-info" id="build-info" data-testid="build-info" data-src-md5="__SRC_MD5__">__BUILD_SHA__</div>
@@ -489,16 +515,56 @@
     }
   }));
 
-  // ---- FAB: adds the right thing for the active screen (persists) ----
+  // ---- FAB opens the composer for the active screen ----
+  const composer = document.getElementById("composer");
+  const sheetBack = document.getElementById("sheet-back");
+  const composerTitle = document.getElementById("composer-title");
+  const composerName = document.getElementById("composer-name");
+  const composerNotes = document.getElementById("composer-notes");
+  let composerKind = "reminder";
+  const KIND_LABEL = { reminder: "New Reminder", task: "New Task", event: "New Event" };
+
+  function openComposer(kind) {
+    composerKind = kind;
+    composerTitle.textContent = KIND_LABEL[kind];
+    composerName.value = ""; composerNotes.value = "";
+    composer.hidden = false; sheetBack.hidden = false;
+    composerName.focus();
+  }
+  function closeComposer() { composer.hidden = true; sheetBack.hidden = true; }
+
   document.querySelectorAll(".fab").forEach(fab => fab.addEventListener("click", (e) => {
     e.stopPropagation();
     const active = document.querySelector(".scroll.active").dataset.screen;
-    const kind = active === "tasks" ? "task" : active === "calendar" ? "event" : "reminder";
-    const names = { task: "New task", event: "New event", reminder: "New reminder" };
-    createItem(kind, names[kind], kind === "task" ? "Tap to complete" : "Tap to edit");
-    flash(({ task: "Task", event: "Event", reminder: "Reminder" })[kind] + " added");
+    openComposer(active === "tasks" ? "task" : active === "calendar" ? "event" : "reminder");
   }));
-  document.querySelectorAll(".round, .section-head button").forEach(b => b.addEventListener("click", (e) => {
+  sheetBack.addEventListener("click", closeComposer);
+  composer.querySelector("[data-cancel]").addEventListener("click", closeComposer);
+  composer.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const title = composerName.value.trim() || KIND_LABEL[composerKind];
+    createItem(composerKind, title, composerNotes.value.trim());
+    closeComposer();
+    flash(KIND_LABEL[composerKind].replace("New ", "") + " added");
+  });
+
+  // ---- hamburger menu + sidebar drawer ----
+  const drawer = document.getElementById("drawer");
+  const drawerBack = document.getElementById("drawer-back");
+  const closeDrawer = () => { drawer.hidden = true; drawerBack.hidden = true; };
+  document.querySelectorAll("[data-menu]").forEach(b => b.addEventListener("click", (e) => {
+    e.stopPropagation();
+    drawer.hidden = false; drawerBack.hidden = false;
+  }));
+  drawerBack.addEventListener("click", closeDrawer);
+  drawer.querySelectorAll("[data-nav]").forEach(b => b.addEventListener("click", () => {
+    const go = b.dataset.nav;
+    document.querySelectorAll(".scroll").forEach(sc => sc.classList.toggle("active", sc.dataset.screen === go));
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.go === go));
+    closeDrawer();
+  }));
+
+  document.querySelectorAll(".section-head button").forEach(b => b.addEventListener("click", (e) => {
     e.stopPropagation();
     flash((b.getAttribute("aria-label") || b.textContent || "OK").trim());
   }));
@@ -558,34 +624,22 @@
     return personal.concat(depth);
   }
 
-  function whyHtml(c) {
-    return (c.why || []).map(w => esc(w).replace(/— (.*?) →/g, "— <b>$1</b> →")).join("<br>");
-  }
-
   function renderRecs() {
     const list = document.getElementById("resurface-list");
     if (!list) return;
-    list.innerHTML = deck().map(c => `<article class="rec" data-rec="${c.id}">
-      <div class="rec-head">${esc(c.title)}</div>
-      <div class="rec-sub">${esc(c.sub || "")}</div>
-      <div class="why">${whyHtml(c)}</div>
-      <div class="rec-acts"><button data-act="reminder">+ Reminder</button><button data-act="task">+ Task</button><button data-act="event">+ Event</button><button data-act="dismiss">✕</button></div>
+    list.innerHTML = deck().map(c => `<article class="item sug" data-rec="${c.id}">
+      <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+      <div class="copy"><strong>${esc(c.title)}</strong></div>
+      <button class="sug-add" data-act="add" aria-label="Add">+</button>
     </article>`).join("");
-    list.querySelectorAll(".rec").forEach(card => {
-      const id = card.dataset.rec;
-      card.querySelectorAll("[data-act]").forEach(btn => btn.addEventListener("click", e => {
+    list.querySelectorAll(".sug").forEach(row => {
+      row.querySelector('[data-act="add"]').addEventListener("click", e => {
         e.stopPropagation();
-        const c = allCards().find(x => x.id === id);
+        const c = allCards().find(x => x.id === row.dataset.rec);
         if (!c) return;
-        if (btn.dataset.act === "dismiss") {
-          dismissed.add(id);
-          recordSignal(id, "dismiss", c.deepensStrengths);
-          persist(); renderAll(); flash("Dismissed");
-        } else {
-          createItem(btn.dataset.act, c.title, c.sub || "From your graph", id, c.deepensStrengths);
-          flash(({ reminder: "Reminder", task: "Task", event: "Event" })[btn.dataset.act] + " added");
-        }
-      }));
+        createItem(c.type, c.title, "", c.id, c.deepensStrengths);
+        flash("Added");
+      });
     });
   }
 
@@ -614,21 +668,21 @@
       if (it.type === "task") {
         const t = document.createElement("article");
         t.className = "task"; t.setAttribute("data-user", "");
-        t.innerHTML = `<div class="check"></div><div class="copy"><strong>${esc(it.title)}</strong><span>${esc(it.sub)}</span></div>`;
+        t.innerHTML = `<div class="check"></div><div class="copy"><strong>${esc(it.title)}</strong>${it.sub ? `<span>${esc(it.sub)}</span>` : ""}</div>`;
         t.appendChild(delBtn(it.id));
         todaySec.querySelector(".list").prepend(t);
         wireTask(t);
       } else if (it.type === "reminder") {
         const a = document.createElement("article");
         a.className = "item"; a.setAttribute("data-user", "");
-        a.innerHTML = `<div class="glyph">◷</div><div class="copy"><strong>${esc(it.title)}</strong><span>${esc(it.sub)}</span></div>`;
+        a.innerHTML = `<div class="glyph">◷</div><div class="copy"><strong>${esc(it.title)}</strong>${it.sub ? `<span>${esc(it.sub)}</span>` : ""}</div>`;
         a.appendChild(delBtn(it.id));
         document.getElementById("latest-list").prepend(a);
       } else {
         const a = document.createElement("article");
         a.className = "agenda"; a.setAttribute("data-user", "");
         a.style.gridTemplateColumns = "44px 8px 1fr auto";
-        a.innerHTML = `<span class="time">${esc(it.meta)}</span><span class="adot" style="background:var(--crimson)"></span><div class="copy"><strong>${esc(it.title)}</strong><span>${esc(it.sub)}</span></div>`;
+        a.innerHTML = `<span class="time">${esc(it.meta)}</span><span class="adot" style="background:var(--crimson)"></span><div class="copy"><strong>${esc(it.title)}</strong>${it.sub ? `<span>${esc(it.sub)}</span>` : ""}</div>`;
         a.appendChild(delBtn(it.id));
         document.getElementById("agenda-list").prepend(a);
       }

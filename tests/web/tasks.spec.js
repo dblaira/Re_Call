@@ -22,9 +22,12 @@ test("tapping a task completes it and decrements the count", async ({ page }) =>
   await expect(page.locator("#left-count")).toHaveText("3 left");
 });
 
-test("+ button adds a new task and increments the count", async ({ page }) => {
+test("+ button opens the composer and adds a task", async ({ page }) => {
   await page.click(".fab");
-  await expect(page.locator("#today-sec .task").first().locator("strong")).toHaveText("New task");
+  await expect(page.locator("#composer-title")).toHaveText("New Task");
+  await page.fill("#composer-name", "Stretch hips");
+  await page.click("#composer [data-add]");
+  await expect(page.locator("#today-sec .task").first().locator("strong")).toHaveText("Stretch hips");
   await expect(page.locator("#left-count")).toHaveText("4 left");
   await expect(page.locator("#today-sec .task")).toHaveCount(5);
 });

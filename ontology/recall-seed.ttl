@@ -133,3 +133,66 @@ adam:OpenLoop_AskStephanie a recall:OpenLoop ;
 # --- Resurface links: pattern/open-loop -> the moment it should reappear ---
 adam:Pattern_UnilateralDecision recall:resurfaces adam:OpenLoop_AskStephanie .
 adam:Retatrutide recall:resurfaces adam:MilesProtocol .
+
+#################################################################
+#  QC system — friction -> root cause -> repair (2026-06-09)
+#  Captured from the build day: a stale bundle shipped to the phone
+#  while checks looked green; trust broke; a three-layer QC system
+#  and a verification contract repaired it.
+#################################################################
+
+recall:verifies a owl:ObjectProperty ; rdfs:label "verifies"@en ;
+    rdfs:comment "An information artifact provides independent evidence for a claim or process outcome."@en .
+
+# --- The failure chain ---
+adam:StaleBundleDeploy a recall:Process ;
+    rdfs:label "Stale web bundle deployed to phone while simulator showed new build"@en ;
+    recall:observedOn "2026-06-09"^^xsd:date .
+adam:TrustBreach a recall:MentalState ;
+    rdfs:label "Adam's trust broken — 'it works' claim failed on device, right before leaving"@en .
+adam:StaleBundleDeploy recall:causes adam:TrustBreach .
+
+# --- The hidden root cause of the codesign failures ---
+adam:ICloudSync a recall:Process ;
+    rdfs:label "iCloud File Provider syncing ~/Documents"@en .
+adam:XattrDetritus a recall:Quality ;
+    rdfs:label "Finder/file-provider xattrs re-tagged onto build products"@en .
+adam:Codesign a recall:Process ;
+    rdfs:label "Apple code signing of the app bundle"@en .
+adam:DerivedDataRelocation a recall:Action ;
+    rdfs:label "Build output moved to ~/Library (outside iCloud sync)"@en ;
+    recall:observedOn "2026-06-09"^^xsd:date .
+adam:ICloudSync recall:causes adam:XattrDetritus .
+adam:XattrDetritus recall:blocks adam:Codesign .
+adam:XattrDetritus recall:repairedBy adam:DerivedDataRelocation .
+
+# --- The repair: three independent verification layers ---
+adam:QcProtocol a recall:Protocol ;
+    rdfs:label "qc.sh — three-layer quality control, one command"@en ;
+    recall:flaggedImportant true ;
+    recall:observedOn "2026-06-09"^^xsd:date .
+adam:BehaviorCheck a recall:Protocol ;
+    rdfs:label "Layer 1: robot user taps the app in WebKit (14 Playwright specs)"@en .
+adam:IntegrityCheck a recall:Protocol ;
+    rdfs:label "Layer 2: build fingerprint (git SHA + source md5) must match source"@en .
+adam:SmokeCheck a recall:Protocol ;
+    rdfs:label "Layer 3: simulated iPhone boots the real app and renders"@en .
+
+adam:WorksClaim a recall:Information ;
+    rdfs:label "The claim 'it works'"@en .
+adam:BehaviorCheck recall:verifies adam:WorksClaim .
+adam:IntegrityCheck recall:verifies adam:WorksClaim .
+adam:SmokeCheck recall:verifies adam:WorksClaim .
+adam:IntegrityCheck recall:verifies adam:Codesign .
+
+adam:TrustContract a recall:Protocol ;
+    rdfs:label "Trust contract: 'works' = qc.sh green + on-device SHA matches repo"@en ;
+    recall:flaggedImportant true .
+adam:TrustBreach recall:repairedBy adam:TrustContract .
+adam:TrustContract recall:resurfaces adam:WorksClaim .
+
+# --- The pattern, category not instance ---
+adam:Pattern_VerifyBeforeClaim a recall:Pattern ;
+    rdfs:label "Verification before claim: evidence the user can check beats assurances"@en ;
+    recall:flaggedImportant true .
+adam:Pattern_VerifyBeforeClaim recall:resurfaces adam:TrustContract .

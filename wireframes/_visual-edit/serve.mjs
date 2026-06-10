@@ -16,6 +16,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const WF_DIR = join(__dirname, '..');           // wireframes/
 const PORT = 5173;
 
+// Files outside wireframes/ the editor may serve and save, by URL name.
+// app.html is the shipped iOS prototype — the design source of truth.
+// Editing it here edits exactly what the phone build bundles.
+const ALIASES = {
+  'app.html': join(__dirname, '..', '..', 'ios', 'ReCall', 'Web', 'index.html'),
+};
+
 const TYPES = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript',
                 '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
                 '.svg': 'image/svg+xml', '.webp': 'image/webp' };
@@ -32,7 +39,7 @@ const server = createServer(async (req, res) => {
     if (req.method === 'POST' && req.url === '/__ve/save') {
       const { file, tokens = {}, rules = {} } = JSON.parse(await readBody(req));
       if (!editable(basename(file))) { res.writeHead(400); return res.end('bad file'); }
-      const target = join(WF_DIR, basename(file));
+      const target = ALIASES[basename(file)] || join(WF_DIR, basename(file));
       let src = await readFile(target, 'utf8');
 
       // 1) Patch design-token values in place (e.g.  --gold: #C49E30; ).
@@ -76,18 +83,19 @@ const server = createServer(async (req, res) => {
       return res.end(body);
     }
 
-    // Static files from wireframes/
+    // Static files from wireframes/ (or an aliased file outside it)
     let path = decodeURIComponent((req.url || '/').split('?')[0]);
     if (path === '/') path = '/template-gallery-ios.html';
-    const file = join(WF_DIR, path);
-    if (!file.startsWith(WF_DIR)) { res.writeHead(403); return res.end('nope'); }
+    const aliased = ALIASES[basename(path)];
+    const file = aliased || join(WF_DIR, path);
+    if (!aliased && !file.startsWith(WF_DIR)) { res.writeHead(403); return res.end('nope'); }
 
     let body = await readFile(file);
     const ext = extname(file);
     if (ext === '.html') {
       const inject = `
 <link rel="stylesheet" href="/__ve/editor.css" data-ve>
-<script>window.__VE_FILE=${JSON.stringify(basename(file))}</script>
+<script>window.__VE_FILE=${JSON.stringify(basename(path))}</script>
 <script src="/__ve/editor.js" data-ve></script>`;
       body = body.toString().replace(/<\/body>/i, inject + '\n</body>');
     }

@@ -72,6 +72,38 @@ test("positive communication-format reminder rating recommends deeper format tem
   assert.deepEqual(result.graphTrace.matchedRuleIds, ["CommunicationFormatDepthRecommendationRule"]);
 });
 
+test("story-driven recommendations have attitude and usable judgment hooks", () => {
+  const cases = [
+    {
+      templateId: ReminderTemplate.HabitStackGym,
+      expected: [/scientists right about stretching/i, /price of admission/i]
+    },
+    {
+      templateId: ReminderTemplate.TranslateAIWeek,
+      expected: [/nobody needs another ai headline/i, /one person, one consequence/i]
+    },
+    {
+      templateId: ReminderTemplate.CaptureMacBookUnlocks,
+      expected: [/luxury or leverage/i, /before it becomes normal/i]
+    },
+    {
+      templateId: ReminderTemplate.NameMeaningfulSource,
+      expected: [/energy provenance/i, /protect the doorway/i]
+    }
+  ];
+
+  for (const { templateId, expected } of cases) {
+    const result = getReminderRecommendations({
+      templateId,
+      rating: ReminderFeedback.Positive
+    });
+    const text = result.recommendations.map((recommendation) => recommendation.text).join("\n");
+    for (const pattern of expected) {
+      assert.match(text, pattern, `${templateId} should include ${pattern}`);
+    }
+  }
+});
+
 test("unmodeled reminder feedback returns an explicit fallback", () => {
   const result = getReminderRecommendations({
     templateId: ReminderTemplate.ScanCalendar,

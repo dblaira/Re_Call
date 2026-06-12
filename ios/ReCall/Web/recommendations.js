@@ -165,7 +165,7 @@ window.RECALL_RECS = {
    "id": "depth:FoamRollFiveByFive",
    "source": "depth",
    "type": "task",
-   "title": "The stack graduates: foam roll five times this week, five minutes each.",
+   "title": "Are scientists right about stretching? Run the 30-second test before hoops.",
    "sub": "A positively rated gym habit stack reveals habit stacking; recommend leveling the same stack up toward the ultimate goal rather than broader fitness reminders.",
    "why": [
     "HabitStackGymReminder — recommends → FoamRollFiveByFive"
@@ -179,7 +179,7 @@ window.RECALL_RECS = {
    "id": "depth:StackSecondMicrodose",
    "source": "depth",
    "type": "task",
-   "title": "Attach one more two-minute microdose to an anchor habit you already love.",
+   "title": "Make mobility the price of admission: no first shot until the timer clears.",
    "sub": "A positively rated gym habit stack reveals habit stacking; recommend leveling the same stack up toward the ultimate goal rather than broader fitness reminders.",
    "why": [
     "HabitStackGymReminder — recommends → StackSecondMicrodose"
@@ -193,7 +193,7 @@ window.RECALL_RECS = {
    "id": "depth:StandingAIDigestGesture",
    "source": "depth",
    "type": "task",
-   "title": "Make it a standing gesture: a weekly AI briefing for a named circle — Stephanie, the sauna crew, or bigger.",
+   "title": "Nobody needs another AI headline. Give one person the consequence.",
    "sub": "A positively rated AI translation reminder reveals knowledge synthesis; recommend grander, more organized gestures of the same service — never smaller steps, which the user dismisses.",
    "why": [
     "TranslateAIWeekReminder — recommends → StandingAIDigestGesture"
@@ -207,7 +207,7 @@ window.RECALL_RECS = {
    "id": "depth:TranslateForOneDecision",
    "source": "depth",
    "type": "task",
-   "title": "Translate this week's AI shift into one decision someone you know should make differently.",
+   "title": "One person, one consequence: what should they do differently by Friday?",
    "sub": "A positively rated AI translation reminder reveals knowledge synthesis; recommend grander, more organized gestures of the same service — never smaller steps, which the user dismisses.",
    "why": [
     "TranslateAIWeekReminder — recommends → TranslateForOneDecision"
@@ -221,7 +221,7 @@ window.RECALL_RECS = {
    "id": "depth:TwoWeekVerdictLedger",
    "source": "depth",
    "type": "task",
-   "title": "Day 14: rule on the MacBook — benefits and drawbacks, read straight from your captured memos.",
+   "title": "Luxury or leverage? Day 14 gets a verdict, not a vibe.",
    "sub": "A positively rated in-the-moment capture reveals tool integration timing; recommend the verdict checkpoints that read from those captures — capture cadence and verdict cadence are different clocks.",
    "why": [
     "CaptureMacBookUnlocksReminder — recommends → TwoWeekVerdictLedger"
@@ -235,7 +235,7 @@ window.RECALL_RECS = {
    "id": "depth:WeekOneAdamPatternCheck",
    "source": "depth",
    "type": "task",
-   "title": "Day 7: Adam Pattern steps 1-3 done? Log what the third machine does that the other two can't.",
+   "title": "Catch the difference before it becomes normal: what did this machine unlock today?",
    "sub": "A positively rated in-the-moment capture reveals tool integration timing; recommend the verdict checkpoints that read from those captures — capture cadence and verdict cadence are different clocks.",
    "why": [
     "CaptureMacBookUnlocksReminder — recommends → WeekOneAdamPatternCheck"
@@ -249,7 +249,7 @@ window.RECALL_RECS = {
    "id": "depth:ScheduleElectrifyingSource",
    "source": "depth",
    "type": "task",
-   "title": "Block the when: put your most electrifying source on the calendar before entertainment fills it.",
+   "title": "Energy provenance: what source changed your state, and when did it hit?",
    "sub": "A positively rated source-taste reminder reveals strategic learning; recommend deeper uses of the same taste — the what and when of meaningful information, never the where.",
    "why": [
     "NameMeaningfulSourceReminder — recommends → ScheduleElectrifyingSource"
@@ -263,7 +263,7 @@ window.RECALL_RECS = {
    "id": "depth:MeditateOnVisualPerception",
    "source": "depth",
    "type": "task",
-   "title": "Open 'Drawing by Seeing' — meditate on visual perception for ten minutes.",
+   "title": "Protect the doorway: put the source that wakes you up before the feed.",
    "sub": "A positively rated source-taste reminder reveals strategic learning; recommend deeper uses of the same taste — the what and when of meaningful information, never the where.",
    "why": [
     "NameMeaningfulSourceReminder — recommends → MeditateOnVisualPerception"

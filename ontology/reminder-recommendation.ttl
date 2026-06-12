@@ -333,56 +333,56 @@ recall:CommunicationFormatDepthRecommendationRule
 recall:FoamRollFiveByFive
     a recall:ReminderTemplate ;
     rdfs:label "Foam roll five by five" ;
-    recall:templateText "The stack graduates: foam roll five times this week, five minutes each." ;
+    recall:templateText "Are scientists right about stretching? Run the 30-second test before hoops." ;
     recall:deepensStrength recall:HabitStacking ;
     recall:depthScore "0.95"^^xsd:decimal .
 
 recall:StackSecondMicrodose
     a recall:ReminderTemplate ;
     rdfs:label "Stack a second microdose" ;
-    recall:templateText "Attach one more two-minute microdose to an anchor habit you already love." ;
+    recall:templateText "Make mobility the price of admission: no first shot until the timer clears." ;
     recall:deepensStrength recall:HabitStacking ;
     recall:depthScore "0.88"^^xsd:decimal .
 
 recall:StandingAIDigestGesture
     a recall:ReminderTemplate ;
     rdfs:label "Standing AI digest gesture" ;
-    recall:templateText "Make it a standing gesture: a weekly AI briefing for a named circle — Stephanie, the sauna crew, or bigger." ;
+    recall:templateText "Nobody needs another AI headline. Give one person the consequence." ;
     recall:deepensStrength recall:KnowledgeSynthesis ;
     recall:depthScore "0.96"^^xsd:decimal .
 
 recall:TranslateForOneDecision
     a recall:ReminderTemplate ;
     rdfs:label "Translate for one decision" ;
-    recall:templateText "Translate this week's AI shift into one decision someone you know should make differently." ;
+    recall:templateText "One person, one consequence: what should they do differently by Friday?" ;
     recall:deepensStrength recall:KnowledgeSynthesis ;
     recall:depthScore "0.90"^^xsd:decimal .
 
 recall:TwoWeekVerdictLedger
     a recall:ReminderTemplate ;
     rdfs:label "Two-week verdict ledger" ;
-    recall:templateText "Day 14: rule on the MacBook — benefits and drawbacks, read straight from your captured memos." ;
+    recall:templateText "Luxury or leverage? Day 14 gets a verdict, not a vibe." ;
     recall:deepensStrength recall:ToolIntegrationTiming ;
     recall:depthScore "0.94"^^xsd:decimal .
 
 recall:WeekOneAdamPatternCheck
     a recall:ReminderTemplate ;
     rdfs:label "Week-one Adam Pattern check" ;
-    recall:templateText "Day 7: Adam Pattern steps 1-3 done? Log what the third machine does that the other two can't." ;
+    recall:templateText "Catch the difference before it becomes normal: what did this machine unlock today?" ;
     recall:deepensStrength recall:ToolIntegrationTiming ;
     recall:depthScore "0.90"^^xsd:decimal .
 
 recall:ScheduleElectrifyingSource
     a recall:ReminderTemplate ;
     rdfs:label "Schedule the electrifying source" ;
-    recall:templateText "Block the when: put your most electrifying source on the calendar before entertainment fills it." ;
+    recall:templateText "Energy provenance: what source changed your state, and when did it hit?" ;
     recall:deepensStrength recall:StrategicLearning ;
     recall:depthScore "0.93"^^xsd:decimal .
 
 recall:MeditateOnVisualPerception
     a recall:ReminderTemplate ;
     rdfs:label "Meditate on visual perception" ;
-    recall:templateText "Open 'Drawing by Seeing' — meditate on visual perception for ten minutes." ;
+    recall:templateText "Protect the doorway: put the source that wakes you up before the feed." ;
     recall:deepensStrength recall:StrategicLearning ;
     recall:depthScore "0.89"^^xsd:decimal .
 

@@ -1,0 +1,53 @@
+PREFIX recall: <https://understood.app/ontology/project-recall#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+# Backend meaning trace for the four story-driven reminder lanes.
+# Run against ontology/reminder-recommendation.ttl in Protege or the Docker RDF stack.
+# The result makes the invisible path inspectable:
+# story -> revealed strength -> matched rule -> deeper recommendation.
+
+SELECT
+  ?storyLabel
+  ?storyText
+  ?strengthLabel
+  ?strengthMeaning
+  ?ruleLabel
+  ?ruleReason
+  ?recommendationLabel
+  ?recommendationText
+  ?deepensStrengthLabel
+  ?depthScore
+WHERE {
+  VALUES ?story {
+    recall:HabitStackGymReminder
+    recall:TranslateAIWeekReminder
+    recall:CaptureMacBookUnlocksReminder
+    recall:NameMeaningfulSourceReminder
+  }
+
+  ?story
+    rdfs:label ?storyLabel ;
+    recall:templateText ?storyText ;
+    recall:revealsStrength ?strength .
+
+  ?strength
+    rdfs:label ?strengthLabel ;
+    rdfs:comment ?strengthMeaning .
+
+  ?rule
+    a recall:ReminderRecommendationRule ;
+    rdfs:label ?ruleLabel ;
+    recall:triggeredByTemplate ?story ;
+    recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:recommendationReason ?ruleReason ;
+    recall:recommendsTemplate ?recommendation .
+
+  ?recommendation
+    rdfs:label ?recommendationLabel ;
+    recall:templateText ?recommendationText ;
+    recall:deepensStrength ?deepensStrength ;
+    recall:depthScore ?depthScore .
+
+  ?deepensStrength rdfs:label ?deepensStrengthLabel .
+}
+ORDER BY ?storyLabel DESC(?depthScore)

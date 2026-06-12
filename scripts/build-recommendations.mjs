@@ -107,12 +107,29 @@ for (const templateId of Object.values(ReminderTemplate)) {
   }
 }
 
+// ---------- seed templates (the tiles' contract) ----------
+// tap tile → composer prefilled with KG template text → edit until owned →
+// add records the reveal signal, which lifts that strength's deeper cards
+const RECALL_ONT = "https://understood.app/ontology/project-recall#";
+const seeds = {};
+for (const templateId of Object.values(ReminderTemplate)) {
+  const node = namedNode(RECALL_ONT + templateId);
+  const get = (pred) => recStore.getQuads(node, namedNode(pred), null, null);
+  seeds[templateId] = {
+    id: templateId,
+    label: get(RDFS_LABEL)[0]?.object.value ?? templateId,
+    text: get(RECALL_ONT + "templateText")[0]?.object.value ?? "",
+    revealsStrengths: get(RECALL_ONT + "revealsStrength").map((q) => q.object.value.split("#").pop()),
+  };
+}
+
 // ---------- emit ----------
 // no timestamp: output must be byte-identical for the same KG (determinism gate in qc.sh)
 const bundle = {
   builtFrom: "ontology/recall-seed.ttl + ontology/reminder-recommendation.ttl",
   personal,
   depth,
+  seeds,
   strengths,
   adjacency,
   signalDeltas: { edit: 0.3, positive: 0.15, accept: 0.1, dismiss: -0.1 },

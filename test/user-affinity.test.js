@@ -55,3 +55,11 @@ test("unknown signal types are rejected", () => {
     /Unknown signal type: bogus/
   );
 });
+
+test("neutral baseline is flat: connected strengths get no free lift over isolated ones", () => {
+  const { adjacency, strengths } = buildStrengthAdjacency();
+  const baseline = computeAffinity([], { adjacency, strengths });
+  for (const [id, value] of Object.entries(baseline)) {
+    assert.ok(Math.abs(value - 1.0) < 1e-9, `${id} should start neutral, got ${value}`);
+  }
+});

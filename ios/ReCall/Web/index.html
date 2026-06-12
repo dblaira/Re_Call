@@ -326,6 +326,26 @@
             <div class="name pad-mid">Do this after workout</div>
             <div class="slots"><span class="slot">time</span><span class="slot">cue</span></div>
           </article>
+          <article class="tile dark" data-title="Habit stack at the gym" data-template="HabitStackGymReminder" style="--fill:#1B2A4A;--fg:#FFD300">
+            <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="name" style="font-family:'Bodoni 72','Bodoni Moda',Georgia,serif;font-weight:600">Habit stack at the gym</div>
+            <div class="slots"><span class="slot">cue</span><span class="slot">time</span></div>
+          </article>
+          <article class="tile dark" data-title="Translate the week in AI" data-template="TranslateAIWeekReminder" style="--fill:#1E4D3B;--fg:#F5EFE0">
+            <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="name pad-tall">Translate the week in AI</div>
+            <div class="slots"><span class="slot">person</span><span class="slot">time</span></div>
+          </article>
+          <article class="tile dark" data-title="Capture the MacBook unlocks" data-template="CaptureMacBookUnlocksReminder" style="--fill:#2B2D31;--fg:#4DA6FF">
+            <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="name">Capture the MacBook unlocks</div>
+            <div class="slots"><span class="slot">voice</span><span class="slot">time</span></div>
+          </article>
+          <article class="tile light" data-title="Name the electrifying source" data-template="NameMeaningfulSourceReminder" style="--fill:#F7F2E7;--fg:#6C3BD4">
+            <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="name pad-mid">Name the electrifying source</div>
+            <div class="slots"><span class="slot">source</span><span class="slot">when</span></div>
+          </article>
         </div>
       </section>
     </div>
@@ -466,10 +486,16 @@
     tabs.forEach(t => t.classList.toggle("active", t === tab));
   }));
 
-  // ---- reminder tiles: select ----
+  // ---- reminder tiles ----
+  // Template tiles (data-template) are the Ship step: tap → composer prefilled
+  // with the KG template text → edit until owned → add records the reveal
+  // signal, which lifts that strength's deeper cards into Suggested.
+  // Plain tiles just select.
   document.querySelectorAll(".tile").forEach(tile => tile.addEventListener("click", () => {
     document.querySelectorAll(".tile").forEach(t => t.dataset.selected = "false");
     tile.dataset.selected = "true";
+    const seed = ((window.RECALL_RECS || {}).seeds || {})[tile.dataset.template];
+    if (seed) { openComposer("reminder", seed); return; }
     flash(tile.dataset.title || "Template selected");
   }));
 
@@ -522,16 +548,19 @@
   const composerName = document.getElementById("composer-name");
   const composerNotes = document.getElementById("composer-notes");
   let composerKind = "reminder";
+  let composerSeed = null;
   const KIND_LABEL = { reminder: "New Reminder", task: "New Task", event: "New Event" };
 
-  function openComposer(kind) {
+  function openComposer(kind, seed) {
     composerKind = kind;
-    composerTitle.textContent = KIND_LABEL[kind];
-    composerName.value = ""; composerNotes.value = "";
+    composerSeed = seed || null;
+    composerTitle.textContent = seed ? seed.label : KIND_LABEL[kind];
+    composerName.value = seed ? seed.text : "";
+    composerNotes.value = "";
     composer.hidden = false; sheetBack.hidden = false;
     composerName.focus();
   }
-  function closeComposer() { composer.hidden = true; sheetBack.hidden = true; }
+  function closeComposer() { composer.hidden = true; sheetBack.hidden = true; composerSeed = null; }
 
   document.querySelectorAll(".fab").forEach(fab => fab.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -543,9 +572,16 @@
   composer.addEventListener("submit", (e) => {
     e.preventDefault();
     const title = composerName.value.trim() || KIND_LABEL[composerKind];
-    createItem(composerKind, title, composerNotes.value.trim());
+    if (composerSeed) {
+      // edit = owned (+0.30, the strongest signal); untouched = accept (+0.10)
+      const sig = title === composerSeed.text ? "accept" : "edit";
+      createItem(composerKind, title, composerNotes.value.trim(), "seed:" + composerSeed.id, composerSeed.revealsStrengths, sig);
+      flash(sig === "edit" ? "Owned — deeper unlocked" : "Shipped");
+    } else {
+      createItem(composerKind, title, composerNotes.value.trim());
+      flash(KIND_LABEL[composerKind].replace("New ", "") + " added");
+    }
     closeComposer();
-    flash(KIND_LABEL[composerKind].replace("New ", "") + " added");
   });
 
   // ---- hamburger menu + sidebar drawer ----
@@ -602,7 +638,8 @@
     const out = {};
     for (const [s, v] of Object.entries(raw)) {
       let n = 0;
-      for (const [nb, w] of Object.entries(RECS.adjacency[s] || {})) n += w * (raw[nb] ?? 1.0);
+      // deviation from neutral, not absolute — keeps isolated strengths on equal footing
+      for (const [nb, w] of Object.entries(RECS.adjacency[s] || {})) n += w * ((raw[nb] ?? 1.0) - 1.0);
       out[s] = v + 0.3 * n;
     }
     return out;
@@ -643,11 +680,11 @@
     });
   }
 
-  function createItem(type, title, sub, recId, strengths) {
+  function createItem(type, title, sub, recId, strengths, signalType) {
     const now = new Date();
     const hh = ((now.getHours() + 11) % 12) + 1, mm = String(now.getMinutes()).padStart(2, "0");
     items.push({ id: uid(), type, title, sub, meta: type === "event" ? hh + ":" + mm : "now", status: "active", createdAt: now.toISOString(), recId: recId || null });
-    if (recId) recordSignal(recId, "accept", strengths);
+    if (recId) recordSignal(recId, signalType || "accept", strengths);
     persist(); renderAll();
   }
 

@@ -54,7 +54,10 @@ export function propagateAffinity(raw, adjacency, spread = DEFAULT_SPREAD) {
   for (const [id, value] of Object.entries(raw)) {
     let neighborSum = 0;
     for (const [neighbor, weight] of Object.entries(adjacency[id] || {})) {
-      neighborSum += weight * (raw[neighbor] ?? NEUTRAL_AFFINITY);
+      // diffuse the neighbor's deviation from neutral, not its absolute value —
+      // otherwise well-connected strengths get a permanent lift over isolated
+      // ones before any signal exists
+      neighborSum += weight * ((raw[neighbor] ?? NEUTRAL_AFFINITY) - NEUTRAL_AFFINITY);
     }
     propagated[id] = value + spread * neighborSum;
   }

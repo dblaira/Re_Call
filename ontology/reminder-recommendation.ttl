@@ -118,6 +118,26 @@ recall:EvidenceTrust
     rdfs:label "Evidence trust" ;
     rdfs:comment "The user trusts communication more when provenance, constraints, and verification steps are visible." .
 
+recall:HabitStacking
+    a recall:UserStrength ;
+    rdfs:label "Habit stacking" ;
+    rdfs:comment "The user adopts a new habit by attaching a brief microdose of it to an anchor habit he already enjoys and never skips." .
+
+recall:KnowledgeSynthesis
+    a recall:UserStrength ;
+    rdfs:label "Knowledge synthesis" ;
+    rdfs:comment "The user spends all day consuming and synthesizing AI developments; leverage is translating that recall into service for others. Responds to grand gestures, not atomic steps." .
+
+recall:ToolIntegrationTiming
+    a recall:UserStrength ;
+    rdfs:label "Tool integration timing" ;
+    rdfs:comment "The user evaluates new tools on two clocks: dense in-the-moment capture during days 1-4 while reactions are perishable, then verdicts at one and two weeks." .
+
+recall:StrategicLearning
+    a recall:UserStrength ;
+    rdfs:label "Strategic learning" ;
+    rdfs:comment "Meaningful, important new information energizes the user's whole life. Value lives in the what and the when of a source, never the where; transition times are when taste matters most." .
+
 recall:ScanCalendarReminder
     a recall:ReminderTemplate ;
     rdfs:label "Scan calendar reminder" ;
@@ -135,6 +155,30 @@ recall:ChooseCommunicationFormatReminder
     rdfs:label "Choose communication format reminder" ;
     recall:templateText "Before replying, choose the format that lets the other person use the message." ;
     recall:revealsStrength recall:FormatJudgment, recall:CommunicationFit .
+
+recall:HabitStackGymReminder
+    a recall:ReminderTemplate ;
+    rdfs:label "Habit stack at the gym" ;
+    recall:templateText "First arrival at the gym: after shooting around, foam roll the lower body for two minutes." ;
+    recall:revealsStrength recall:HabitStacking .
+
+recall:TranslateAIWeekReminder
+    a recall:ReminderTemplate ;
+    rdfs:label "Translate the week in AI" ;
+    recall:templateText "Pick one person. Give them the full picture: what changed in AI this week and what it means for them." ;
+    recall:revealsStrength recall:KnowledgeSynthesis .
+
+recall:CaptureMacBookUnlocksReminder
+    a recall:ReminderTemplate ;
+    rdfs:label "Capture the MacBook unlocks" ;
+    recall:templateText "Jot two incredible unlocks the beast-of-a-laptop has delivered today — or has it been a joke how average $7,000 feels?" ;
+    recall:revealsStrength recall:ToolIntegrationTiming .
+
+recall:NameMeaningfulSourceReminder
+    a recall:ReminderTemplate ;
+    rdfs:label "Name the electrifying source" ;
+    recall:templateText "What new information mattered today — and when did it matter? Name the source worth keeping." ;
+    recall:revealsStrength recall:StrategicLearning .
 
 recall:ScanTomorrowForTransitionStress
     a recall:ReminderTemplate ;
@@ -285,3 +329,99 @@ recall:CommunicationFormatDepthRecommendationRule
         recall:SortFeedbackBeforeInterpreting,
         recall:AskForProvenanceConstraintsVerification,
         recall:DiagnoseContentStyleTimingFormat .
+
+recall:FoamRollFiveByFive
+    a recall:ReminderTemplate ;
+    rdfs:label "Foam roll five by five" ;
+    recall:templateText "The stack graduates: foam roll five times this week, five minutes each." ;
+    recall:deepensStrength recall:HabitStacking ;
+    recall:depthScore "0.95"^^xsd:decimal .
+
+recall:StackSecondMicrodose
+    a recall:ReminderTemplate ;
+    rdfs:label "Stack a second microdose" ;
+    recall:templateText "Attach one more two-minute microdose to an anchor habit you already love." ;
+    recall:deepensStrength recall:HabitStacking ;
+    recall:depthScore "0.88"^^xsd:decimal .
+
+recall:StandingAIDigestGesture
+    a recall:ReminderTemplate ;
+    rdfs:label "Standing AI digest gesture" ;
+    recall:templateText "Make it a standing gesture: a weekly AI briefing for a named circle — Stephanie, the sauna crew, or bigger." ;
+    recall:deepensStrength recall:KnowledgeSynthesis ;
+    recall:depthScore "0.96"^^xsd:decimal .
+
+recall:TranslateForOneDecision
+    a recall:ReminderTemplate ;
+    rdfs:label "Translate for one decision" ;
+    recall:templateText "Translate this week's AI shift into one decision someone you know should make differently." ;
+    recall:deepensStrength recall:KnowledgeSynthesis ;
+    recall:depthScore "0.90"^^xsd:decimal .
+
+recall:TwoWeekVerdictLedger
+    a recall:ReminderTemplate ;
+    rdfs:label "Two-week verdict ledger" ;
+    recall:templateText "Day 14: rule on the MacBook — benefits and drawbacks, read straight from your captured memos." ;
+    recall:deepensStrength recall:ToolIntegrationTiming ;
+    recall:depthScore "0.94"^^xsd:decimal .
+
+recall:WeekOneAdamPatternCheck
+    a recall:ReminderTemplate ;
+    rdfs:label "Week-one Adam Pattern check" ;
+    recall:templateText "Day 7: Adam Pattern steps 1-3 done? Log what the third machine does that the other two can't." ;
+    recall:deepensStrength recall:ToolIntegrationTiming ;
+    recall:depthScore "0.90"^^xsd:decimal .
+
+recall:ScheduleElectrifyingSource
+    a recall:ReminderTemplate ;
+    rdfs:label "Schedule the electrifying source" ;
+    recall:templateText "Block the when: put your most electrifying source on the calendar before entertainment fills it." ;
+    recall:deepensStrength recall:StrategicLearning ;
+    recall:depthScore "0.93"^^xsd:decimal .
+
+recall:MeditateOnVisualPerception
+    a recall:ReminderTemplate ;
+    rdfs:label "Meditate on visual perception" ;
+    recall:templateText "Open 'Drawing by Seeing' — meditate on visual perception for ten minutes." ;
+    recall:deepensStrength recall:StrategicLearning ;
+    recall:depthScore "0.89"^^xsd:decimal .
+
+recall:HabitStackDepthRecommendationRule
+    a recall:ReminderRecommendationRule ;
+    rdfs:label "Habit stack depth recommendation rule" ;
+    recall:triggeredByTemplate recall:HabitStackGymReminder ;
+    recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:recommendationReason "A positively rated gym habit stack reveals habit stacking; recommend leveling the same stack up toward the ultimate goal rather than broader fitness reminders." ;
+    recall:recommendsTemplate
+        recall:FoamRollFiveByFive,
+        recall:StackSecondMicrodose .
+
+recall:KnowledgeSynthesisDepthRecommendationRule
+    a recall:ReminderRecommendationRule ;
+    rdfs:label "Knowledge synthesis depth recommendation rule" ;
+    recall:triggeredByTemplate recall:TranslateAIWeekReminder ;
+    recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:recommendationReason "A positively rated AI translation reminder reveals knowledge synthesis; recommend grander, more organized gestures of the same service — never smaller steps, which the user dismisses." ;
+    recall:recommendsTemplate
+        recall:StandingAIDigestGesture,
+        recall:TranslateForOneDecision .
+
+recall:ToolTimingDepthRecommendationRule
+    a recall:ReminderRecommendationRule ;
+    rdfs:label "Tool timing depth recommendation rule" ;
+    recall:triggeredByTemplate recall:CaptureMacBookUnlocksReminder ;
+    recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:recommendationReason "A positively rated in-the-moment capture reveals tool integration timing; recommend the verdict checkpoints that read from those captures — capture cadence and verdict cadence are different clocks." ;
+    recall:recommendsTemplate
+        recall:TwoWeekVerdictLedger,
+        recall:WeekOneAdamPatternCheck .
+
+recall:StrategicLearningDepthRecommendationRule
+    a recall:ReminderRecommendationRule ;
+    rdfs:label "Strategic learning depth recommendation rule" ;
+    recall:triggeredByTemplate recall:NameMeaningfulSourceReminder ;
+    recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:recommendationReason "A positively rated source-taste reminder reveals strategic learning; recommend deeper uses of the same taste — the what and when of meaningful information, never the where." ;
+    recall:recommendsTemplate
+        recall:ScheduleElectrifyingSource,
+        recall:MeditateOnVisualPerception .

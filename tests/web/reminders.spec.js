@@ -45,3 +45,17 @@ test("build fingerprint element is present", async ({ page }) => {
   const md5 = await page.locator("#build-info").getAttribute("data-src-md5");
   expect(md5).toBeTruthy();
 });
+
+test("template tile → composer prefilled → edit → reminder created + deeper card surfaces", async ({ page }) => {
+  await page.locator('.tile[data-template="HabitStackGymReminder"]').click();
+  await expect(page.locator("#composer-title")).toHaveText("Habit stack at the gym");
+  const name = page.locator("#composer-name");
+  await expect(name).toHaveValue(/foam roll/i);
+  // edit until owned — the strongest signal (+0.30)
+  await name.fill("After hoops: foam roll lower body, 2 minutes");
+  await page.click("#composer [data-add]");
+  await expect(page.locator("#toast")).toHaveText("Owned — deeper unlocked");
+  await expect(page.locator("#latest-list .item").first().locator("strong")).toHaveText("After hoops: foam roll lower body, 2 minutes");
+  // the edit signal lifts HabitStacking affinity → the deeper card enters Suggested
+  await expect(page.locator("#resurface-list")).toContainText("The stack graduates");
+});

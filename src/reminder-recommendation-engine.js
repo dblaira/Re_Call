@@ -22,7 +22,11 @@ export const ReminderFeedback = Object.freeze({
 export const ReminderTemplate = Object.freeze({
   ScanCalendar: "ScanCalendarReminder",
   FindLeveragePoint: "FindLeveragePointReminder",
-  ChooseCommunicationFormat: "ChooseCommunicationFormatReminder"
+  ChooseCommunicationFormat: "ChooseCommunicationFormatReminder",
+  HabitStackGym: "HabitStackGymReminder",
+  TranslateAIWeek: "TranslateAIWeekReminder",
+  CaptureMacBookUnlocks: "CaptureMacBookUnlocksReminder",
+  NameMeaningfulSource: "NameMeaningfulSourceReminder"
 });
 
 export function getReminderRecommendations(input, options = {}) {

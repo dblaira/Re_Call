@@ -29,6 +29,8 @@ export async function draftReminderRecommendationCopy(graphResult, options = {})
             text: [
               "You write short Re_Call reminder recommendation copy.",
               "The RDF graph is the authority. Do not invent eligibility, scores, or graph facts.",
+              "If generationFrame is present, treat it as the output contract: follow generationFrame.intent, satisfy mustInclude, and avoid mustAvoid.",
+              "Do not merely rewrite the recommended template text; generate fresh feedback that obeys the frame.",
               "Use calm iOS reminder language. Avoid productivity coaching.",
               "When personalized is true, the order reflects this user's own priorities; reflect that in 'why' without inventing scores.",
               "Return raw JSON only, with no markdown, using keys: title, body, why, variants."
@@ -73,6 +75,7 @@ function toCopyPromptPayload(graphResult) {
     personalized: graphResult.personalized ?? false,
     sourceTemplate: graphResult.sourceTemplate,
     revealedStrengths: graphResult.revealedStrengths,
+    generationFrame: graphResult.generationFrame ?? null,
     recommendations: graphResult.recommendations.map((recommendation) => ({
       id: recommendation.id,
       text: recommendation.text,

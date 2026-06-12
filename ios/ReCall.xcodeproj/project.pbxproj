@@ -13,6 +13,7 @@
 		45BBBDEA593671D0262699AB /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 575C1741D3B349AB4757A98D /* SmokeTests.swift */; };
 		8A6E477479BD7E2877F5B81F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85E54626A8DE911BCEC1324 /* ContentView.swift */; };
 		DB8165B735EBA06612CFABDC /* Web in Resources */ = {isa = PBXBuildFile; fileRef = EB03A60A77BF4626FE52C6BF /* Web */; };
+		EBA6D7111CC8C0556CE4AD1D /* ReminderGenerationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -30,6 +31,7 @@
 		3D059ADF056549352B1B7CBD /* ReCallApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReCallApp.swift; sourceTree = "<group>"; };
 		4079AAC3EA2A59744AF1F729 /* ReCallUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReCallUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		575C1741D3B349AB4757A98D /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
+		6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderGenerationProvider.swift; sourceTree = "<group>"; };
 		AFE45B7861104DB1ACF54C56 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		C7116D79FD34A726158C3D32 /* ReCall.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ReCall.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D85E54626A8DE911BCEC1324 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -86,6 +88,7 @@
 			children = (
 				D85E54626A8DE911BCEC1324 /* ContentView.swift */,
 				3D059ADF056549352B1B7CBD /* ReCallApp.swift */,
+				6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */,
 				AFE45B7861104DB1ACF54C56 /* WebView.swift */,
 			);
 			path = App;
@@ -118,7 +121,6 @@
 			buildPhases = (
 				367186F19813695432411EE8 /* Sources */,
 				9C7934354432260F1BA5A66B /* Resources */,
-				69C3297E042C3C41A4D0E32C /* Stamp web bundle fingerprint */,
 			);
 			buildRules = (
 			);
@@ -152,7 +154,6 @@
 				};
 			};
 			buildConfigurationList = D303FB154D031C1ADD11B475 /* Build configuration list for PBXProject "ReCall" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -162,6 +163,7 @@
 			mainGroup = 61A368F3F418F44B2CFFFF23;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
+			productRefGroup = 0028E5CF458CBA5B4FB16400 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -183,28 +185,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		69C3297E042C3C41A4D0E32C /* Stamp web bundle fingerprint */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Stamp web bundle fingerprint";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -e\nWEB_DST=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Web/index.html\"\n[ -f \"$WEB_DST\" ] || { echo \"error: bundled web missing at $WEB_DST\"; exit 1; }\nSRC_MD5=$(cd \"$SRCROOT/ReCall/Web\" && find . -type f ! -name \".*\" | sort | xargs cat | md5 -q)\nGIT_SHA=$(cd \"$SRCROOT/..\" && git rev-parse --short HEAD 2>/dev/null || echo unknown)\nDIRTY=\"\"\n(cd \"$SRCROOT/..\" && [ -n \"$(git status --porcelain 2>/dev/null)\" ]) && DIRTY=\"*\"\nsed -i '' \"s/__SRC_MD5__/$SRC_MD5/g; s/__BUILD_SHA__/$GIT_SHA$DIRTY/g\" \"$WEB_DST\"\nxattr -cr \"$TARGET_BUILD_DIR/$FULL_PRODUCT_NAME\" || true\necho \"stamped web bundle: sha=$GIT_SHA$DIRTY md5=$SRC_MD5\"\n";
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		367186F19813695432411EE8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -212,6 +192,7 @@
 			files = (
 				8A6E477479BD7E2877F5B81F /* ContentView.swift in Sources */,
 				19845D503271B60B97E779E1 /* ReCallApp.swift in Sources */,
+				EBA6D7111CC8C0556CE4AD1D /* ReminderGenerationProvider.swift in Sources */,
 				0554BA371B9D9FB3FE365777 /* WebView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

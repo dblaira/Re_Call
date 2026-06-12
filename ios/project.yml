@@ -37,21 +37,6 @@ targets:
         INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleLightContent
         INFOPLIST_KEY_UIUserInterfaceStyle: Dark
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
-    postBuildScripts:
-      - name: Stamp web bundle fingerprint
-        basedOnDependencyAnalysis: false
-        script: |
-          set -e
-          WEB_DST="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Web/index.html"
-          [ -f "$WEB_DST" ] || { echo "error: bundled web missing at $WEB_DST"; exit 1; }
-          SRC_MD5=$(cd "$SRCROOT/ReCall/Web" && find . -type f ! -name ".*" | sort | xargs cat | md5 -q)
-          GIT_SHA=$(cd "$SRCROOT/.." && git rev-parse --short HEAD 2>/dev/null || echo unknown)
-          DIRTY=""
-          (cd "$SRCROOT/.." && [ -n "$(git status --porcelain 2>/dev/null)" ]) && DIRTY="*"
-          sed -i '' "s/__SRC_MD5__/$SRC_MD5/g; s/__BUILD_SHA__/$GIT_SHA$DIRTY/g" "$WEB_DST"
-          xattr -cr "$TARGET_BUILD_DIR/$FULL_PRODUCT_NAME" || true
-          echo "stamped web bundle: sha=$GIT_SHA$DIRTY md5=$SRC_MD5"
-
   ReCallUITests:
     type: bundle.ui-testing
     platform: iOS

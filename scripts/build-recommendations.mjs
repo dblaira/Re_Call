@@ -91,7 +91,7 @@ const depth = [];
 for (const templateId of Object.values(ReminderTemplate)) {
   const result = getReminderRecommendations(
     { templateId, rating: ReminderFeedback.Positive },
-    { store: recStore, limit: 2 }
+    { store: recStore, limit: 4 }
   );
   for (const rec of result.recommendations ?? []) {
     depth.push({
@@ -102,6 +102,7 @@ for (const templateId of Object.values(ReminderTemplate)) {
       sub: result.reason ?? "Goes deeper, not broader",
       why: [`${templateId} — recommends → ${rec.id}`],
       score: rec.score ?? rec.depthScore ?? 0,
+      generationFrame: result.generationFrame,
       deepensStrengths: (rec.deepensStrengths ?? []).map((s) => s.id ?? s),
     });
   }

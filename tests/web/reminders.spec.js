@@ -57,5 +57,5 @@ test("template tile → composer prefilled → edit → reminder created + deepe
   await expect(page.locator("#toast")).toHaveText("Owned — deeper unlocked");
   await expect(page.locator("#latest-list .item").first().locator("strong")).toHaveText("After hoops: foam roll lower body, 2 minutes");
   // the edit signal lifts HabitStacking affinity → the deeper card enters Suggested
-  await expect(page.locator("#resurface-list")).toContainText("The stack graduates");
+  await expect(page.locator("#resurface-list")).toContainText("Run a readiness bet");
 });

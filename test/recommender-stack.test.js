@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { OpenAIModelTier } from "../src/model-policy.js";
+import { GenerationProviderKind, OpenAIModelTier } from "../src/model-policy.js";
 import { draftReminderRecommendationCopy } from "../src/openai-reminder-copy.js";
 import { getReminderRecommendationStack, getPersonalizedRecommendationStack } from "../src/recommender-stack.js";
 import { ReminderFeedback, ReminderTemplate } from "../src/reminder-recommendation-engine.js";
@@ -24,6 +24,85 @@ test("recommender stack returns graph-only result when no OpenAI key is configur
       process.env.OPENAI_API_KEY = previousKey;
     }
   }
+});
+
+test("iOS copy layer prefers Apple Foundation Models before OpenAI", async () => {
+  const calls = [];
+  const appleProvider = {
+    kind: GenerationProviderKind.AppleFoundationModels,
+    draftReminderCopy: async (graph) => {
+      calls.push({ provider: "apple", frame: graph.generationFrame?.id });
+      return {
+        title: "Run a readiness bet",
+        body: "Try a 30-second check before the first shot, then keep it only if it changes the first five minutes.",
+        why: "The graph asks for a timed test and a keep/kill/replace verdict.",
+        variants: ["Three tries, then keep it or kill it."]
+      };
+    }
+  };
+  const openAIProvider = {
+    kind: GenerationProviderKind.OpenAI,
+    draftReminderCopy: async () => {
+      calls.push({ provider: "openai" });
+      return {
+        title: "OpenAI fallback",
+        body: "",
+        why: "",
+        variants: []
+      };
+    }
+  };
+
+  const result = await getReminderRecommendationStack(
+    {
+      templateId: "HabitStackGymReminder",
+      rating: ReminderFeedback.Positive
+    },
+    {
+      runtime: "ios",
+      providers: [appleProvider, openAIProvider]
+    }
+  );
+
+  assert.equal(result.copyStatus, "drafted");
+  assert.equal(result.copyProvider, GenerationProviderKind.AppleFoundationModels);
+  assert.equal(result.copy.title, "Run a readiness bet");
+  assert.deepEqual(calls, [{ provider: "apple", frame: "HabitStackReadinessExperimentFrame" }]);
+});
+
+test("iOS copy layer falls back when Apple Foundation Models provider is unavailable", async () => {
+  const calls = [];
+  const appleProvider = {
+    kind: GenerationProviderKind.AppleFoundationModels,
+    isAvailable: false,
+    draftReminderCopy: async () => {
+      calls.push("apple");
+      return { title: "Apple", body: "", why: "", variants: [] };
+    }
+  };
+  const openAIProvider = {
+    kind: GenerationProviderKind.OpenAI,
+    isAvailable: true,
+    draftReminderCopy: async () => {
+      calls.push("openai");
+      return { title: "OpenAI fallback", body: "", why: "", variants: [] };
+    }
+  };
+
+  const result = await getReminderRecommendationStack(
+    {
+      templateId: "HabitStackGymReminder",
+      rating: ReminderFeedback.Positive
+    },
+    {
+      runtime: "ios",
+      providers: [appleProvider, openAIProvider]
+    }
+  );
+
+  assert.equal(result.copyProvider, GenerationProviderKind.OpenAI);
+  assert.equal(result.copy.title, "OpenAI fallback");
+  assert.deepEqual(calls, ["openai"]);
 });
 
 test("OpenAI copy layer uses standard tier by default and preserves graph facts", async () => {

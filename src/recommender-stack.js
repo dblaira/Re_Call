@@ -2,14 +2,28 @@ import { getReminderRecommendations, loadReminderRecommendationStore } from "./r
 import { draftReminderRecommendationCopy } from "./openai-reminder-copy.js";
 import { getPersonalizedRecommendations } from "./personalized-recommendation-engine.js";
 import { buildStrengthAdjacency } from "./strength-graph.js";
+import { selectGenerationProvider } from "./model-policy.js";
 
 async function attachCopy(graph, options) {
   if (options.draftCopy === false) {
-    return { graph, copy: null, copyStatus: "skipped" };
+    return { graph, copy: null, copyStatus: "skipped", copyProvider: null };
+  }
+
+  const provider = selectGenerationProvider({
+    runtime: options.runtime,
+    providers: options.providers ?? []
+  });
+
+  if (provider) {
+    const copy = await provider.draftReminderCopy(graph, {
+      generationFrame: graph.generationFrame ?? null,
+      runtime: options.runtime
+    });
+    return { graph, copy, copyStatus: "drafted", copyProvider: provider.kind };
   }
 
   if (!options.client && !options.apiKey && !process.env.OPENAI_API_KEY) {
-    return { graph, copy: null, copyStatus: "missing-openai-api-key" };
+    return { graph, copy: null, copyStatus: "missing-openai-api-key", copyProvider: null };
   }
 
   const copy = await draftReminderRecommendationCopy(graph, {
@@ -22,7 +36,7 @@ async function attachCopy(graph, options) {
     maxOutputTokens: options.maxOutputTokens
   });
 
-  return { graph, copy, copyStatus: "drafted" };
+  return { graph, copy, copyStatus: "drafted", copyProvider: "openai" };
 }
 
 export async function getReminderRecommendationStack(input, options = {}) {

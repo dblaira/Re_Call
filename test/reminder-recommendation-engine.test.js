@@ -72,6 +72,81 @@ test("positive communication-format reminder rating recommends deeper format tem
   assert.deepEqual(result.graphTrace.matchedRuleIds, ["CommunicationFormatDepthRecommendationRule"]);
 });
 
+test("story-driven recommendations produce non-echo feedback hooks", () => {
+  const cases = [
+    {
+      templateId: ReminderTemplate.HabitStackGym,
+      expected: [/readiness bet/i, /kill it or replace it/i, /score the first five minutes/i, /change the anchor/i]
+    },
+    {
+      templateId: ReminderTemplate.TranslateAIWeek,
+      expected: [/so-what before the news/i, /interesting but not useful/i, /person before the headline/i, /cut the interesting paragraph/i]
+    },
+    {
+      templateId: ReminderTemplate.CaptureMacBookUnlocks,
+      expected: [/expensive-tool audit/i, /separate delight from leverage/i, /blocked-by-old-setup receipt/i, /refund the fantasy hour/i]
+    },
+    {
+      templateId: ReminderTemplate.NameMeaningfulSource,
+      expected: [/protect the hour after it/i, /spark-to-output chain/i, /timing fingerprint/i, /turn the source into an appointment/i]
+    }
+  ];
+
+  for (const { templateId, expected } of cases) {
+    const result = getReminderRecommendations({
+      templateId,
+      rating: ReminderFeedback.Positive
+    });
+    const text = result.recommendations.map((recommendation) => recommendation.text).join("\n");
+    assert.equal(result.recommendations.length, 4, `${templateId} should expose four story-specific recommendations`);
+    for (const pattern of expected) {
+      assert.match(text, pattern, `${templateId} should include ${pattern}`);
+    }
+  }
+});
+
+test("story-driven recommendations avoid polite echo patterns", () => {
+  const badPositivePatterns = [
+    /great job/i,
+    /keep foam rolling/i,
+    /stay motivated/i,
+    /generic/i,
+    /nice work/i
+  ];
+
+  for (const templateId of [
+    ReminderTemplate.HabitStackGym,
+    ReminderTemplate.TranslateAIWeek,
+    ReminderTemplate.CaptureMacBookUnlocks,
+    ReminderTemplate.NameMeaningfulSource
+  ]) {
+    const result = getReminderRecommendations({
+      templateId,
+      rating: ReminderFeedback.Positive
+    });
+    const text = result.recommendations.map((recommendation) => recommendation.text).join("\n");
+    for (const pattern of badPositivePatterns) {
+      assert.doesNotMatch(text, pattern, `${templateId} should avoid ${pattern}`);
+    }
+  }
+});
+
+test("story-driven recommendations expose graph generation constraints", () => {
+  const result = getReminderRecommendations({
+    templateId: ReminderTemplate.HabitStackGym,
+    rating: ReminderFeedback.Positive
+  });
+
+  assert.equal(result.generationFrame.id, "HabitStackReadinessExperimentFrame");
+  assert.match(result.generationFrame.intent, /tiny readiness experiment/i);
+  assert.deepEqual(result.generationFrame.mustInclude.sort(), [
+    "a judgment moment",
+    "a keep, kill, or replace branch",
+    "a tiny timed experiment"
+  ].sort());
+  assert.ok(result.generationFrame.mustAvoid.includes("repeating the user's foam-rolling wording"));
+});
+
 test("unmodeled reminder feedback returns an explicit fallback", () => {
   const result = getReminderRecommendations({
     templateId: ReminderTemplate.ScanCalendar,

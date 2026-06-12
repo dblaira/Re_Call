@@ -53,6 +53,7 @@ export function getReminderRecommendations(input, options = {}) {
   const contextText = [input.text, input.context, input.note].filter(Boolean).join(" ");
   const revealedStrengths = getObjects(store, sourceTemplate, "revealsStrength")
     .map((strength) => describeNode(store, strength));
+  const generationFrame = describeGenerationFrame(store, rules[0]);
 
   const recommendations = dedupeById(
     rules.flatMap((rule) =>
@@ -86,6 +87,7 @@ export function getReminderRecommendations(input, options = {}) {
     sourceTemplate: describeNode(store, sourceTemplate),
     feedback: describeNode(store, feedback),
     revealedStrengths,
+    generationFrame,
     recommendations,
     reason: getLiteral(store, rules[0], "recommendationReason"),
     graphTrace: {
@@ -94,6 +96,18 @@ export function getReminderRecommendations(input, options = {}) {
       recommendationTriplePattern: "RecommendationRule -> recommendsTemplate -> ReminderTemplate",
       rankingMethod: "depthScore + shared graph feature overlap + small context boost"
     }
+  };
+}
+
+function describeGenerationFrame(store, rule) {
+  const frame = getObjects(store, rule, "usesFeedbackFrame")[0];
+  if (!frame) return null;
+
+  return {
+    ...describeNode(store, frame),
+    intent: getLiteral(store, frame, "generationIntent"),
+    mustInclude: getObjects(store, frame, "mustInclude").map((value) => value.value),
+    mustAvoid: getObjects(store, frame, "mustAvoid").map((value) => value.value)
   };
 }
 

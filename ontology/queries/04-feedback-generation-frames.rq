@@ -1,0 +1,44 @@
+PREFIX recall: <https://understood.app/ontology/project-recall#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+# Generation contract query.
+# This is the layer between graph meaning and LLM wording:
+# the ontology should provide intent and constraints, not final copy.
+
+SELECT
+  ?storyLabel
+  ?storyText
+  ?strengthLabel
+  ?frameLabel
+  ?generationIntent
+  (GROUP_CONCAT(DISTINCT ?mustInclude; separator=" | ") AS ?mustIncludeList)
+  (GROUP_CONCAT(DISTINCT ?mustAvoid; separator=" | ") AS ?mustAvoidList)
+WHERE {
+  VALUES ?story {
+    recall:HabitStackGymReminder
+    recall:TranslateAIWeekReminder
+    recall:CaptureMacBookUnlocksReminder
+    recall:NameMeaningfulSourceReminder
+  }
+
+  ?story
+    rdfs:label ?storyLabel ;
+    recall:templateText ?storyText ;
+    recall:revealsStrength ?strength .
+
+  ?strength rdfs:label ?strengthLabel .
+
+  ?rule
+    a recall:ReminderRecommendationRule ;
+    recall:triggeredByTemplate ?story ;
+    recall:usesFeedbackFrame ?frame .
+
+  ?frame
+    a recall:FeedbackGenerationFrame ;
+    rdfs:label ?frameLabel ;
+    recall:generationIntent ?generationIntent ;
+    recall:mustInclude ?mustInclude ;
+    recall:mustAvoid ?mustAvoid .
+}
+GROUP BY ?storyLabel ?storyText ?strengthLabel ?frameLabel ?generationIntent
+ORDER BY ?storyLabel ?frameLabel

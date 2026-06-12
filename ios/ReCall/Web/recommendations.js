@@ -82,6 +82,7 @@ window.RECALL_RECS = {
     "ScanCalendarReminder — recommends → ScanTomorrowForTransitionStress"
    ],
    "score": 0.99,
+   "generationFrame": null,
    "deepensStrengths": [
     "TimeAwareness",
     "TransitionPreparation"
@@ -97,9 +98,40 @@ window.RECALL_RECS = {
     "ScanCalendarReminder — recommends → IdentifyMeetingNeedingEmotionalPrep"
    ],
    "score": 0.96,
+   "generationFrame": null,
    "deepensStrengths": [
     "TimeAwareness",
     "TransitionPreparation"
+   ]
+  },
+  {
+   "id": "depth:FindCalendarItemForPrebrief",
+   "source": "depth",
+   "type": "task",
+   "title": "Find the one calendar item that deserves a pre-brief.",
+   "sub": "A positively rated calendar scan reminder reveals time awareness; recommend deeper nearby uses of that strength rather than broader generic calendar reminders.",
+   "why": [
+    "ScanCalendarReminder — recommends → FindCalendarItemForPrebrief"
+   ],
+   "score": 0.93,
+   "generationFrame": null,
+   "deepensStrengths": [
+    "TimeAwareness"
+   ]
+  },
+  {
+   "id": "depth:NoticeEnergyOverestimate",
+   "source": "depth",
+   "type": "task",
+   "title": "Notice where the calendar overestimates available energy.",
+   "sub": "A positively rated calendar scan reminder reveals time awareness; recommend deeper nearby uses of that strength rather than broader generic calendar reminders.",
+   "why": [
+    "ScanCalendarReminder — recommends → NoticeEnergyOverestimate"
+   ],
+   "score": 0.91,
+   "generationFrame": null,
+   "deepensStrengths": [
+    "TimeAwareness"
    ]
   },
   {
@@ -112,6 +144,7 @@ window.RECALL_RECS = {
     "FindLeveragePointReminder — recommends → NameSmallInputAndOutcome"
    ],
    "score": 1.05,
+   "generationFrame": null,
    "deepensStrengths": [
     "LeverageAwareness"
    ]
@@ -126,9 +159,40 @@ window.RECALL_RECS = {
     "FindLeveragePointReminder — recommends → ClearGoodIdeasForGreatIdea"
    ],
    "score": 1.03,
+   "generationFrame": null,
    "deepensStrengths": [
     "LeverageAwareness",
     "ExecutionLeverage"
+   ]
+  },
+  {
+   "id": "depth:AskForVisibleProcessDraft",
+   "source": "depth",
+   "type": "task",
+   "title": "Ask for the full ordered draft before analyzing the decision.",
+   "sub": "A positively rated leverage reminder reveals leverage awareness and execution leverage; recommend deeper nearby ways to name the small input, visible proof, bottleneck, or next move rather than broader productivity reminders.",
+   "why": [
+    "FindLeveragePointReminder — recommends → AskForVisibleProcessDraft"
+   ],
+   "score": 0.95,
+   "generationFrame": null,
+   "deepensStrengths": [
+    "ExecutionLeverage"
+   ]
+  },
+  {
+   "id": "depth:FindBottleneckBlockingOutcomes",
+   "source": "depth",
+   "type": "task",
+   "title": "Find the bottleneck that is blocking several outcomes at once.",
+   "sub": "A positively rated leverage reminder reveals leverage awareness and execution leverage; recommend deeper nearby ways to name the small input, visible proof, bottleneck, or next move rather than broader productivity reminders.",
+   "why": [
+    "FindLeveragePointReminder — recommends → FindBottleneckBlockingOutcomes"
+   ],
+   "score": 0.93,
+   "generationFrame": null,
+   "deepensStrengths": [
+    "LeverageAwareness"
    ]
   },
   {
@@ -141,6 +205,7 @@ window.RECALL_RECS = {
     "ChooseCommunicationFormatReminder — recommends → ConvertAbstractTalkToInspectableShape"
    ],
    "score": 1.07,
+   "generationFrame": null,
    "deepensStrengths": [
     "FormatJudgment",
     "CommunicationFit"
@@ -156,21 +221,71 @@ window.RECALL_RECS = {
     "ChooseCommunicationFormatReminder — recommends → ChooseTableMatrixTreeOrNote"
    ],
    "score": 1.02,
+   "generationFrame": null,
    "deepensStrengths": [
     "FormatJudgment",
     "CommunicationFit"
    ]
   },
   {
+   "id": "depth:SortFeedbackBeforeInterpreting",
+   "source": "depth",
+   "type": "task",
+   "title": "Sort feedback into Like, Dislike, Undecided, and exact quote before interpreting.",
+   "sub": "A positively rated communication-format reminder reveals format judgment and communication fit; recommend deeper nearby ways to choose answer shape, preserve evidence, and diagnose format mismatch rather than rewriting the same message.",
+   "why": [
+    "ChooseCommunicationFormatReminder — recommends → SortFeedbackBeforeInterpreting"
+   ],
+   "score": 0.94,
+   "generationFrame": null,
+   "deepensStrengths": [
+    "CommunicationFit",
+    "EvidenceTrust"
+   ]
+  },
+  {
+   "id": "depth:AskForProvenanceConstraintsVerification",
+   "source": "depth",
+   "type": "task",
+   "title": "Ask for provenance, constraints used, and one verification step before accepting it.",
+   "sub": "A positively rated communication-format reminder reveals format judgment and communication fit; recommend deeper nearby ways to choose answer shape, preserve evidence, and diagnose format mismatch rather than rewriting the same message.",
+   "why": [
+    "ChooseCommunicationFormatReminder — recommends → AskForProvenanceConstraintsVerification"
+   ],
+   "score": 0.92,
+   "generationFrame": null,
+   "deepensStrengths": [
+    "FormatJudgment",
+    "EvidenceTrust"
+   ]
+  },
+  {
    "id": "depth:FoamRollFiveByFive",
    "source": "depth",
    "type": "task",
-   "title": "The stack graduates: foam roll five times this week, five minutes each.",
+   "title": "Run a readiness bet: 30 seconds before the first shot, then mark the first five minutes better, same, or worse.",
    "sub": "A positively rated gym habit stack reveals habit stacking; recommend leveling the same stack up toward the ultimate goal rather than broader fitness reminders.",
    "why": [
     "HabitStackGymReminder — recommends → FoamRollFiveByFive"
    ],
    "score": 1,
+   "generationFrame": {
+    "id": "HabitStackReadinessExperimentFrame",
+    "iri": "https://understood.app/ontology/project-recall#HabitStackReadinessExperimentFrame",
+    "label": "Habit stack readiness experiment frame",
+    "comment": "",
+    "intent": "Generate feedback that turns the gym habit stack into a tiny readiness experiment with a verdict, not a repeated foam-rolling reminder.",
+    "mustInclude": [
+     "a tiny timed experiment",
+     "a judgment moment",
+     "a keep, kill, or replace branch"
+    ],
+    "mustAvoid": [
+     "repeating the user's foam-rolling wording",
+     "generic fitness advice",
+     "motivation without a test"
+    ]
+   },
    "deepensStrengths": [
     "HabitStacking"
    ]
@@ -179,12 +294,91 @@ window.RECALL_RECS = {
    "id": "depth:StackSecondMicrodose",
    "source": "depth",
    "type": "task",
-   "title": "Attach one more two-minute microdose to an anchor habit you already love.",
+   "title": "Make the warmup earn its place: if the test does not change readiness after three tries, kill it or replace it.",
    "sub": "A positively rated gym habit stack reveals habit stacking; recommend leveling the same stack up toward the ultimate goal rather than broader fitness reminders.",
    "why": [
     "HabitStackGymReminder — recommends → StackSecondMicrodose"
    ],
    "score": 0.93,
+   "generationFrame": {
+    "id": "HabitStackReadinessExperimentFrame",
+    "iri": "https://understood.app/ontology/project-recall#HabitStackReadinessExperimentFrame",
+    "label": "Habit stack readiness experiment frame",
+    "comment": "",
+    "intent": "Generate feedback that turns the gym habit stack into a tiny readiness experiment with a verdict, not a repeated foam-rolling reminder.",
+    "mustInclude": [
+     "a tiny timed experiment",
+     "a judgment moment",
+     "a keep, kill, or replace branch"
+    ],
+    "mustAvoid": [
+     "repeating the user's foam-rolling wording",
+     "generic fitness advice",
+     "motivation without a test"
+    ]
+   },
+   "deepensStrengths": [
+    "HabitStacking"
+   ]
+  },
+  {
+   "id": "depth:ScoreFirstFiveMinutes",
+   "source": "depth",
+   "type": "task",
+   "title": "Score the first five minutes: legs, breath, and first-step pop; keep only the ritual that changes one.",
+   "sub": "A positively rated gym habit stack reveals habit stacking; recommend leveling the same stack up toward the ultimate goal rather than broader fitness reminders.",
+   "why": [
+    "HabitStackGymReminder — recommends → ScoreFirstFiveMinutes"
+   ],
+   "score": 0.91,
+   "generationFrame": {
+    "id": "HabitStackReadinessExperimentFrame",
+    "iri": "https://understood.app/ontology/project-recall#HabitStackReadinessExperimentFrame",
+    "label": "Habit stack readiness experiment frame",
+    "comment": "",
+    "intent": "Generate feedback that turns the gym habit stack into a tiny readiness experiment with a verdict, not a repeated foam-rolling reminder.",
+    "mustInclude": [
+     "a tiny timed experiment",
+     "a judgment moment",
+     "a keep, kill, or replace branch"
+    ],
+    "mustAvoid": [
+     "repeating the user's foam-rolling wording",
+     "generic fitness advice",
+     "motivation without a test"
+    ]
+   },
+   "deepensStrengths": [
+    "HabitStacking"
+   ]
+  },
+  {
+   "id": "depth:ChangeAnchorNotAmbition",
+   "source": "depth",
+   "type": "task",
+   "title": "Change the anchor, not the ambition: test before the first shot, after the first game, or before leaving, then keep the slot that actually fires.",
+   "sub": "A positively rated gym habit stack reveals habit stacking; recommend leveling the same stack up toward the ultimate goal rather than broader fitness reminders.",
+   "why": [
+    "HabitStackGymReminder — recommends → ChangeAnchorNotAmbition"
+   ],
+   "score": 0.89,
+   "generationFrame": {
+    "id": "HabitStackReadinessExperimentFrame",
+    "iri": "https://understood.app/ontology/project-recall#HabitStackReadinessExperimentFrame",
+    "label": "Habit stack readiness experiment frame",
+    "comment": "",
+    "intent": "Generate feedback that turns the gym habit stack into a tiny readiness experiment with a verdict, not a repeated foam-rolling reminder.",
+    "mustInclude": [
+     "a tiny timed experiment",
+     "a judgment moment",
+     "a keep, kill, or replace branch"
+    ],
+    "mustAvoid": [
+     "repeating the user's foam-rolling wording",
+     "generic fitness advice",
+     "motivation without a test"
+    ]
+   },
    "deepensStrengths": [
     "HabitStacking"
    ]
@@ -193,12 +387,29 @@ window.RECALL_RECS = {
    "id": "depth:StandingAIDigestGesture",
    "source": "depth",
    "type": "task",
-   "title": "Make it a standing gesture: a weekly AI briefing for a named circle — Stephanie, the sauna crew, or bigger.",
+   "title": "Send the so-what before the news: one change, one risk, and one move the person can make this week.",
    "sub": "A positively rated AI translation reminder reveals knowledge synthesis; recommend grander, more organized gestures of the same service — never smaller steps, which the user dismisses.",
    "why": [
     "TranslateAIWeekReminder — recommends → StandingAIDigestGesture"
    ],
    "score": 1.01,
+   "generationFrame": {
+    "id": "KnowledgeConsequenceFrame",
+    "iri": "https://understood.app/ontology/project-recall#KnowledgeConsequenceFrame",
+    "label": "Knowledge consequence frame",
+    "comment": "",
+    "intent": "Generate feedback that converts fast AI knowledge into a consequence for one real person, not a news summary.",
+    "mustInclude": [
+     "one named audience or recipient",
+     "one consequence",
+     "one decision or move this week"
+    ],
+    "mustAvoid": [
+     "repeating the user's AI briefing wording",
+     "generic AI headlines",
+     "interesting information without a consequence"
+    ]
+   },
    "deepensStrengths": [
     "KnowledgeSynthesis"
    ]
@@ -207,12 +418,91 @@ window.RECALL_RECS = {
    "id": "depth:TranslateForOneDecision",
    "source": "depth",
    "type": "task",
-   "title": "Translate this week's AI shift into one decision someone you know should make differently.",
+   "title": "Make the briefing earn its place: if it does not change a decision, it was interesting but not useful.",
    "sub": "A positively rated AI translation reminder reveals knowledge synthesis; recommend grander, more organized gestures of the same service — never smaller steps, which the user dismisses.",
    "why": [
     "TranslateAIWeekReminder — recommends → TranslateForOneDecision"
    ],
    "score": 0.95,
+   "generationFrame": {
+    "id": "KnowledgeConsequenceFrame",
+    "iri": "https://understood.app/ontology/project-recall#KnowledgeConsequenceFrame",
+    "label": "Knowledge consequence frame",
+    "comment": "",
+    "intent": "Generate feedback that converts fast AI knowledge into a consequence for one real person, not a news summary.",
+    "mustInclude": [
+     "one named audience or recipient",
+     "one consequence",
+     "one decision or move this week"
+    ],
+    "mustAvoid": [
+     "repeating the user's AI briefing wording",
+     "generic AI headlines",
+     "interesting information without a consequence"
+    ]
+   },
+   "deepensStrengths": [
+    "KnowledgeSynthesis"
+   ]
+  },
+  {
+   "id": "depth:NameRecipientDecision",
+   "source": "depth",
+   "type": "task",
+   "title": "Pick the person before the headline: name the decision they face, then translate only the AI change that alters it.",
+   "sub": "A positively rated AI translation reminder reveals knowledge synthesis; recommend grander, more organized gestures of the same service — never smaller steps, which the user dismisses.",
+   "why": [
+    "TranslateAIWeekReminder — recommends → NameRecipientDecision"
+   ],
+   "score": 0.93,
+   "generationFrame": {
+    "id": "KnowledgeConsequenceFrame",
+    "iri": "https://understood.app/ontology/project-recall#KnowledgeConsequenceFrame",
+    "label": "Knowledge consequence frame",
+    "comment": "",
+    "intent": "Generate feedback that converts fast AI knowledge into a consequence for one real person, not a news summary.",
+    "mustInclude": [
+     "one named audience or recipient",
+     "one consequence",
+     "one decision or move this week"
+    ],
+    "mustAvoid": [
+     "repeating the user's AI briefing wording",
+     "generic AI headlines",
+     "interesting information without a consequence"
+    ]
+   },
+   "deepensStrengths": [
+    "KnowledgeSynthesis"
+   ]
+  },
+  {
+   "id": "depth:CutInterestingParagraph",
+   "source": "depth",
+   "type": "task",
+   "title": "Cut the interesting paragraph unless it changes a move: send the implication, the risk, and the next action.",
+   "sub": "A positively rated AI translation reminder reveals knowledge synthesis; recommend grander, more organized gestures of the same service — never smaller steps, which the user dismisses.",
+   "why": [
+    "TranslateAIWeekReminder — recommends → CutInterestingParagraph"
+   ],
+   "score": 0.91,
+   "generationFrame": {
+    "id": "KnowledgeConsequenceFrame",
+    "iri": "https://understood.app/ontology/project-recall#KnowledgeConsequenceFrame",
+    "label": "Knowledge consequence frame",
+    "comment": "",
+    "intent": "Generate feedback that converts fast AI knowledge into a consequence for one real person, not a news summary.",
+    "mustInclude": [
+     "one named audience or recipient",
+     "one consequence",
+     "one decision or move this week"
+    ],
+    "mustAvoid": [
+     "repeating the user's AI briefing wording",
+     "generic AI headlines",
+     "interesting information without a consequence"
+    ]
+   },
    "deepensStrengths": [
     "KnowledgeSynthesis"
    ]
@@ -221,12 +511,29 @@ window.RECALL_RECS = {
    "id": "depth:TwoWeekVerdictLedger",
    "source": "depth",
    "type": "task",
-   "title": "Day 14: rule on the MacBook — benefits and drawbacks, read straight from your captured memos.",
+   "title": "Run the expensive-tool audit: what did this machine unlock that the old setup actually blocked?",
    "sub": "A positively rated in-the-moment capture reveals tool integration timing; recommend the verdict checkpoints that read from those captures — capture cadence and verdict cadence are different clocks.",
    "why": [
     "CaptureMacBookUnlocksReminder — recommends → TwoWeekVerdictLedger"
    ],
    "score": 0.99,
+   "generationFrame": {
+    "id": "ToolLeverageVerdictFrame",
+    "iri": "https://understood.app/ontology/project-recall#ToolLeverageVerdictFrame",
+    "label": "Tool leverage verdict frame",
+    "comment": "",
+    "intent": "Generate feedback that separates expensive-tool delight from actual leverage while reactions are still fresh.",
+    "mustInclude": [
+     "evidence from a real task",
+     "a leverage-versus-luxury verdict",
+     "a time box for the verdict"
+    ],
+    "mustAvoid": [
+     "repeating the user's MacBook wording",
+     "spec comparison",
+     "purchase justification"
+    ]
+   },
    "deepensStrengths": [
     "ToolIntegrationTiming"
    ]
@@ -235,12 +542,91 @@ window.RECALL_RECS = {
    "id": "depth:WeekOneAdamPatternCheck",
    "source": "depth",
    "type": "task",
-   "title": "Day 7: Adam Pattern steps 1-3 done? Log what the third machine does that the other two can't.",
+   "title": "Separate delight from leverage: capture the moment a task became possible, faster, or less emotionally costly.",
    "sub": "A positively rated in-the-moment capture reveals tool integration timing; recommend the verdict checkpoints that read from those captures — capture cadence and verdict cadence are different clocks.",
    "why": [
     "CaptureMacBookUnlocksReminder — recommends → WeekOneAdamPatternCheck"
    ],
    "score": 0.95,
+   "generationFrame": {
+    "id": "ToolLeverageVerdictFrame",
+    "iri": "https://understood.app/ontology/project-recall#ToolLeverageVerdictFrame",
+    "label": "Tool leverage verdict frame",
+    "comment": "",
+    "intent": "Generate feedback that separates expensive-tool delight from actual leverage while reactions are still fresh.",
+    "mustInclude": [
+     "evidence from a real task",
+     "a leverage-versus-luxury verdict",
+     "a time box for the verdict"
+    ],
+    "mustAvoid": [
+     "repeating the user's MacBook wording",
+     "spec comparison",
+     "purchase justification"
+    ]
+   },
+   "deepensStrengths": [
+    "ToolIntegrationTiming"
+   ]
+  },
+  {
+   "id": "depth:BlockedByOldSetupReceipt",
+   "source": "depth",
+   "type": "task",
+   "title": "Write the blocked-by-old-setup receipt: task, old friction, new unlock, and whether it matters again.",
+   "sub": "A positively rated in-the-moment capture reveals tool integration timing; recommend the verdict checkpoints that read from those captures — capture cadence and verdict cadence are different clocks.",
+   "why": [
+    "CaptureMacBookUnlocksReminder — recommends → BlockedByOldSetupReceipt"
+   ],
+   "score": 0.93,
+   "generationFrame": {
+    "id": "ToolLeverageVerdictFrame",
+    "iri": "https://understood.app/ontology/project-recall#ToolLeverageVerdictFrame",
+    "label": "Tool leverage verdict frame",
+    "comment": "",
+    "intent": "Generate feedback that separates expensive-tool delight from actual leverage while reactions are still fresh.",
+    "mustInclude": [
+     "evidence from a real task",
+     "a leverage-versus-luxury verdict",
+     "a time box for the verdict"
+    ],
+    "mustAvoid": [
+     "repeating the user's MacBook wording",
+     "spec comparison",
+     "purchase justification"
+    ]
+   },
+   "deepensStrengths": [
+    "ToolIntegrationTiming"
+   ]
+  },
+  {
+   "id": "depth:RefundFantasyHour",
+   "source": "depth",
+   "type": "task",
+   "title": "Refund the fantasy hour: if the machine did not save or create one real hour this week, name what still blocks leverage.",
+   "sub": "A positively rated in-the-moment capture reveals tool integration timing; recommend the verdict checkpoints that read from those captures — capture cadence and verdict cadence are different clocks.",
+   "why": [
+    "CaptureMacBookUnlocksReminder — recommends → RefundFantasyHour"
+   ],
+   "score": 0.91,
+   "generationFrame": {
+    "id": "ToolLeverageVerdictFrame",
+    "iri": "https://understood.app/ontology/project-recall#ToolLeverageVerdictFrame",
+    "label": "Tool leverage verdict frame",
+    "comment": "",
+    "intent": "Generate feedback that separates expensive-tool delight from actual leverage while reactions are still fresh.",
+    "mustInclude": [
+     "evidence from a real task",
+     "a leverage-versus-luxury verdict",
+     "a time box for the verdict"
+    ],
+    "mustAvoid": [
+     "repeating the user's MacBook wording",
+     "spec comparison",
+     "purchase justification"
+    ]
+   },
    "deepensStrengths": [
     "ToolIntegrationTiming"
    ]
@@ -249,12 +635,29 @@ window.RECALL_RECS = {
    "id": "depth:ScheduleElectrifyingSource",
    "source": "depth",
    "type": "task",
-   "title": "Block the when: put your most electrifying source on the calendar before entertainment fills it.",
+   "title": "Name the source, then protect the hour after it; the afterglow is where the useful output appears.",
    "sub": "A positively rated source-taste reminder reveals strategic learning; recommend deeper uses of the same taste — the what and when of meaningful information, never the where.",
    "why": [
     "NameMeaningfulSourceReminder — recommends → ScheduleElectrifyingSource"
    ],
    "score": 0.98,
+   "generationFrame": {
+    "id": "StrategicLearningOutputFrame",
+    "iri": "https://understood.app/ontology/project-recall#StrategicLearningOutputFrame",
+    "label": "Strategic learning output frame",
+    "comment": "",
+    "intent": "Generate feedback that traces an energizing source to a protected output window or concrete decision.",
+    "mustInclude": [
+     "the source-to-state change",
+     "the output or decision it should produce",
+     "when to protect the useful window"
+    ],
+    "mustAvoid": [
+     "repeating the user's source wording",
+     "a generic reading list",
+     "tracking entertainment instead of leverage"
+    ]
+   },
    "deepensStrengths": [
     "StrategicLearning"
    ]
@@ -263,12 +666,91 @@ window.RECALL_RECS = {
    "id": "depth:MeditateOnVisualPerception",
    "source": "depth",
    "type": "task",
-   "title": "Open 'Drawing by Seeing' — meditate on visual perception for ten minutes.",
+   "title": "Track the spark-to-output chain: what input made you sharper, and what did it make you build or decide?",
    "sub": "A positively rated source-taste reminder reveals strategic learning; recommend deeper uses of the same taste — the what and when of meaningful information, never the where.",
    "why": [
     "NameMeaningfulSourceReminder — recommends → MeditateOnVisualPerception"
    ],
    "score": 0.94,
+   "generationFrame": {
+    "id": "StrategicLearningOutputFrame",
+    "iri": "https://understood.app/ontology/project-recall#StrategicLearningOutputFrame",
+    "label": "Strategic learning output frame",
+    "comment": "",
+    "intent": "Generate feedback that traces an energizing source to a protected output window or concrete decision.",
+    "mustInclude": [
+     "the source-to-state change",
+     "the output or decision it should produce",
+     "when to protect the useful window"
+    ],
+    "mustAvoid": [
+     "repeating the user's source wording",
+     "a generic reading list",
+     "tracking entertainment instead of leverage"
+    ]
+   },
+   "deepensStrengths": [
+    "StrategicLearning"
+   ]
+  },
+  {
+   "id": "depth:CaptureTimingFingerprint",
+   "source": "depth",
+   "type": "task",
+   "title": "Capture the timing fingerprint: what time, state, and source made the idea land hard enough to use?",
+   "sub": "A positively rated source-taste reminder reveals strategic learning; recommend deeper uses of the same taste — the what and when of meaningful information, never the where.",
+   "why": [
+    "NameMeaningfulSourceReminder — recommends → CaptureTimingFingerprint"
+   ],
+   "score": 0.92,
+   "generationFrame": {
+    "id": "StrategicLearningOutputFrame",
+    "iri": "https://understood.app/ontology/project-recall#StrategicLearningOutputFrame",
+    "label": "Strategic learning output frame",
+    "comment": "",
+    "intent": "Generate feedback that traces an energizing source to a protected output window or concrete decision.",
+    "mustInclude": [
+     "the source-to-state change",
+     "the output or decision it should produce",
+     "when to protect the useful window"
+    ],
+    "mustAvoid": [
+     "repeating the user's source wording",
+     "a generic reading list",
+     "tracking entertainment instead of leverage"
+    ]
+   },
+   "deepensStrengths": [
+    "StrategicLearning"
+   ]
+  },
+  {
+   "id": "depth:TurnSourceIntoAppointment",
+   "source": "depth",
+   "type": "task",
+   "title": "Turn the source into an appointment: protect the next window where it can become a draft, decision, or call.",
+   "sub": "A positively rated source-taste reminder reveals strategic learning; recommend deeper uses of the same taste — the what and when of meaningful information, never the where.",
+   "why": [
+    "NameMeaningfulSourceReminder — recommends → TurnSourceIntoAppointment"
+   ],
+   "score": 0.9,
+   "generationFrame": {
+    "id": "StrategicLearningOutputFrame",
+    "iri": "https://understood.app/ontology/project-recall#StrategicLearningOutputFrame",
+    "label": "Strategic learning output frame",
+    "comment": "",
+    "intent": "Generate feedback that traces an energizing source to a protected output window or concrete decision.",
+    "mustInclude": [
+     "the source-to-state change",
+     "the output or decision it should produce",
+     "when to protect the useful window"
+    ],
+    "mustAvoid": [
+     "repeating the user's source wording",
+     "a generic reading list",
+     "tracking entertainment instead of leverage"
+    ]
+   },
    "deepensStrengths": [
     "StrategicLearning"
    ]

@@ -6,6 +6,11 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+<https://understood.app/ontology/project-recall/reminder-recommendation>
+    a owl:Ontology ;
+    rdfs:label "Re_Call reminder recommendation ontology" ;
+    rdfs:comment "Story-driven reminder templates, feedback signals, user strengths, and deterministic recommendation rules for going deeper rather than broader." .
+
 recall:ReminderTemplate
     a owl:Class ;
     rdfs:subClassOf cco:ont00000965 ;
@@ -29,6 +34,12 @@ recall:FeedbackSignal
     rdfs:subClassOf cco:ont00000958 ;
     rdfs:label "Feedback signal" ;
     rdfs:comment "A user's reaction to a reminder, template, or recommendation." .
+
+recall:FeedbackGenerationFrame
+    a owl:Class ;
+    rdfs:subClassOf cco:ont00000965 ;
+    rdfs:label "Feedback generation frame" ;
+    rdfs:comment "A graph-derived contract for generating new feedback. It stores intent and output constraints, not final recommendation copy." .
 
 recall:triggeredByTemplate
     a owl:ObjectProperty ;
@@ -60,6 +71,12 @@ recall:recommendsTemplate
     rdfs:range recall:ReminderTemplate ;
     rdfs:label "recommends template" .
 
+recall:usesFeedbackFrame
+    a owl:ObjectProperty ;
+    rdfs:domain recall:ReminderRecommendationRule ;
+    rdfs:range recall:FeedbackGenerationFrame ;
+    rdfs:label "uses feedback frame" .
+
 recall:templateText
     a owl:DatatypeProperty ;
     rdfs:domain recall:ReminderTemplate ;
@@ -77,6 +94,24 @@ recall:depthScore
     rdfs:domain recall:ReminderTemplate ;
     rdfs:range xsd:decimal ;
     rdfs:label "depth score" .
+
+recall:generationIntent
+    a owl:DatatypeProperty ;
+    rdfs:domain recall:FeedbackGenerationFrame ;
+    rdfs:range xsd:string ;
+    rdfs:label "generation intent" .
+
+recall:mustInclude
+    a owl:DatatypeProperty ;
+    rdfs:domain recall:FeedbackGenerationFrame ;
+    rdfs:range xsd:string ;
+    rdfs:label "must include" .
+
+recall:mustAvoid
+    a owl:DatatypeProperty ;
+    rdfs:domain recall:FeedbackGenerationFrame ;
+    rdfs:range xsd:string ;
+    rdfs:label "must avoid" .
 
 recall:PositiveReminderRating
     a recall:FeedbackSignal ;
@@ -291,6 +326,58 @@ recall:DiagnoseContentStyleTimingFormat
     recall:deepensStrength recall:FormatJudgment ;
     recall:depthScore "0.85"^^xsd:decimal .
 
+recall:HabitStackReadinessExperimentFrame
+    a recall:FeedbackGenerationFrame ;
+    rdfs:label "Habit stack readiness experiment frame" ;
+    recall:generationIntent "Generate feedback that turns the gym habit stack into a tiny readiness experiment with a verdict, not a repeated foam-rolling reminder." ;
+    recall:mustInclude
+        "a tiny timed experiment",
+        "a judgment moment",
+        "a keep, kill, or replace branch" ;
+    recall:mustAvoid
+        "repeating the user's foam-rolling wording",
+        "generic fitness advice",
+        "motivation without a test" .
+
+recall:KnowledgeConsequenceFrame
+    a recall:FeedbackGenerationFrame ;
+    rdfs:label "Knowledge consequence frame" ;
+    recall:generationIntent "Generate feedback that converts fast AI knowledge into a consequence for one real person, not a news summary." ;
+    recall:mustInclude
+        "one named audience or recipient",
+        "one consequence",
+        "one decision or move this week" ;
+    recall:mustAvoid
+        "repeating the user's AI briefing wording",
+        "generic AI headlines",
+        "interesting information without a consequence" .
+
+recall:ToolLeverageVerdictFrame
+    a recall:FeedbackGenerationFrame ;
+    rdfs:label "Tool leverage verdict frame" ;
+    recall:generationIntent "Generate feedback that separates expensive-tool delight from actual leverage while reactions are still fresh." ;
+    recall:mustInclude
+        "evidence from a real task",
+        "a leverage-versus-luxury verdict",
+        "a time box for the verdict" ;
+    recall:mustAvoid
+        "repeating the user's MacBook wording",
+        "spec comparison",
+        "purchase justification" .
+
+recall:StrategicLearningOutputFrame
+    a recall:FeedbackGenerationFrame ;
+    rdfs:label "Strategic learning output frame" ;
+    recall:generationIntent "Generate feedback that traces an energizing source to a protected output window or concrete decision." ;
+    recall:mustInclude
+        "the source-to-state change",
+        "the output or decision it should produce",
+        "when to protect the useful window" ;
+    recall:mustAvoid
+        "repeating the user's source wording",
+        "a generic reading list",
+        "tracking entertainment instead of leverage" .
+
 recall:CalendarDepthRecommendationRule
     a recall:ReminderRecommendationRule ;
     rdfs:label "Calendar depth recommendation rule" ;
@@ -332,96 +419,164 @@ recall:CommunicationFormatDepthRecommendationRule
 
 recall:FoamRollFiveByFive
     a recall:ReminderTemplate ;
-    rdfs:label "Foam roll five by five" ;
-    recall:templateText "The stack graduates: foam roll five times this week, five minutes each." ;
+    rdfs:label "Run a readiness bet" ;
+    recall:templateText "Run a readiness bet: 30 seconds before the first shot, then mark the first five minutes better, same, or worse." ;
     recall:deepensStrength recall:HabitStacking ;
     recall:depthScore "0.95"^^xsd:decimal .
 
 recall:StackSecondMicrodose
     a recall:ReminderTemplate ;
-    rdfs:label "Stack a second microdose" ;
-    recall:templateText "Attach one more two-minute microdose to an anchor habit you already love." ;
+    rdfs:label "Kill or keep the ritual" ;
+    recall:templateText "Make the warmup earn its place: if the test does not change readiness after three tries, kill it or replace it." ;
     recall:deepensStrength recall:HabitStacking ;
     recall:depthScore "0.88"^^xsd:decimal .
 
+recall:ScoreFirstFiveMinutes
+    a recall:ReminderTemplate ;
+    rdfs:label "Score the first five" ;
+    recall:templateText "Score the first five minutes: legs, breath, and first-step pop; keep only the ritual that changes one." ;
+    recall:deepensStrength recall:HabitStacking ;
+    recall:depthScore "0.86"^^xsd:decimal .
+
+recall:ChangeAnchorNotAmbition
+    a recall:ReminderTemplate ;
+    rdfs:label "Change the anchor" ;
+    recall:templateText "Change the anchor, not the ambition: test before the first shot, after the first game, or before leaving, then keep the slot that actually fires." ;
+    recall:deepensStrength recall:HabitStacking ;
+    recall:depthScore "0.84"^^xsd:decimal .
+
 recall:StandingAIDigestGesture
     a recall:ReminderTemplate ;
-    rdfs:label "Standing AI digest gesture" ;
-    recall:templateText "Make it a standing gesture: a weekly AI briefing for a named circle — Stephanie, the sauna crew, or bigger." ;
+    rdfs:label "Send the so what" ;
+    recall:templateText "Send the so-what before the news: one change, one risk, and one move the person can make this week." ;
     recall:deepensStrength recall:KnowledgeSynthesis ;
     recall:depthScore "0.96"^^xsd:decimal .
 
 recall:TranslateForOneDecision
     a recall:ReminderTemplate ;
-    rdfs:label "Translate for one decision" ;
-    recall:templateText "Translate this week's AI shift into one decision someone you know should make differently." ;
+    rdfs:label "Make the briefing earn its place" ;
+    recall:templateText "Make the briefing earn its place: if it does not change a decision, it was interesting but not useful." ;
     recall:deepensStrength recall:KnowledgeSynthesis ;
     recall:depthScore "0.90"^^xsd:decimal .
 
+recall:NameRecipientDecision
+    a recall:ReminderTemplate ;
+    rdfs:label "Pick the person before the headline" ;
+    recall:templateText "Pick the person before the headline: name the decision they face, then translate only the AI change that alters it." ;
+    recall:deepensStrength recall:KnowledgeSynthesis ;
+    recall:depthScore "0.88"^^xsd:decimal .
+
+recall:CutInterestingParagraph
+    a recall:ReminderTemplate ;
+    rdfs:label "Cut the interesting paragraph" ;
+    recall:templateText "Cut the interesting paragraph unless it changes a move: send the implication, the risk, and the next action." ;
+    recall:deepensStrength recall:KnowledgeSynthesis ;
+    recall:depthScore "0.86"^^xsd:decimal .
+
 recall:TwoWeekVerdictLedger
     a recall:ReminderTemplate ;
-    rdfs:label "Two-week verdict ledger" ;
-    recall:templateText "Day 14: rule on the MacBook — benefits and drawbacks, read straight from your captured memos." ;
+    rdfs:label "Run the expensive tool audit" ;
+    recall:templateText "Run the expensive-tool audit: what did this machine unlock that the old setup actually blocked?" ;
     recall:deepensStrength recall:ToolIntegrationTiming ;
     recall:depthScore "0.94"^^xsd:decimal .
 
 recall:WeekOneAdamPatternCheck
     a recall:ReminderTemplate ;
-    rdfs:label "Week-one Adam Pattern check" ;
-    recall:templateText "Day 7: Adam Pattern steps 1-3 done? Log what the third machine does that the other two can't." ;
+    rdfs:label "Separate delight from leverage" ;
+    recall:templateText "Separate delight from leverage: capture the moment a task became possible, faster, or less emotionally costly." ;
     recall:deepensStrength recall:ToolIntegrationTiming ;
     recall:depthScore "0.90"^^xsd:decimal .
 
+recall:BlockedByOldSetupReceipt
+    a recall:ReminderTemplate ;
+    rdfs:label "Write the blocked-by-old-setup receipt" ;
+    recall:templateText "Write the blocked-by-old-setup receipt: task, old friction, new unlock, and whether it matters again." ;
+    recall:deepensStrength recall:ToolIntegrationTiming ;
+    recall:depthScore "0.88"^^xsd:decimal .
+
+recall:RefundFantasyHour
+    a recall:ReminderTemplate ;
+    rdfs:label "Refund the fantasy hour" ;
+    recall:templateText "Refund the fantasy hour: if the machine did not save or create one real hour this week, name what still blocks leverage." ;
+    recall:deepensStrength recall:ToolIntegrationTiming ;
+    recall:depthScore "0.86"^^xsd:decimal .
+
 recall:ScheduleElectrifyingSource
     a recall:ReminderTemplate ;
-    rdfs:label "Schedule the electrifying source" ;
-    recall:templateText "Block the when: put your most electrifying source on the calendar before entertainment fills it." ;
+    rdfs:label "Protect the afterglow" ;
+    recall:templateText "Name the source, then protect the hour after it; the afterglow is where the useful output appears." ;
     recall:deepensStrength recall:StrategicLearning ;
     recall:depthScore "0.93"^^xsd:decimal .
 
 recall:MeditateOnVisualPerception
     a recall:ReminderTemplate ;
-    rdfs:label "Meditate on visual perception" ;
-    recall:templateText "Open 'Drawing by Seeing' — meditate on visual perception for ten minutes." ;
+    rdfs:label "Track spark to output" ;
+    recall:templateText "Track the spark-to-output chain: what input made you sharper, and what did it make you build or decide?" ;
     recall:deepensStrength recall:StrategicLearning ;
     recall:depthScore "0.89"^^xsd:decimal .
+
+recall:CaptureTimingFingerprint
+    a recall:ReminderTemplate ;
+    rdfs:label "Capture the timing fingerprint" ;
+    recall:templateText "Capture the timing fingerprint: what time, state, and source made the idea land hard enough to use?" ;
+    recall:deepensStrength recall:StrategicLearning ;
+    recall:depthScore "0.87"^^xsd:decimal .
+
+recall:TurnSourceIntoAppointment
+    a recall:ReminderTemplate ;
+    rdfs:label "Turn the source into an appointment" ;
+    recall:templateText "Turn the source into an appointment: protect the next window where it can become a draft, decision, or call." ;
+    recall:deepensStrength recall:StrategicLearning ;
+    recall:depthScore "0.85"^^xsd:decimal .
 
 recall:HabitStackDepthRecommendationRule
     a recall:ReminderRecommendationRule ;
     rdfs:label "Habit stack depth recommendation rule" ;
     recall:triggeredByTemplate recall:HabitStackGymReminder ;
     recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:usesFeedbackFrame recall:HabitStackReadinessExperimentFrame ;
     recall:recommendationReason "A positively rated gym habit stack reveals habit stacking; recommend leveling the same stack up toward the ultimate goal rather than broader fitness reminders." ;
     recall:recommendsTemplate
         recall:FoamRollFiveByFive,
-        recall:StackSecondMicrodose .
+        recall:StackSecondMicrodose,
+        recall:ScoreFirstFiveMinutes,
+        recall:ChangeAnchorNotAmbition .
 
 recall:KnowledgeSynthesisDepthRecommendationRule
     a recall:ReminderRecommendationRule ;
     rdfs:label "Knowledge synthesis depth recommendation rule" ;
     recall:triggeredByTemplate recall:TranslateAIWeekReminder ;
     recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:usesFeedbackFrame recall:KnowledgeConsequenceFrame ;
     recall:recommendationReason "A positively rated AI translation reminder reveals knowledge synthesis; recommend grander, more organized gestures of the same service — never smaller steps, which the user dismisses." ;
     recall:recommendsTemplate
         recall:StandingAIDigestGesture,
-        recall:TranslateForOneDecision .
+        recall:TranslateForOneDecision,
+        recall:NameRecipientDecision,
+        recall:CutInterestingParagraph .
 
 recall:ToolTimingDepthRecommendationRule
     a recall:ReminderRecommendationRule ;
     rdfs:label "Tool timing depth recommendation rule" ;
     recall:triggeredByTemplate recall:CaptureMacBookUnlocksReminder ;
     recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:usesFeedbackFrame recall:ToolLeverageVerdictFrame ;
     recall:recommendationReason "A positively rated in-the-moment capture reveals tool integration timing; recommend the verdict checkpoints that read from those captures — capture cadence and verdict cadence are different clocks." ;
     recall:recommendsTemplate
         recall:TwoWeekVerdictLedger,
-        recall:WeekOneAdamPatternCheck .
+        recall:WeekOneAdamPatternCheck,
+        recall:BlockedByOldSetupReceipt,
+        recall:RefundFantasyHour .
 
 recall:StrategicLearningDepthRecommendationRule
     a recall:ReminderRecommendationRule ;
     rdfs:label "Strategic learning depth recommendation rule" ;
     recall:triggeredByTemplate recall:NameMeaningfulSourceReminder ;
     recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:usesFeedbackFrame recall:StrategicLearningOutputFrame ;
     recall:recommendationReason "A positively rated source-taste reminder reveals strategic learning; recommend deeper uses of the same taste — the what and when of meaningful information, never the where." ;
     recall:recommendsTemplate
         recall:ScheduleElectrifyingSource,
-        recall:MeditateOnVisualPerception .
+        recall:MeditateOnVisualPerception,
+        recall:CaptureTimingFingerprint,
+        recall:TurnSourceIntoAppointment .

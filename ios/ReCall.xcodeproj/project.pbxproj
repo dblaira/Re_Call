@@ -11,6 +11,7 @@
 		134FDD757C7A6C7FC746EF94 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1204A47B34D6B6201D2B3472 /* Assets.xcassets */; };
 		19845D503271B60B97E779E1 /* ReCallApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D059ADF056549352B1B7CBD /* ReCallApp.swift */; };
 		45BBBDEA593671D0262699AB /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 575C1741D3B349AB4757A98D /* SmokeTests.swift */; };
+		59B987F31C17F2B3DFDE783B /* NativeCaptureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F831CC628830EEFBD07CEA3E /* NativeCaptureSheet.swift */; };
 		8A6E477479BD7E2877F5B81F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85E54626A8DE911BCEC1324 /* ContentView.swift */; };
 		DB8165B735EBA06612CFABDC /* Web in Resources */ = {isa = PBXBuildFile; fileRef = EB03A60A77BF4626FE52C6BF /* Web */; };
 		EBA6D7111CC8C0556CE4AD1D /* ReminderGenerationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */; };
@@ -36,6 +37,7 @@
 		C7116D79FD34A726158C3D32 /* ReCall.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ReCall.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D85E54626A8DE911BCEC1324 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EB03A60A77BF4626FE52C6BF /* Web */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Web; path = ReCall/Web; sourceTree = SOURCE_ROOT; };
+		F831CC628830EEFBD07CEA3E /* NativeCaptureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeCaptureSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -87,6 +89,7 @@
 			isa = PBXGroup;
 			children = (
 				D85E54626A8DE911BCEC1324 /* ContentView.swift */,
+				F831CC628830EEFBD07CEA3E /* NativeCaptureSheet.swift */,
 				3D059ADF056549352B1B7CBD /* ReCallApp.swift */,
 				6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */,
 				AFE45B7861104DB1ACF54C56 /* WebView.swift */,
@@ -191,6 +194,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A6E477479BD7E2877F5B81F /* ContentView.swift in Sources */,
+				59B987F31C17F2B3DFDE783B /* NativeCaptureSheet.swift in Sources */,
 				19845D503271B60B97E779E1 /* ReCallApp.swift in Sources */,
 				EBA6D7111CC8C0556CE4AD1D /* ReminderGenerationProvider.swift in Sources */,
 				0554BA371B9D9FB3FE365777 /* WebView.swift in Sources */,
@@ -224,6 +228,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Notorious Recall";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Capture quick voice memos for in-the-moment Recall reminders.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -388,6 +393,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Notorious Recall";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Capture quick voice memos for in-the-moment Recall reminders.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;

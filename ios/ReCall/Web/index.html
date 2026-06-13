@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,600;6..96,700&display=swap" rel="stylesheet" />
+<script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
 <style>
   :root {
     --shell: #FFFFFF;      /* body canvas — white */
@@ -222,6 +223,10 @@
     background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 999px; font-size: 13px; font-weight: 800; white-space: nowrap;
   }
   .toast[data-show="true"] { opacity: 1; transform: translate(-50%, 0); }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
 
   .build-info {
     position: absolute; right: 10px;
@@ -236,10 +241,19 @@
 
   /* composer sheet — new reminder / task / event */
   .sheet-back { position: absolute; inset: 0; background: rgba(0,0,0,.32); z-index: 20; }
-  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 21; background: var(--card); border-radius: 16px 16px 0 0; padding: 18px 16px calc(24px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0,0,0,.18); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 21; background: var(--card); border-radius: 16px 16px 0 0; padding: 18px 16px calc(24px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0,0,0,.18); max-height: calc(100vh - 18px); overflow: auto; }
   .sheet h3 { margin: 0 0 12px; font-size: 19px; font-weight: 800; }
   .sheet input { display: block; width: 100%; border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 12px 2px; font: inherit; font-size: 17px; color: var(--ink); outline: none; }
   .sheet input::placeholder { color: var(--dim); }
+  .capture-tools { margin-top: 14px; border: 1px solid var(--line); border-radius: 14px; padding: 14px 12px; background: var(--panel-2); display: grid; gap: 12px; }
+  .capture-tools strong { display: block; font-size: 14px; font-weight: 800; letter-spacing: .2px; }
+  .capture-tools p { margin: 4px 0 0; color: var(--muted); font-size: 14px; line-height: 1.35; }
+  .capture-toggle { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: 14px; font-weight: 650; }
+  .capture-toggle input { width: 18px; height: 18px; accent-color: var(--crimson); margin: 0; }
+  .capture-actions { display: grid; gap: 8px; }
+  .capture-actions button { border: 0; border-radius: 12px; background: var(--ink); color: #fff; font: inherit; font-size: 15px; font-weight: 800; padding: 12px 14px; min-height: 44px; text-align: left; }
+  .capture-actions button[data-state="recording"] { background: var(--crimson); }
+  .capture-status { min-height: 18px; color: var(--muted); font-size: 14px; line-height: 1.35; }
   .sheet-acts { display: flex; justify-content: space-between; margin-top: 18px; }
   .sheet-acts button { border: 0; background: transparent; font-size: 17px; font-weight: 700; padding: 10px 6px; min-height: 44px; }
   .sheet-acts [data-cancel] { color: var(--muted); }
@@ -430,7 +444,21 @@
     <h3 id="composer-title">New Reminder</h3>
     <input id="composer-name" placeholder="Title" autocomplete="off" />
     <input id="composer-notes" placeholder="Notes" autocomplete="off" />
-    <div class="sheet-acts"><button type="button" data-cancel>Cancel</button><button type="submit" data-add>Add</button></div>
+    <section class="capture-tools" id="capture-tools" hidden>
+      <div>
+        <strong>Capture cadence</strong>
+        <p id="capture-cadence">4x/day for 4 days. Catch the unlock while it still feels live.</p>
+      </div>
+      <label class="capture-toggle">
+        <input type="checkbox" id="capture-schedule-enabled" checked />
+        <span>Set the native cadence</span>
+      </label>
+      <div class="capture-actions">
+        <button type="button" id="voice-capture-toggle" data-state="idle">Record voice memo</button>
+        <div class="capture-status" id="voice-capture-status">No voice memo yet.</div>
+      </div>
+    </section>
+    <div class="sheet-acts"><button type="button" data-cancel>Cancel</button><button type="button" data-add>Add</button></div>
   </form>
 
   <div class="drawer-back" id="drawer-back" hidden></div>
@@ -445,6 +473,7 @@
   </aside>
 
   <div class="toast" id="toast">Template selected</div>
+  <div class="sr-only" id="qa-status" role="status" aria-live="polite"></div>
   <div class="build-info" id="build-info" data-testid="build-info" data-src-md5="__SRC_MD5__">__BUILD_SHA__</div>
 </main>
 
@@ -453,12 +482,16 @@
 (() => {
   const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>';
   const toast = document.querySelector("#toast");
+  const qaStatus = document.getElementById("qa-status");
   let toastTimer;
   const flash = (msg) => {
     toast.textContent = msg;
     toast.dataset.show = "true";
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { toast.dataset.show = "false"; }, 1100);
+  };
+  const setQAStatus = (msg) => {
+    qaStatus.textContent = msg || "";
   };
 
   // ---- June 2026 calendar grid ----
@@ -500,6 +533,13 @@
     document.querySelectorAll(".tile").forEach(t => t.dataset.selected = "false");
     tile.dataset.selected = "true";
     const seed = ((window.RECALL_RECS || {}).seeds || {})[tile.dataset.template];
+    if (seed && seed.id === "CaptureMacBookUnlocksReminder") {
+      const nativeUI = nativeBridge("recallNativeUI");
+      if (nativeUI) {
+        nativeUI.postMessage({ action: "openMacBookCapture", seedTitle: seed.text });
+        return;
+      }
+    }
     if (seed) { openComposer("reminder", seed); return; }
     flash(tile.dataset.title || "Template selected");
   }));
@@ -552,20 +592,202 @@
   const composerTitle = document.getElementById("composer-title");
   const composerName = document.getElementById("composer-name");
   const composerNotes = document.getElementById("composer-notes");
+  const captureTools = document.getElementById("capture-tools");
+  const captureScheduleEnabled = document.getElementById("capture-schedule-enabled");
+  const voiceCaptureToggle = document.getElementById("voice-capture-toggle");
+  const voiceCaptureStatus = document.getElementById("voice-capture-status");
+  const composerAddButton = composer.querySelector("[data-add]");
   let composerKind = "reminder";
   let composerSeed = null;
+  let composerEditingItemId = null;
+  let composerEditingElement = null;
+  let composerVoiceMemo = null;
+  let voiceCaptureState = "idle";
   const KIND_LABEL = { reminder: "New Reminder", task: "New Task", event: "New Event" };
+  const MACBOOK_CAPTURE_TEMPLATE = "CaptureMacBookUnlocksReminder";
+  const MACBOOK_CAPTURE_TIMES = ["09:00", "12:30", "16:00", "19:30"];
+  let pendingNativeCaptureSchedule = null;
+  let composerSubmitInFlight = false;
 
-  function openComposer(kind, seed) {
+  const isoLocalDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+  const nativeBridge = (name) => window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers[name];
+  const debugBridge = (event, extra) => {
+    const bridge = nativeBridge("recallDebug");
+    if (!bridge) return;
+    bridge.postMessage({ event, ...(extra || {}) });
+  };
+
+  function setVoiceCaptureState(state, memo) {
+    voiceCaptureState = state;
+    composerVoiceMemo = memo || (state === "recorded" ? composerVoiceMemo : null);
+    if (state === "recording") {
+      voiceCaptureToggle.dataset.state = "recording";
+      voiceCaptureToggle.textContent = "Stop recording";
+      voiceCaptureStatus.textContent = "Recording now… speak the unlock, friction, or surprise.";
+      return;
+    }
+    voiceCaptureToggle.dataset.state = "idle";
+    voiceCaptureToggle.textContent = "Record voice memo";
+    if (state === "recorded" && composerVoiceMemo) {
+      voiceCaptureStatus.textContent = `Voice memo captured · ${composerVoiceMemo.durationSeconds}s`;
+      return;
+    }
+    voiceCaptureStatus.textContent = "No voice memo yet.";
+  }
+
+  function resetCaptureComposerState() {
+    captureScheduleEnabled.checked = true;
+    setVoiceCaptureState("idle", null);
+  }
+
+  function syncComposerViewport() {
+    const viewport = window.visualViewport;
+    const keyboardInset = viewport
+      ? Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop))
+      : 0;
+    composer.style.bottom = `${keyboardInset}px`;
+    composer.style.maxHeight = `calc(100vh - ${Math.max(18, keyboardInset + 18)}px)`;
+  }
+
+  function buildMacbookCaptureEntries(now = new Date()) {
+    const entries = [];
+    const start = new Date(now);
+    start.setSeconds(0, 0);
+    for (let dayOffset = 0; entries.length < 16; dayOffset += 1) {
+      const day = new Date(start);
+      day.setDate(start.getDate() + dayOffset);
+      const date = isoLocalDate(day);
+      for (const time of MACBOOK_CAPTURE_TIMES) {
+        const [hour, minute] = time.split(":").map(Number);
+        const fireAt = new Date(day);
+        fireAt.setHours(hour, minute, 0, 0);
+        if (fireAt <= now) continue;
+        entries.push({ date, time });
+        if (entries.length === 16) break;
+      }
+    }
+    return entries;
+  }
+
+  function requestNativeCaptureSchedule(title) {
+    const bridge = nativeBridge("recallReminders");
+    if (!bridge || !captureScheduleEnabled.checked) return false;
+
+    const entries = buildMacbookCaptureEntries();
+    pendingNativeCaptureSchedule = entries.length;
+    debugBridge("requestNativeCaptureSchedule", { title, count: entries.length });
+    bridge.postMessage({
+      action: "scheduleSeries",
+      title: "MacBook unlock capture",
+      body: title,
+      entries
+    });
+    return true;
+  }
+
+  function requestVoiceCapture(action) {
+    const bridge = nativeBridge("recallVoice");
+    if (!bridge) {
+      flash("Voice capture works in the iPhone build");
+      return;
+    }
+    debugBridge("requestVoiceCapture", { action });
+    bridge.postMessage({ action });
+  }
+
+  window.recallReminderNativeResult = (result) => {
+    if (!result || result.success !== true) {
+      if (pendingNativeCaptureSchedule !== null) {
+        flash("Capture cadence needs notification access");
+        setQAStatus("Capture cadence unavailable");
+      }
+      pendingNativeCaptureSchedule = null;
+      return;
+    }
+
+    if (pendingNativeCaptureSchedule !== null && typeof result.count === "number") {
+      flash(`${result.count} capture pings set`);
+      setQAStatus(`Capture cadence set: ${result.count} pings`);
+      pendingNativeCaptureSchedule = null;
+    }
+  };
+
+  window.recallVoiceNativeResult = (result) => {
+    if (!result || result.success !== true) {
+      flash("Voice capture needs microphone access");
+      setVoiceCaptureState("idle", composerVoiceMemo);
+      return;
+    }
+
+    if (result.state === "recording") {
+      setVoiceCaptureState("recording", composerVoiceMemo);
+      return;
+    }
+
+    if (result.state === "recorded" && result.memo) {
+      setVoiceCaptureState("recorded", result.memo);
+    }
+  };
+
+  window.recallNativeCaptureSaved = (payload) => {
+    if (!payload || !payload.title) return;
+    createItem(
+      "reminder",
+      payload.title,
+      "",
+      "seed:" + MACBOOK_CAPTURE_TEMPLATE,
+      ["ToolIntegrationTiming"],
+      "edit",
+      payload.voiceMemo || null
+    );
+    setQAStatus(`Capture saved: ${payload.title}`);
+    if (typeof payload.scheduledCount === "number") {
+      flash(`${payload.scheduledCount} capture pings set`);
+    } else {
+      flash("Owned — deeper unlocked");
+    }
+  };
+
+  function openComposer(kind, seed, existingItem) {
     composerKind = kind;
     composerSeed = seed || null;
-    composerTitle.textContent = seed ? seed.label : KIND_LABEL[kind];
-    composerName.value = seed ? seed.text : "";
-    composerNotes.value = "";
+    composerEditingItemId = existingItem ? existingItem.id || null : null;
+    composerEditingElement = existingItem ? existingItem.element || null : null;
+    composerTitle.textContent = existingItem ? `Edit ${KIND_LABEL[kind].replace("New ", "")}` : (seed ? seed.label : KIND_LABEL[kind]);
+    composerName.value = existingItem ? (existingItem.title || "") : (seed ? seed.text : "");
+    composerNotes.value = existingItem ? (existingItem.sub || "") : "";
+    captureTools.hidden = !(seed && seed.id === MACBOOK_CAPTURE_TEMPLATE);
+    composerAddButton.textContent = existingItem || (seed && seed.id === MACBOOK_CAPTURE_TEMPLATE) ? "Save capture" : "Add";
+    resetCaptureComposerState();
+    if (existingItem && existingItem.voiceMemo) {
+      setVoiceCaptureState("recorded", existingItem.voiceMemo);
+    }
+    setQAStatus("");
+    syncComposerViewport();
     composer.hidden = false; sheetBack.hidden = false;
     composerName.focus();
   }
-  function closeComposer() { composer.hidden = true; sheetBack.hidden = true; composerSeed = null; }
+  function closeComposer() {
+    if (voiceCaptureState === "recording") requestVoiceCapture("stop");
+    if (document.activeElement && typeof document.activeElement.blur === "function") {
+      document.activeElement.blur();
+    }
+    composer.hidden = true; sheetBack.hidden = true; composerSeed = null;
+    composerEditingItemId = null;
+    composerEditingElement = null;
+    composer.style.bottom = "0px";
+    composer.style.maxHeight = "";
+    resetCaptureComposerState();
+  }
+
+  voiceCaptureToggle.addEventListener("click", () => {
+    requestVoiceCapture(voiceCaptureState === "recording" ? "stop" : "start");
+  });
 
   document.querySelectorAll(".fab").forEach(fab => fab.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -574,20 +796,88 @@
   }));
   sheetBack.addEventListener("click", closeComposer);
   composer.querySelector("[data-cancel]").addEventListener("click", closeComposer);
-  composer.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function submitComposer() {
+    if (voiceCaptureState === "recording") {
+      flash("Stop the voice memo first");
+      debugBridge("submitComposerBlockedRecording");
+      return;
+    }
     const title = composerName.value.trim() || KIND_LABEL[composerKind];
-    if (composerSeed) {
+    const voiceMemo = composerVoiceMemo ? { ...composerVoiceMemo } : null;
+    debugBridge("submitComposer", {
+      kind: composerKind,
+      title,
+      seeded: Boolean(composerSeed),
+      hasVoiceMemo: Boolean(voiceMemo)
+    });
+    if (composerEditingItemId) {
+      const existing = items.find(item => item.id === composerEditingItemId);
+      if (existing) {
+        existing.title = title;
+        existing.sub = composerNotes.value.trim();
+        existing.voiceMemo = voiceMemo;
+        existing.updatedAt = new Date().toISOString();
+        persist(); renderAll();
+        setQAStatus(`Saved: ${title}`);
+        flash("Reminder updated");
+        if (existing.recId === "seed:" + MACBOOK_CAPTURE_TEMPLATE) requestNativeCaptureSchedule(title);
+      } else if (composerEditingElement) {
+        const strong = composerEditingElement.querySelector("strong");
+        const span = composerEditingElement.querySelector(".copy span");
+        if (strong) strong.textContent = title;
+        if (span) {
+          const subline = [composerNotes.value.trim(), voiceMemo && voiceMemo.durationSeconds ? `Voice memo ${voiceMemo.durationSeconds}s` : ""].filter(Boolean).join(" · ");
+          span.textContent = subline;
+        }
+        flash("Reminder updated");
+      }
+    } else if (composerSeed) {
       // edit = owned (+0.30, the strongest signal); untouched = accept (+0.10)
       const sig = title === composerSeed.text ? "accept" : "edit";
-      createItem(composerKind, title, composerNotes.value.trim(), "seed:" + composerSeed.id, composerSeed.revealsStrengths, sig);
+      createItem(
+        composerKind,
+        title,
+        composerNotes.value.trim(),
+        "seed:" + composerSeed.id,
+        composerSeed.revealsStrengths,
+        sig,
+        voiceMemo
+      );
+      setQAStatus(`Capture saved: ${title}`);
+      debugBridge("seededCaptureSaved", { title, sig });
       flash(sig === "edit" ? "Owned — deeper unlocked" : "Shipped");
+      if (composerSeed.id === MACBOOK_CAPTURE_TEMPLATE) requestNativeCaptureSchedule(title);
     } else {
-      createItem(composerKind, title, composerNotes.value.trim());
+      createItem(composerKind, title, composerNotes.value.trim(), null, null, null, voiceMemo);
+      setQAStatus(`Saved: ${title}`);
+      debugBridge("captureSaved", { title });
       flash(KIND_LABEL[composerKind].replace("New ", "") + " added");
     }
     closeComposer();
-  });
+  }
+  function queueComposerSubmit(event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (composerSubmitInFlight) return;
+    composerSubmitInFlight = true;
+    if (document.activeElement && typeof document.activeElement.blur === "function") {
+      document.activeElement.blur();
+    }
+    requestAnimationFrame(() => {
+      submitComposer();
+      setTimeout(() => { composerSubmitInFlight = false; }, 0);
+    });
+  }
+  composer.addEventListener("submit", queueComposerSubmit);
+  composerAddButton.addEventListener("click", queueComposerSubmit);
+  composerAddButton.addEventListener("touchend", queueComposerSubmit, { passive: false });
+  window.addEventListener("resize", syncComposerViewport);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", syncComposerViewport);
+    window.visualViewport.addEventListener("scroll", syncComposerViewport);
+  }
 
   // ---- hamburger menu + sidebar drawer ----
   const drawer = document.getElementById("drawer");
@@ -626,6 +916,12 @@
   const persist = () => { dbSet("recall.items", items); dbSet("recall.signals", signals); dbSet("recall.dismissed", [...dismissed]); };
   const uid = () => "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const itemSubline = (item) => {
+    const parts = [];
+    if (item.sub) parts.push(item.sub);
+    if (item.voiceMemo && item.voiceMemo.durationSeconds) parts.push(`Voice memo ${item.voiceMemo.durationSeconds}s`);
+    return parts.join(" · ");
+  };
 
   function recordSignal(recId, signalType, strengths) {
     signals.push({ recId, signalType, at: new Date().toISOString(), strengths: strengths || [] });
@@ -685,10 +981,20 @@
     });
   }
 
-  function createItem(type, title, sub, recId, strengths, signalType) {
+  function createItem(type, title, sub, recId, strengths, signalType, voiceMemo) {
     const now = new Date();
     const hh = ((now.getHours() + 11) % 12) + 1, mm = String(now.getMinutes()).padStart(2, "0");
-    items.push({ id: uid(), type, title, sub, meta: type === "event" ? hh + ":" + mm : "now", status: "active", createdAt: now.toISOString(), recId: recId || null });
+    items.push({
+      id: uid(),
+      type,
+      title,
+      sub,
+      voiceMemo: voiceMemo || null,
+      meta: type === "event" ? hh + ":" + mm : "now",
+      status: "active",
+      createdAt: now.toISOString(),
+      recId: recId || null
+    });
     if (recId) recordSignal(recId, signalType || "accept", strengths);
     persist(); renderAll();
   }
@@ -704,6 +1010,38 @@
     return b;
   }
 
+  function openExistingReminder(item) {
+    if (!item) return;
+    if (item.recId === "seed:" + MACBOOK_CAPTURE_TEMPLATE) {
+      const nativeUI = nativeBridge("recallNativeUI");
+      if (nativeUI) {
+        nativeUI.postMessage({ action: "openMacBookCapture", seedTitle: item.title });
+        return;
+      }
+    }
+    openComposer("reminder", null, item);
+  }
+
+  function wireReminderItem(element, item) {
+    element.addEventListener("click", (event) => {
+      if (event.target.closest("[data-del]")) return;
+      openExistingReminder(item);
+    });
+  }
+
+  document.querySelectorAll("#latest-list > .item:not([data-user])").forEach((element) => {
+    const strong = element.querySelector("strong");
+    const span = element.querySelector(".copy span");
+    wireReminderItem(element, {
+      id: null,
+      title: strong ? strong.textContent.trim() : "Reminder",
+      sub: span ? span.textContent.trim() : "",
+      voiceMemo: null,
+      recId: null,
+      element
+    });
+  });
+
   function renderUserItems() {
     document.querySelectorAll("[data-user]").forEach(n => n.remove());
     for (const it of items.filter(i => i.status === "active")) {
@@ -716,15 +1054,18 @@
         wireTask(t);
       } else if (it.type === "reminder") {
         const a = document.createElement("article");
-        a.className = "item"; a.setAttribute("data-user", "");
-        a.innerHTML = `<div class="glyph">◷</div><div class="copy"><strong>${esc(it.title)}</strong>${it.sub ? `<span>${esc(it.sub)}</span>` : ""}</div>`;
+        a.className = "item"; a.setAttribute("data-user", ""); a.dataset.userId = it.id;
+        const subline = itemSubline(it);
+        a.innerHTML = `<div class="glyph">◷</div><div class="copy"><strong>${esc(it.title)}</strong>${subline ? `<span>${esc(subline)}</span>` : ""}</div>`;
         a.appendChild(delBtn(it.id));
         document.getElementById("latest-list").prepend(a);
+        wireReminderItem(a, it);
       } else {
         const a = document.createElement("article");
         a.className = "agenda"; a.setAttribute("data-user", "");
         a.style.gridTemplateColumns = "44px 8px 1fr auto";
-        a.innerHTML = `<span class="time">${esc(it.meta)}</span><span class="adot" style="background:var(--crimson)"></span><div class="copy"><strong>${esc(it.title)}</strong>${it.sub ? `<span>${esc(it.sub)}</span>` : ""}</div>`;
+        const subline = itemSubline(it);
+        a.innerHTML = `<span class="time">${esc(it.meta)}</span><span class="adot" style="background:var(--crimson)"></span><div class="copy"><strong>${esc(it.title)}</strong>${subline ? `<span>${esc(subline)}</span>` : ""}</div>`;
         a.appendChild(delBtn(it.id));
         document.getElementById("agenda-list").prepend(a);
       }

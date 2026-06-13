@@ -5,10 +5,17 @@ import SwiftUI
 private let canvasBackground = Color(red: 0x2B / 255, green: 0x2E / 255, blue: 0x38 / 255)
 
 struct ContentView: View {
+    @StateObject private var nativeCaptureBridge = NativeCaptureBridge()
+
     var body: some View {
-        WebView()
+        WebView(nativeCaptureBridge: nativeCaptureBridge)
             .background(canvasBackground)
             .ignoresSafeArea()
+            .sheet(isPresented: $nativeCaptureBridge.isPresentingMacBookCapture) {
+                NativeCaptureSheet(seedTitle: nativeCaptureBridge.seedTitle) { payload in
+                    nativeCaptureBridge.onSave?(payload)
+                }
+            }
     }
 }
 

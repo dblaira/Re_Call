@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFAudio
 import UserNotifications
 import WebKit
 
@@ -6,8 +7,10 @@ import WebKit
 /// chrome. The HTML and its relative `covers/*.png` assets ship inside the app
 /// bundle (folder reference `Web/`) and load entirely offline.
 struct WebView: UIViewRepresentable {
+    @ObservedObject var nativeCaptureBridge: NativeCaptureBridge
+
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(nativeCaptureBridge: nativeCaptureBridge)
     }
 
     func makeUIView(context: Context) -> WKWebView {
@@ -16,6 +19,9 @@ struct WebView: UIViewRepresentable {
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
         config.userContentController.add(context.coordinator, name: "recallReminders")
+        config.userContentController.add(context.coordinator, name: "recallVoice")
+        config.userContentController.add(context.coordinator, name: "recallDebug")
+        config.userContentController.add(context.coordinator, name: "recallNativeUI")
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
@@ -50,15 +56,67 @@ struct WebView: UIViewRepresentable {
 
     final class Coordinator: NSObject, WKScriptMessageHandler {
         private let savedReminderScheduleKey = "recall.savedReminderSchedule"
+        private let iso8601 = ISO8601DateFormatter()
+        private var recorder: AVAudioRecorder?
+        private var activeVoiceMemoID: String?
+        private var simulatedVoiceCaptureStartedAt: Date?
+        private let nativeCaptureBridge: NativeCaptureBridge
         weak var webView: WKWebView?
 
+        init(nativeCaptureBridge: NativeCaptureBridge) {
+            self.nativeCaptureBridge = nativeCaptureBridge
+            super.init()
+            nativeCaptureBridge.onSave = { [weak self] payload in
+                self?.handleNativeCaptureSave(payload)
+            }
+        }
+
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+            if message.name == "recallVoice" {
+                guard let payload = message.body as? [String: Any],
+                      let action = payload["action"] as? String else { return }
+
+                if action == "start" {
+                    startVoiceCapture()
+                } else if action == "stop" {
+                    stopVoiceCapture()
+                }
+                return
+            }
+
+            if message.name == "recallDebug" {
+                guard let payload = message.body as? [String: Any] else { return }
+                debugLog(payload)
+                return
+            }
+
+            if message.name == "recallNativeUI" {
+                guard let payload = message.body as? [String: Any],
+                      let action = payload["action"] as? String else { return }
+
+                if action == "openMacBookCapture" {
+                    let seedTitle = (payload["seedTitle"] as? String) ?? "Catch the new machine while it still feels vivid."
+                    DispatchQueue.main.async {
+                        self.nativeCaptureBridge.presentMacBookCapture(seedTitle: seedTitle)
+                    }
+                }
+                return
+            }
+
             guard message.name == "recallReminders",
                   let payload = message.body as? [String: Any],
                   let action = payload["action"] as? String else { return }
 
             if action == "list" {
                 sendPendingReminders()
+                return
+            }
+
+            if action == "scheduleSeries",
+               let title = payload["title"] as? String,
+               let body = payload["body"] as? String,
+               let entries = payload["entries"] as? [[String: String]] {
+                scheduleReminderSeries(title: title, body: body, entries: entries)
                 return
             }
 
@@ -71,6 +129,29 @@ struct WebView: UIViewRepresentable {
         }
 
         private func scheduleTodayReminders(title: String, body: String, times: [String]) {
+            #if targetEnvironment(simulator)
+                let now = Date()
+                let calendar = Calendar.current
+                let scheduled = times.filter { time in
+                    let parts = time.split(separator: ":").compactMap { Int($0) }
+                    guard parts.count == 2,
+                          let fireDate = calendar.date(bySettingHour: parts[0], minute: parts[1], second: 0, of: now) else {
+                        return false
+                    }
+                    return fireDate > now
+                }.count
+
+                if isStaleDefaultReminder(title: title, body: body) {
+                    clearSavedReminderSchedule()
+                    sendReminderResult(success: true, count: 0)
+                    return
+                }
+
+                saveReminderSchedule(title: title, body: body, times: times)
+                sendReminderResult(success: true, count: scheduled)
+                return
+            #endif
+
             let center = UNUserNotificationCenter.current()
             center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
                 guard granted, error == nil else {
@@ -114,9 +195,228 @@ struct WebView: UIViewRepresentable {
             }
         }
 
+        private func scheduleReminderSeries(title: String, body: String, entries: [[String: String]]) {
+            #if targetEnvironment(simulator)
+                if isStaleDefaultReminder(title: title, body: body) {
+                    clearSavedReminderSchedule()
+                    sendReminderResult(success: true, count: 0)
+                    return
+                }
+
+                let now = Date()
+                let scheduled = entries.filter { entry in
+                    guard let fireDate = fireDate(for: entry) else { return false }
+                    return fireDate > now
+                }.count
+
+                saveReminderSchedule(entries: entries, title: title, body: body)
+                sendReminderResult(success: true, count: scheduled)
+                return
+            #endif
+
+            let center = UNUserNotificationCenter.current()
+            center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+                guard granted, error == nil else {
+                    self.sendReminderResult(success: false, count: 0)
+                    return
+                }
+
+                if self.isStaleDefaultReminder(title: title, body: body) {
+                    self.removeSavedReminderScheduleRequests()
+                    self.clearSavedReminderSchedule()
+                    self.sendReminderResult(success: true, count: 0)
+                    return
+                }
+
+                self.removeSavedReminderScheduleRequests()
+                self.saveReminderSchedule(entries: entries, title: title, body: body)
+
+                let now = Date()
+                var scheduled = 0
+
+                for entry in entries {
+                    guard let fireDate = self.fireDate(for: entry), fireDate > now else { continue }
+
+                    let content = UNMutableNotificationContent()
+                    content.title = title
+                    content.body = body
+                    content.sound = .default
+
+                    let dateComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
+                    let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+                    let request = UNNotificationRequest(
+                        identifier: self.reminderIdentifier(for: entry),
+                        content: content,
+                        trigger: trigger
+                    )
+
+                    center.add(request)
+                    scheduled += 1
+                }
+
+                self.sendReminderResult(success: true, count: scheduled)
+            }
+        }
+
+        private func startVoiceCapture() {
+            #if targetEnvironment(simulator)
+                let memoID = "memo-\(UUID().uuidString)"
+                activeVoiceMemoID = memoID
+                simulatedVoiceCaptureStartedAt = Date()
+                sendVoiceResult([
+                    "success": true,
+                    "state": "recording"
+                ])
+                return
+            #endif
+
+            AVAudioApplication.requestRecordPermission { granted in
+                guard granted else {
+                    self.sendVoiceResult(["success": false])
+                    return
+                }
+
+                DispatchQueue.main.async {
+                    do {
+                        let session = AVAudioSession.sharedInstance()
+                        try session.setCategory(.playAndRecord, mode: .spokenAudio, options: [.defaultToSpeaker])
+                        try session.setActive(true, options: [])
+
+                        let memoID = "memo-\(UUID().uuidString)"
+                        let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(memoID).m4a")
+                        let settings: [String: Any] = [
+                            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                            AVSampleRateKey: 44_100,
+                            AVNumberOfChannelsKey: 1,
+                            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+                        ]
+
+                        let recorder = try AVAudioRecorder(url: url, settings: settings)
+                        recorder.prepareToRecord()
+                        recorder.record()
+
+                        self.recorder = recorder
+                        self.activeVoiceMemoID = memoID
+                        self.sendVoiceResult([
+                            "success": true,
+                            "state": "recording"
+                        ])
+                    } catch {
+                        self.sendVoiceResult(["success": false])
+                    }
+                }
+            }
+        }
+
+        private func stopVoiceCapture() {
+            DispatchQueue.main.async {
+                #if targetEnvironment(simulator)
+                    if let startedAt = self.simulatedVoiceCaptureStartedAt {
+                        let simulatedDuration = max(1, Int(Date().timeIntervalSince(startedAt).rounded()))
+                        let simulatedMemoID = self.activeVoiceMemoID ?? "memo-\(UUID().uuidString)"
+                        self.simulatedVoiceCaptureStartedAt = nil
+                        self.activeVoiceMemoID = nil
+
+                        self.sendVoiceResult([
+                            "success": true,
+                            "state": "recorded",
+                            "memo": [
+                                "id": simulatedMemoID,
+                                "durationSeconds": simulatedDuration,
+                                "createdAt": self.iso8601.string(from: Date())
+                            ]
+                        ])
+                        return
+                    }
+                #endif
+
+                guard let recorder = self.recorder else {
+                    self.sendVoiceResult(["success": false])
+                    return
+                }
+
+                recorder.stop()
+                let duration = max(1, Int(recorder.currentTime.rounded()))
+                let memoID = self.activeVoiceMemoID ?? "memo-\(UUID().uuidString)"
+
+                self.recorder = nil
+                self.activeVoiceMemoID = nil
+                try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+
+                self.sendVoiceResult([
+                    "success": true,
+                    "state": "recorded",
+                    "memo": [
+                        "id": memoID,
+                        "durationSeconds": duration,
+                        "createdAt": self.iso8601.string(from: Date())
+                    ]
+                ])
+            }
+        }
+
         private func sendReminderResult(success: Bool, count: Int) {
             DispatchQueue.main.async {
                 let script = "window.recallReminderNativeResult && window.recallReminderNativeResult({ success: \(success), count: \(count) });"
+                self.webView?.evaluateJavaScript(script)
+            }
+        }
+
+        private func handleNativeCaptureSave(_ payload: NativeCaptureSavePayload) {
+            var fields: [String] = [
+                "title: \(jsonStringLiteral(payload.title))"
+            ]
+
+            if let voiceMemo = payload.voiceMemo,
+               let data = try? JSONEncoder().encode(voiceMemo),
+               let json = String(data: data, encoding: .utf8) {
+                fields.append("voiceMemo: \(json)")
+            } else {
+                fields.append("voiceMemo: null")
+            }
+
+            if let scheduledCount = payload.scheduledCount {
+                fields.append("scheduledCount: \(scheduledCount)")
+            } else {
+                fields.append("scheduledCount: null")
+            }
+
+            let script = """
+            window.recallNativeCaptureSaved && window.recallNativeCaptureSaved({ \(fields.joined(separator: ", ")) });
+            """
+
+            DispatchQueue.main.async {
+                self.webView?.evaluateJavaScript(script)
+            }
+        }
+
+        private func jsonStringLiteral(_ value: String) -> String {
+            let data = try? JSONSerialization.data(withJSONObject: [value])
+            let json = String(data: data ?? Data("[]".utf8), encoding: .utf8) ?? "[\"\"]"
+            return String(json.dropFirst().dropLast())
+        }
+
+        private func debugLog(_ payload: [String: Any]) {
+            guard JSONSerialization.isValidJSONObject(payload),
+                  let data = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]),
+                  let json = String(data: data, encoding: .utf8) else {
+                print("RECALL_DEBUG invalid payload")
+                return
+            }
+
+            print("RECALL_DEBUG \(json)")
+        }
+
+        private func sendVoiceResult(_ payload: [String: Any]) {
+            sendJavaScriptCallback(named: "recallVoiceNativeResult", payload: payload)
+        }
+
+        private func sendJavaScriptCallback(named name: String, payload: [String: Any]) {
+            guard let data = try? JSONSerialization.data(withJSONObject: payload),
+                  let json = String(data: data, encoding: .utf8) else { return }
+
+            DispatchQueue.main.async {
+                let script = "window.\(name) && window.\(name)(\(json));"
                 self.webView?.evaluateJavaScript(script)
             }
         }
@@ -177,6 +477,23 @@ struct WebView: UIViewRepresentable {
             UserDefaults.standard.set(payload, forKey: savedReminderScheduleKey)
         }
 
+        private func saveReminderSchedule(entries: [[String: String]], title: String, body: String) {
+            guard !isStaleDefaultReminder(title: title, body: body) else {
+                clearSavedReminderSchedule()
+                return
+            }
+
+            let payload = entries.map { entry in
+                [
+                    "date": entry["date"] ?? "",
+                    "time": entry["time"] ?? "",
+                    "title": title,
+                    "body": body
+                ]
+            }
+            UserDefaults.standard.set(payload, forKey: savedReminderScheduleKey)
+        }
+
         private func savedReminderSchedule() -> [[String: String]] {
             let saved = UserDefaults.standard.array(forKey: savedReminderScheduleKey) as? [[String: String]] ?? []
             let filtered = saved.filter {
@@ -190,6 +507,29 @@ struct WebView: UIViewRepresentable {
 
         private func clearSavedReminderSchedule() {
             UserDefaults.standard.removeObject(forKey: savedReminderScheduleKey)
+        }
+
+        private func removeSavedReminderScheduleRequests() {
+            let identifiers = savedReminderSchedule().map(reminderIdentifier(for:))
+            if !identifiers.isEmpty {
+                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
+            }
+        }
+
+        private func reminderIdentifier(for entry: [String: String]) -> String {
+            let date = entry["date"] ?? "today"
+            let time = (entry["time"] ?? "00:00").replacingOccurrences(of: ":", with: "-")
+            return "recall.capture.\(date).\(time)"
+        }
+
+        private func fireDate(for entry: [String: String]) -> Date? {
+            guard let date = entry["date"], let time = entry["time"] else { return nil }
+            let formatter = DateFormatter()
+            formatter.calendar = Calendar.current
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone.current
+            formatter.dateFormat = "yyyy-MM-dd HH:mm"
+            return formatter.date(from: "\(date) \(time)")
         }
 
         private func isStaleDefaultReminder(title: String, body: String) -> Bool {

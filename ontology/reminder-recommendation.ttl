@@ -173,6 +173,16 @@ recall:StrategicLearning
     rdfs:label "Strategic learning" ;
     rdfs:comment "Meaningful, important new information energizes the user's whole life. Value lives in the what and the when of a source, never the where; transition times are when taste matters most." .
 
+recall:EmbodiedExperimentation
+    a recall:UserStrength ;
+    rdfs:label "Embodied experimentation" ;
+    rdfs:comment "The user learns through quick body experiments: notice a signal, try a movement, compare before and after, and keep what creates felt change." .
+
+recall:FeltDiscovery
+    a recall:UserStrength ;
+    rdfs:label "Felt discovery" ;
+    rdfs:comment "Discovery converts maintenance into pull when a mysterious, good-feeling experiment makes support work feel alive instead of dutiful." .
+
 recall:ScanCalendarReminder
     a recall:ReminderTemplate ;
     rdfs:label "Scan calendar reminder" ;
@@ -214,6 +224,12 @@ recall:NameMeaningfulSourceReminder
     rdfs:label "Name the electrifying source" ;
     recall:templateText "What new information mattered today — and when did it matter? Name the source worth keeping." ;
     recall:revealsStrength recall:StrategicLearning .
+
+recall:PostRunBodyDiscoveryReminder
+    a recall:ReminderTemplate ;
+    rdfs:label "Post-run body discovery" ;
+    recall:templateText "After the run and shower: capture the body signal, the movement experiment, and what felt different." ;
+    recall:revealsStrength recall:EmbodiedExperimentation, recall:FeltDiscovery .
 
 recall:ScanTomorrowForTransitionStress
     a recall:ReminderTemplate ;
@@ -378,6 +394,21 @@ recall:StrategicLearningOutputFrame
         "a generic reading list",
         "tracking entertainment instead of leverage" .
 
+recall:FeltDiscoveryScanFrame
+    a recall:FeedbackGenerationFrame ;
+    rdfs:label "Felt discovery scan frame" ;
+    recall:generationIntent "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start." ;
+    recall:mustInclude
+        "a body signal before and after the experiment",
+        "a movement hypothesis",
+        "a felt improvement or no-change verdict",
+        "multiple scan options instead of one narrow suggestion" ;
+    recall:mustAvoid
+        "generic stretching advice",
+        "medical diagnosis",
+        "one best answer too early",
+        "repeating the user's hip wording without a next scan option" .
+
 recall:CalendarDepthRecommendationRule
     a recall:ReminderRecommendationRule ;
     rdfs:label "Calendar depth recommendation rule" ;
@@ -529,6 +560,152 @@ recall:TurnSourceIntoAppointment
     recall:deepensStrength recall:StrategicLearning ;
     recall:depthScore "0.85"^^xsd:decimal .
 
+recall:MapLowToHighLine
+    a recall:ReminderTemplate ;
+    rdfs:label "Map the low-to-high line" ;
+    recall:templateText "Map the low-to-high line: where did the movement start, where did strength show up, and what changed after three reps?" ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.99"^^xsd:decimal .
+
+recall:CaptureBeforeAfterBodySignal
+    a recall:ReminderTemplate ;
+    rdfs:label "Capture before/after body signal" ;
+    recall:templateText "Capture the before/after body signal: hip, shoulder, breath, stride, or mood; keep only what felt different." ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.98"^^xsd:decimal .
+
+recall:NameRepeatableSupportRitual
+    a recall:ReminderTemplate ;
+    rdfs:label "Name repeatable support ritual" ;
+    recall:templateText "Name the repeatable support ritual: the smallest band move that makes running support feel good enough to repeat." ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.97"^^xsd:decimal .
+
+recall:ScanTwentyMovementHypotheses
+    a recall:ReminderTemplate ;
+    rdfs:label "Scan twenty movement hypotheses" ;
+    recall:templateText "Scan twenty movement hypotheses before choosing: low-to-high, high-to-low, left, right, slow, fast, banded, bodyweight, breath-led, stride-led." ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.96"^^xsd:decimal .
+
+recall:TestOppositeTwist
+    a recall:ReminderTemplate ;
+    rdfs:label "Test the opposite twist" ;
+    recall:templateText "Test the opposite twist: if the golf-swing direction tightens, does the reverse direction create space, strength, or curiosity?" ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.95"^^xsd:decimal .
+
+recall:PairRightLeftComparison
+    a recall:ReminderTemplate ;
+    rdfs:label "Pair right-left comparison" ;
+    recall:templateText "Pair right and left: same move, same reps, then record which side changed more and what mystery appeared." ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.94"^^xsd:decimal .
+
+recall:ProtectPostShowerDiscoveryWindow
+    a recall:ReminderTemplate ;
+    rdfs:label "Protect post-shower discovery window" ;
+    recall:templateText "Protect the post-shower discovery window: two minutes to test the body signal before the day swallows the clue." ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.93"^^xsd:decimal .
+
+recall:TurnMaintenanceIntoCuriosity
+    a recall:ReminderTemplate ;
+    rdfs:label "Turn maintenance into curiosity" ;
+    recall:templateText "Turn maintenance into curiosity: ask what feels newly possible if this support move keeps working." ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.92"^^xsd:decimal .
+
+recall:LogFeltImprovementScale
+    a recall:ReminderTemplate ;
+    rdfs:label "Log felt improvement scale" ;
+    recall:templateText "Log the felt improvement: 0 no change, 1 interesting, 2 better, 3 electric enough to repeat tomorrow." ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.91"^^xsd:decimal .
+
+recall:LinkMovementToRunEnjoyment
+    a recall:ReminderTemplate ;
+    rdfs:label "Link movement to run enjoyment" ;
+    recall:templateText "Link the support move to running joy: did it make tomorrow's run feel more available, lighter, or more wanted?" ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.90"^^xsd:decimal .
+
+recall:NameBandSetup
+    a recall:ReminderTemplate ;
+    rdfs:label "Name band setup" ;
+    recall:templateText "Name the band setup: anchor height, stance, direction, reps, and the first body signal that says it is working." ;
+    recall:deepensStrength recall:EmbodiedExperimentation ;
+    recall:depthScore "0.89"^^xsd:decimal .
+
+recall:CaptureEnergySpikeAfterMovement
+    a recall:ReminderTemplate ;
+    rdfs:label "Capture energy spike after movement" ;
+    recall:templateText "Capture the energy spike after movement: did the discovery make support work feel exciting instead of responsible?" ;
+    recall:deepensStrength recall:FeltDiscovery ;
+    recall:depthScore "0.88"^^xsd:decimal .
+
+recall:CompareStrengthPathToPainPath
+    a recall:ReminderTemplate ;
+    rdfs:label "Compare strength path to pain path" ;
+    recall:templateText "Compare strength path to pain path: which direction routes sensation toward power instead of protection?" ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.87"^^xsd:decimal .
+
+recall:AskWhatTheBodyTaught
+    a recall:ReminderTemplate ;
+    rdfs:label "Ask what the body taught" ;
+    recall:templateText "Ask what the body taught: not why it hurts, but what experiment changed the next rep." ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.86"^^xsd:decimal .
+
+recall:MakeSupportWorkInspectable
+    a recall:ReminderTemplate ;
+    rdfs:label "Make support work inspectable" ;
+    recall:templateText "Make support work inspectable: movement, side, reps, felt change, repeat verdict." ;
+    recall:deepensStrength recall:EmbodiedExperimentation ;
+    recall:depthScore "0.85"^^xsd:decimal .
+
+recall:FindSecondDiscoverySlot
+    a recall:ReminderTemplate ;
+    rdfs:label "Find second discovery slot" ;
+    recall:templateText "Find a second discovery slot: after run, after shower, before lifting, or before bed; keep the slot where curiosity appears." ;
+    recall:deepensStrength recall:FeltDiscovery ;
+    recall:depthScore "0.84"^^xsd:decimal .
+
+recall:RecordOneRepVideo
+    a recall:ReminderTemplate ;
+    rdfs:label "Record one rep video" ;
+    recall:templateText "Record one rep video only if it preserves the clue: setup, direction, and the body signal it changed." ;
+    recall:deepensStrength recall:EmbodiedExperimentation ;
+    recall:depthScore "0.83"^^xsd:decimal .
+
+recall:SeparateExerciseFromDiscovery
+    a recall:ReminderTemplate ;
+    rdfs:label "Separate exercise from discovery" ;
+    recall:templateText "Separate exercise from discovery: this is not a workout; it is a two-minute test for a felt clue." ;
+    recall:deepensStrength recall:FeltDiscovery ;
+    recall:depthScore "0.82"^^xsd:decimal .
+
+recall:PlanTomorrowRetest
+    a recall:ReminderTemplate ;
+    rdfs:label "Plan tomorrow retest" ;
+    recall:templateText "Plan tomorrow's retest: same move, same side order, same verdict; see if the mystery survives sleep." ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.81"^^xsd:decimal .
+
+recall:ConvertDiscoveryToTinyRegimen
+    a recall:ReminderTemplate ;
+    rdfs:label "Convert discovery to tiny regimen" ;
+    recall:templateText "Convert discovery to tiny regimen only after three wins: then it earns a place beside running, not above it." ;
+    recall:deepensStrength recall:EmbodiedExperimentation, recall:FeltDiscovery ;
+    recall:depthScore "0.80"^^xsd:decimal .
+
+recall:GenericFitnessReminder
+    a recall:ReminderTemplate ;
+    rdfs:label "Generic fitness reminder" ;
+    recall:templateText "Stretch more and stay consistent." ;
+    rdfs:comment "A broad fitness reminder that should not be selected when the graph points to felt body discovery." .
+
 recall:HabitStackDepthRecommendationRule
     a recall:ReminderRecommendationRule ;
     rdfs:label "Habit stack depth recommendation rule" ;
@@ -580,3 +757,32 @@ recall:StrategicLearningDepthRecommendationRule
         recall:MeditateOnVisualPerception,
         recall:CaptureTimingFingerprint,
         recall:TurnSourceIntoAppointment .
+
+recall:FeltDiscoveryDepthRecommendationRule
+    a recall:ReminderRecommendationRule ;
+    rdfs:label "Felt discovery depth recommendation rule" ;
+    recall:triggeredByTemplate recall:PostRunBodyDiscoveryReminder ;
+    recall:requiresFeedback recall:PositiveReminderRating ;
+    recall:usesFeedbackFrame recall:FeltDiscoveryScanFrame ;
+    recall:recommendationReason "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion." ;
+    recall:recommendsTemplate
+        recall:MapLowToHighLine,
+        recall:CaptureBeforeAfterBodySignal,
+        recall:NameRepeatableSupportRitual,
+        recall:ScanTwentyMovementHypotheses,
+        recall:TestOppositeTwist,
+        recall:PairRightLeftComparison,
+        recall:ProtectPostShowerDiscoveryWindow,
+        recall:TurnMaintenanceIntoCuriosity,
+        recall:LogFeltImprovementScale,
+        recall:LinkMovementToRunEnjoyment,
+        recall:NameBandSetup,
+        recall:CaptureEnergySpikeAfterMovement,
+        recall:CompareStrengthPathToPainPath,
+        recall:AskWhatTheBodyTaught,
+        recall:MakeSupportWorkInspectable,
+        recall:FindSecondDiscoverySlot,
+        recall:RecordOneRepVideo,
+        recall:SeparateExerciseFromDiscovery,
+        recall:PlanTomorrowRetest,
+        recall:ConvertDiscoveryToTinyRegimen .

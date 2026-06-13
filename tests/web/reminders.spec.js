@@ -59,3 +59,26 @@ test("template tile → composer prefilled → edit → reminder created + deepe
   // the edit signal lifts HabitStacking affinity → the deeper card enters Suggested
   await expect(page.locator("#resurface-list")).toContainText("Run a readiness bet");
 });
+
+test("post-run body discovery tile exposes the 20-option scan field", async ({ page }) => {
+  await expect(page.locator('.tile[data-template="PostRunBodyDiscoveryReminder"]')).toContainText("Post-run body discovery");
+
+  const bundleCheck = await page.evaluate(() => {
+    const recs = window.RECALL_RECS.depth.filter((card) =>
+      card.why.some((line) => line.includes("PostRunBodyDiscoveryReminder"))
+    );
+    return {
+      count: recs.length,
+      hasLowHigh: recs.some((card) => /low-to-high/i.test(card.title)),
+      hasTwenty: recs.some((card) => /twenty movement hypotheses/i.test(card.title)),
+      frame: recs[0]?.generationFrame?.id
+    };
+  });
+
+  expect(bundleCheck).toEqual({
+    count: 20,
+    hasLowHigh: true,
+    hasTwenty: true,
+    frame: "FeltDiscoveryScanFrame"
+  });
+});

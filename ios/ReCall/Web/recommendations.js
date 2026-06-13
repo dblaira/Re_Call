@@ -754,6 +754,680 @@ window.RECALL_RECS = {
    "deepensStrengths": [
     "StrategicLearning"
    ]
+  },
+  {
+   "id": "depth:MapLowToHighLine",
+   "source": "depth",
+   "type": "task",
+   "title": "Map the low-to-high line: where did the movement start, where did strength show up, and what changed after three reps?",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → MapLowToHighLine"
+   ],
+   "score": 1.09,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:CaptureBeforeAfterBodySignal",
+   "source": "depth",
+   "type": "task",
+   "title": "Capture the before/after body signal: hip, shoulder, breath, stride, or mood; keep only what felt different.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → CaptureBeforeAfterBodySignal"
+   ],
+   "score": 1.08,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:NameRepeatableSupportRitual",
+   "source": "depth",
+   "type": "task",
+   "title": "Name the repeatable support ritual: the smallest band move that makes running support feel good enough to repeat.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → NameRepeatableSupportRitual"
+   ],
+   "score": 1.07,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:ScanTwentyMovementHypotheses",
+   "source": "depth",
+   "type": "task",
+   "title": "Scan twenty movement hypotheses before choosing: low-to-high, high-to-low, left, right, slow, fast, banded, bodyweight, breath-led, stride-led.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → ScanTwentyMovementHypotheses"
+   ],
+   "score": 1.06,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:TestOppositeTwist",
+   "source": "depth",
+   "type": "task",
+   "title": "Test the opposite twist: if the golf-swing direction tightens, does the reverse direction create space, strength, or curiosity?",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → TestOppositeTwist"
+   ],
+   "score": 1.05,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:PairRightLeftComparison",
+   "source": "depth",
+   "type": "task",
+   "title": "Pair right and left: same move, same reps, then record which side changed more and what mystery appeared.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → PairRightLeftComparison"
+   ],
+   "score": 1.04,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:ProtectPostShowerDiscoveryWindow",
+   "source": "depth",
+   "type": "task",
+   "title": "Protect the post-shower discovery window: two minutes to test the body signal before the day swallows the clue.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → ProtectPostShowerDiscoveryWindow"
+   ],
+   "score": 1.03,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:TurnMaintenanceIntoCuriosity",
+   "source": "depth",
+   "type": "task",
+   "title": "Turn maintenance into curiosity: ask what feels newly possible if this support move keeps working.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → TurnMaintenanceIntoCuriosity"
+   ],
+   "score": 1.02,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:LogFeltImprovementScale",
+   "source": "depth",
+   "type": "task",
+   "title": "Log the felt improvement: 0 no change, 1 interesting, 2 better, 3 electric enough to repeat tomorrow.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → LogFeltImprovementScale"
+   ],
+   "score": 1.01,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:LinkMovementToRunEnjoyment",
+   "source": "depth",
+   "type": "task",
+   "title": "Link the support move to running joy: did it make tomorrow's run feel more available, lighter, or more wanted?",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → LinkMovementToRunEnjoyment"
+   ],
+   "score": 1,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:CompareStrengthPathToPainPath",
+   "source": "depth",
+   "type": "task",
+   "title": "Compare strength path to pain path: which direction routes sensation toward power instead of protection?",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → CompareStrengthPathToPainPath"
+   ],
+   "score": 0.97,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:AskWhatTheBodyTaught",
+   "source": "depth",
+   "type": "task",
+   "title": "Ask what the body taught: not why it hurts, but what experiment changed the next rep.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → AskWhatTheBodyTaught"
+   ],
+   "score": 0.96,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:NameBandSetup",
+   "source": "depth",
+   "type": "task",
+   "title": "Name the band setup: anchor height, stance, direction, reps, and the first body signal that says it is working.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → NameBandSetup"
+   ],
+   "score": 0.94,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation"
+   ]
+  },
+  {
+   "id": "depth:CaptureEnergySpikeAfterMovement",
+   "source": "depth",
+   "type": "task",
+   "title": "Capture the energy spike after movement: did the discovery make support work feel exciting instead of responsible?",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → CaptureEnergySpikeAfterMovement"
+   ],
+   "score": 0.93,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:PlanTomorrowRetest",
+   "source": "depth",
+   "type": "task",
+   "title": "Plan tomorrow's retest: same move, same side order, same verdict; see if the mystery survives sleep.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → PlanTomorrowRetest"
+   ],
+   "score": 0.91,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:MakeSupportWorkInspectable",
+   "source": "depth",
+   "type": "task",
+   "title": "Make support work inspectable: movement, side, reps, felt change, repeat verdict.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → MakeSupportWorkInspectable"
+   ],
+   "score": 0.9,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation"
+   ]
+  },
+  {
+   "id": "depth:ConvertDiscoveryToTinyRegimen",
+   "source": "depth",
+   "type": "task",
+   "title": "Convert discovery to tiny regimen only after three wins: then it earns a place beside running, not above it.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → ConvertDiscoveryToTinyRegimen"
+   ],
+   "score": 0.9,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:FindSecondDiscoverySlot",
+   "source": "depth",
+   "type": "task",
+   "title": "Find a second discovery slot: after run, after shower, before lifting, or before bed; keep the slot where curiosity appears.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → FindSecondDiscoverySlot"
+   ],
+   "score": 0.89,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "FeltDiscovery"
+   ]
+  },
+  {
+   "id": "depth:RecordOneRepVideo",
+   "source": "depth",
+   "type": "task",
+   "title": "Record one rep video only if it preserves the clue: setup, direction, and the body signal it changed.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → RecordOneRepVideo"
+   ],
+   "score": 0.88,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "EmbodiedExperimentation"
+   ]
+  },
+  {
+   "id": "depth:SeparateExerciseFromDiscovery",
+   "source": "depth",
+   "type": "task",
+   "title": "Separate exercise from discovery: this is not a workout; it is a two-minute test for a felt clue.",
+   "sub": "Discovery converts maintenance into pull; recommend a wide scan field of body-signal experiments so the user can reconnect by recognition instead of forcing one perfect suggestion.",
+   "why": [
+    "PostRunBodyDiscoveryReminder — recommends → SeparateExerciseFromDiscovery"
+   ],
+   "score": 0.87,
+   "generationFrame": {
+    "id": "FeltDiscoveryScanFrame",
+    "iri": "https://understood.app/ontology/project-recall#FeltDiscoveryScanFrame",
+    "label": "Felt discovery scan frame",
+    "comment": "",
+    "intent": "Generate a scan field of body-discovery options so the user can reconnect by recognition, not by inventing one perfect reminder from a cold start.",
+    "mustInclude": [
+     "a body signal before and after the experiment",
+     "a movement hypothesis",
+     "a felt improvement or no-change verdict",
+     "multiple scan options instead of one narrow suggestion"
+    ],
+    "mustAvoid": [
+     "generic stretching advice",
+     "medical diagnosis",
+     "one best answer too early",
+     "repeating the user's hip wording without a next scan option"
+    ]
+   },
+   "deepensStrengths": [
+    "FeltDiscovery"
+   ]
   }
  ],
  "seeds": {
@@ -814,6 +1488,15 @@ window.RECALL_RECS = {
    "revealsStrengths": [
     "StrategicLearning"
    ]
+  },
+  "PostRunBodyDiscoveryReminder": {
+   "id": "PostRunBodyDiscoveryReminder",
+   "label": "Post-run body discovery",
+   "text": "After the run and shower: capture the body signal, the movement experiment, and what felt different.",
+   "revealsStrengths": [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+   ]
   }
  },
  "strengths": [
@@ -826,6 +1509,8 @@ window.RECALL_RECS = {
   "KnowledgeSynthesis",
   "ToolIntegrationTiming",
   "StrategicLearning",
+  "EmbodiedExperimentation",
+  "FeltDiscovery",
   "TransitionPreparation",
   "EvidenceTrust"
  ],
@@ -852,6 +1537,12 @@ window.RECALL_RECS = {
   "KnowledgeSynthesis": {},
   "ToolIntegrationTiming": {},
   "StrategicLearning": {},
+  "EmbodiedExperimentation": {
+   "FeltDiscovery": 1
+  },
+  "FeltDiscovery": {
+   "EmbodiedExperimentation": 1
+  },
   "TransitionPreparation": {
    "TimeAwareness": 1
   },

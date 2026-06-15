@@ -82,6 +82,52 @@ enum ReminderKind: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+/// Rough time an action takes — for picking what to do by the window you have.
+enum Effort: String, Codable, CaseIterable, Identifiable {
+    case none, m5, m15, m30, h1, h2plus
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .none: return "—"
+        case .m5: return "5m"
+        case .m15: return "15m"
+        case .m30: return "30m"
+        case .h1: return "1h"
+        case .h2plus: return "2h+"
+        }
+    }
+}
+
+/// How much gas an action needs — for matching work to how you feel.
+enum Energy: String, Codable, CaseIterable, Identifiable {
+    case none, low, medium, high
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .none: return "—"
+        case .low: return "Low"
+        case .medium: return "Med"
+        case .high: return "High"
+        }
+    }
+}
+
+/// Where/how an action gets done (GTD-style context).
+enum ActionContext: String, Codable, CaseIterable, Identifiable {
+    case none, home, work, errands, calls, computer
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .none: return "None"
+        case .home: return "@Home"
+        case .work: return "@Work"
+        case .errands: return "@Errands"
+        case .calls: return "@Calls"
+        case .computer: return "@Computer"
+        }
+    }
+}
+
 struct Subtask: Identifiable, Codable, Equatable, Hashable {
     var id: UUID = UUID()
     var title: String = ""
@@ -109,6 +155,13 @@ struct Reminder: Identifiable, Codable, Equatable {
     var listName: String = "Reminders"
     var flag: Bool = false
     var priority: Priority = .none
+    // Action (local-first for now)
+    var outcome: String = ""
+    var effort: Effort = .none
+    var energy: Energy = .none
+    var context: ActionContext = .none
+    var deferDate: Date? = nil
+    var waitingOn: String = ""
     // Places & People
     var locationName: String = ""
     var whenMessagingPerson: String = ""

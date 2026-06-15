@@ -130,9 +130,15 @@ final class ReminderStore: ObservableObject {
             guard let localCopy = local.first(where: { $0.id == incoming.id }) else { return incoming }
             var r = incoming
             if r.imageLocalPath == nil { r.imageLocalPath = localCopy.imageLocalPath }
-            // kind / endTime aren't synced to Supabase yet, so carry the local values forward.
+            // These fields aren't synced to Supabase yet, so carry the local values forward.
             r.kind = localCopy.kind
             r.endTime = localCopy.endTime
+            r.outcome = localCopy.outcome
+            r.effort = localCopy.effort
+            r.energy = localCopy.energy
+            r.context = localCopy.context
+            r.deferDate = localCopy.deferDate
+            r.waitingOn = localCopy.waitingOn
             return r
         }
 

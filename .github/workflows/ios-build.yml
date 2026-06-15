@@ -1,0 +1,25 @@
+name: iOS Build
+
+# Compile-check on every push so you can confirm a change builds from anywhere (e.g. your phone),
+# without needing the Mac. Simulator build, no code signing required.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Compile (iOS Simulator)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cd ios
+          xcodebuild build \
+            -project ReCall.xcodeproj \
+            -scheme ReCall \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO

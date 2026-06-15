@@ -27,6 +27,14 @@ private struct ReminderRow: Decodable {
     var priority: String
     var location_name: String
     var when_messaging_person: String
+    var kind: String
+    var end_time: String?
+    var outcome: String
+    var effort: String
+    var energy: String
+    var context: String
+    var defer_date: String?
+    var waiting_on: String
     var seeded_from_template_id: String?
     var status: String
     var completed_at: String?
@@ -52,6 +60,14 @@ private struct ReminderUpsert: Encodable {
     var priority: String
     var location_name: String
     var when_messaging_person: String
+    var kind: String
+    var end_time: String?
+    var outcome: String
+    var effort: String
+    var energy: String
+    var context: String
+    var defer_date: String?
+    var waiting_on: String
     var seeded_from_template_id: String?
     var status: String
     var completed_at: String?
@@ -158,6 +174,14 @@ final class SupabaseReminderRepository: ReminderRepository {
             priority: r.priority.rawValue,
             location_name: r.locationName,
             when_messaging_person: r.whenMessagingPerson,
+            kind: r.kind.rawValue,
+            end_time: r.endTime.map { PG.time.string(from: $0) },
+            outcome: r.outcome,
+            effort: r.effort.rawValue,
+            energy: r.energy.rawValue,
+            context: r.context.rawValue,
+            defer_date: r.deferDate.map { PG.date.string(from: $0) },
+            waiting_on: r.waitingOn,
             seeded_from_template_id: r.seededFromTemplateID,
             status: r.status.rawValue,
             completed_at: r.completedAt.map { ISO8601DateFormatter().string(from: $0) }
@@ -181,6 +205,14 @@ final class SupabaseReminderRepository: ReminderRepository {
         r.priority = Priority(rawValue: row.priority) ?? .none
         r.locationName = row.location_name
         r.whenMessagingPerson = row.when_messaging_person
+        r.kind = ReminderKind(rawValue: row.kind) ?? .reminder
+        r.endTime = row.end_time.flatMap { PG.time.date(from: $0) }
+        r.outcome = row.outcome
+        r.effort = Effort(rawValue: row.effort) ?? .none
+        r.energy = Energy(rawValue: row.energy) ?? .none
+        r.context = ActionContext(rawValue: row.context) ?? .none
+        r.deferDate = row.defer_date.flatMap { PG.date.date(from: $0) }
+        r.waitingOn = row.waiting_on
         r.seededFromTemplateID = row.seeded_from_template_id
         r.status = ReminderStatus(rawValue: row.status) ?? .active
         r.tags = tags

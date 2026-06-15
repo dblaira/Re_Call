@@ -264,13 +264,15 @@ struct ReminderFormView: View {
         Task {
             if let data = try? await item.loadTransferable(type: Data.self), let img = UIImage(data: data) {
                 pickedImage = img
-                r.imageLocalPath = LocalImageStore.save(img)
             }
         }
     }
 
     private func commit() {
         addTag()
+        if let pickedImage {
+            r.imageLocalPath = LocalImageStore.save(pickedImage)
+        }
         r.dueDate = hasDate ? date : nil
         r.dueTime = hasTime ? time : nil
         r.subtasks.removeAll { $0.title.trimmingCharacters(in: .whitespaces).isEmpty }

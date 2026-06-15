@@ -38,12 +38,7 @@ final class ReminderStore: ObservableObject {
     func refresh() async {
         do {
             let remote = try await repo.fetchAll()
-            var merged = remote
-            // Keep local rows that haven't synced yet; they win over the remote copy.
-            for u in reminders where u.needsSync {
-                if let idx = merged.firstIndex(where: { $0.id == u.id }) { merged[idx] = u }
-                else { merged.append(u) }
-            }
+            let merged = mergeRemote(remote, withLocal: reminders)
             reminders = merged
             saveCache()
             reminders.forEach(NotificationScheduler.schedule)
@@ -77,10 +72,13 @@ final class ReminderStore: ObservableObject {
     }
 
     func delete(_ reminder: Reminder) {
-        reminders.removeAll { $0.id == reminder.id }
-        saveCache()
+        var r = reminder
+        r.status = .deleted
+        r.updatedAt = Date()
+        r.needsSync = true
+        upsertLocal(r)
         NotificationScheduler.cancel(reminder)
-        Task { try? await repo.delete(id: reminder.id) }
+        Task { await sync(r) }
     }
 
     // MARK: - sync
@@ -88,8 +86,13 @@ final class ReminderStore: ObservableObject {
     private func sync(_ r: Reminder) async {
         guard await repo.ensureReady() else { lastSyncFailed = true; return }
         do {
-            try await repo.upsert(r)
-            markSynced(r.id)
+            if r.status == .deleted {
+                try await repo.delete(id: r.id)
+                removeSyncedDelete(r.id, updatedAt: r.updatedAt)
+            } else {
+                try await repo.upsert(r)
+                markSynced(r.id, updatedAt: r.updatedAt)
+            }
             lastSyncFailed = false
         } catch {
             lastSyncFailed = true
@@ -106,11 +109,37 @@ final class ReminderStore: ObservableObject {
         saveCache()
     }
 
-    private func markSynced(_ id: UUID) {
+    private func markSynced(_ id: UUID, updatedAt: Date) {
         if let idx = reminders.firstIndex(where: { $0.id == id }) {
+            guard reminders[idx].updatedAt == updatedAt else { return }
             reminders[idx].needsSync = false
             saveCache()
         }
+    }
+
+    private func removeSyncedDelete(_ id: UUID, updatedAt: Date) {
+        guard let idx = reminders.firstIndex(where: { $0.id == id }),
+              reminders[idx].updatedAt == updatedAt,
+              reminders[idx].status == .deleted else { return }
+        reminders.remove(at: idx)
+        saveCache()
+    }
+
+    private func mergeRemote(_ remote: [Reminder], withLocal local: [Reminder]) -> [Reminder] {
+        var merged = remote.map { incoming -> Reminder in
+            guard let localCopy = local.first(where: { $0.id == incoming.id }) else { return incoming }
+            var r = incoming
+            if r.imageLocalPath == nil { r.imageLocalPath = localCopy.imageLocalPath }
+            return r
+        }
+
+        // Keep local rows that haven't synced yet; they win over the remote copy.
+        for u in local where u.needsSync {
+            if let idx = merged.firstIndex(where: { $0.id == u.id }) { merged[idx] = u }
+            else { merged.append(u) }
+        }
+
+        return merged
     }
 
     // MARK: - cache

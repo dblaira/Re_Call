@@ -116,7 +116,7 @@ struct ReminderFormView: View {
         } header: {
             sectionHeader("Core")
         }
-        .listRowBackground(Color.white)
+        .listRowBackground(Brand.card)
     }
 
     private var dateTimeSection: some View {
@@ -153,7 +153,7 @@ struct ReminderFormView: View {
         } header: {
             sectionHeader("Date & Time")
         }
-        .listRowBackground(Color.white)
+        .listRowBackground(Brand.card)
     }
 
     private var organizationSection: some View {
@@ -223,7 +223,7 @@ struct ReminderFormView: View {
         } header: {
             sectionHeader("Organization")
         }
-        .listRowBackground(Color.white)
+        .listRowBackground(Brand.card)
     }
 
     private var placesSection: some View {
@@ -247,7 +247,7 @@ struct ReminderFormView: View {
             Text("Saved with the reminder. Apple limits live Messages integration to its own Reminders app.")
                 .foregroundStyle(.white.opacity(0.4))
         }
-        .listRowBackground(Color.white)
+        .listRowBackground(Brand.card)
     }
 
     private func addTag() {

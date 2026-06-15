@@ -1,40 +1,50 @@
 import XCTest
 
-/// QC Layer 3 — device smoke. Deliberately thin: deep behavior is covered by
-/// the Playwright suite (tests/web). This only proves the native shell boots
-/// and actually renders the bundled web prototype.
+/// QC Layer 3 — device smoke. Deliberately thin: it proves the native app boots, the full-page
+/// entry form opens with its part groups, and a created reminder shows up in the list.
 final class SmokeTests: XCTestCase {
 
-    func testAppLaunchesAndRendersWebUI() {
-        let app = XCUIApplication()
-        app.launch()
-
-        // The WKWebView must come up.
-        let web = app.webViews.firstMatch
-        XCTAssertTrue(web.waitForExistence(timeout: 20), "WKWebView never appeared")
-
-        // The web content must expose the brand header — proves index.html
-        // loaded from the bundle, not a blank or error page.
-        let brand = web.staticTexts["Notorious"]
-        XCTAssertTrue(brand.waitForExistence(timeout: 20), "Web UI did not render (brand title missing)")
+    /// The notification permission prompt belongs to SpringBoard and would block taps; dismiss it.
+    private func dismissNotificationPrompt() {
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let allow = springboard.buttons["Allow"]
+        if allow.waitForExistence(timeout: 5) { allow.tap() }
     }
 
-    /// Real touch, real device-class input: tap the Tasks tab with the iOS
-    /// touch pipeline (not a desktop click) and assert the screen actually
-    /// switches. This is the layer Playwright cannot see.
-    func testButtonsRespondToRealTouch() {
+    func testAppLaunchesToNativeReminders() {
         let app = XCUIApplication()
         app.launch()
+        dismissNotificationPrompt()
+        XCTAssertTrue(app.staticTexts["Notorious"].waitForExistence(timeout: 20),
+                      "Native Reminders did not render (brand title missing)")
+        XCTAssertTrue(app.buttons["New reminder"].waitForExistence(timeout: 10),
+                      "FAB missing")
+    }
 
-        let web = app.webViews.firstMatch
-        XCTAssertTrue(web.waitForExistence(timeout: 20), "WKWebView never appeared")
+    func testFABOpensFullPageForm() {
+        let app = XCUIApplication()
+        app.launch()
+        dismissNotificationPrompt()
+        let fab = app.buttons["New reminder"]
+        XCTAssertTrue(fab.waitForExistence(timeout: 20))
+        fab.tap()
+        XCTAssertTrue(app.navigationBars["New Reminder"].waitForExistence(timeout: 10),
+                      "Entry form did not open")
+        XCTAssertTrue(app.staticTexts["Core"].waitForExistence(timeout: 5), "Core group missing")
+        XCTAssertTrue(app.textFields["Title"].exists, "Title field missing")
+    }
 
-        let tasksTab = web.descendants(matching: .any)["Tasks"].firstMatch
-        XCTAssertTrue(tasksTab.waitForExistence(timeout: 20), "Tasks tab not found")
-        tasksTab.tap()
-
-        // "Upcoming" exists only on the Tasks screen (segment + section head)
-        let upcoming = web.descendants(matching: .any)["Upcoming"].firstMatch
-        XCTAssertTrue(upcoming.waitForExistence(timeout: 10), "Tap did not switch screens — touch input is broken")
+    func testCreatingAReminderShowsItInTheList() {
+        let app = XCUIApplication()
+        app.launch()
+        dismissNotificationPrompt()
+        app.buttons["New reminder"].tap()
+        let title = app.textFields["Title"]
+        XCTAssertTrue(title.waitForExistence(timeout: 10))
+        title.tap()
+        title.typeText("Smoke test reminder")
+        app.navigationBars.buttons["Add"].tap()
+        XCTAssertTrue(app.staticTexts["Smoke test reminder"].waitForExistence(timeout: 10),
+                      "Created reminder did not appear in the list")
     }
 }

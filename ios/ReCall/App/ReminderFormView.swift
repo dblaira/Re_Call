@@ -1,7 +1,7 @@
 import SwiftUI
 import PhotosUI
 
-/// The full-page native entry form: BLACK page (sides, gaps, bottom) with WHITE entry-row cells,
+/// The full-page native entry form: WHITE page (sides, gaps, bottom) with tan entry-row cells,
 /// grouping all 16 "parts" like the Figma board — Core / Date & Time / Organization /
 /// Places & People. Reused for create and edit.
 struct ReminderFormView: View {
@@ -44,34 +44,34 @@ struct ReminderFormView: View {
                 placesSection
             }
             .scrollContentBackground(.hidden)
-            .background(Color.black.ignoresSafeArea())   // black sides / gaps / bottom
+            .background(Color.white.ignoresSafeArea())   // white sides / gaps / bottom
             .tint(Brand.crimson)
             .navigationTitle(existing == nil ? "New Reminder" : "Edit Reminder")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }.tint(.white)
+                    Button("Cancel") { dismiss() }.tint(.black)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(existing == nil ? "Add" : "Save") { commit() }
                         .fontWeight(.bold).tint(Brand.crimson)
                 }
             }
-            .toolbarBackground(Color.black, for: .navigationBar)
+            .toolbarBackground(Color.white, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarColorScheme(.light, for: .navigationBar)
             .onChange(of: photoItem) { _, item in loadPhoto(item) }
         }
-        // Light color scheme so the WHITE row cells render dark, legible text/controls.
-        // Section headers/footers sit on the black page and are colored light explicitly below.
+        // Light color scheme so the tan row cells render dark, legible text/controls.
+        // Section headers/footers sit on the white page and are colored dark explicitly below.
         .preferredColorScheme(.light)
     }
 
-    /// Light-on-black group label so headers read against the black page.
+    /// Dark-on-white group label so headers read against the white page.
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
             .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(.white.opacity(0.6))
+            .foregroundStyle(.black.opacity(0.5))
     }
 
     private func optionButton(_ title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
@@ -245,7 +245,7 @@ struct ReminderFormView: View {
             sectionHeader("Places & People")
         } footer: {
             Text("Saved with the reminder. Apple limits live Messages integration to its own Reminders app.")
-                .foregroundStyle(.white.opacity(0.4))
+                .foregroundStyle(.black.opacity(0.45))
         }
         .listRowBackground(Brand.card)
     }

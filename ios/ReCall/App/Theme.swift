@@ -4,7 +4,7 @@ import SwiftUI
 enum Brand {
     static let crimson = Color(red: 0xDC / 255, green: 0x14 / 255, blue: 0x3C / 255)
     static let page    = Color.black                       // list / page background
-    static let card    = Color(red: 0xE6 / 255, green: 0xD4 / 255, blue: 0xAA / 255) // entry-form background (tan)
+    static let card    = Color(red: 0xF3 / 255, green: 0xEA / 255, blue: 0xD5 / 255) // entry-form background (tan)
     static let ink     = Color.black
     static let dim     = Color(white: 0.6)
 

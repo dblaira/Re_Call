@@ -31,7 +31,7 @@ struct MainTabView: View {
         case .tasks:
             tasksList
         case .calendar:
-            placeholder("Calendar")
+            CalendarView { editing = $0; showingForm = true }
         }
     }
 
@@ -64,15 +64,6 @@ struct MainTabView: View {
         .background(Brand.page)
     }
 
-    private func placeholder(_ title: String) -> some View {
-        VStack(spacing: 10) {
-            Text(title).font(Brand.serif(34)).foregroundStyle(.white)
-            Text("Coming soon").font(.system(size: 15)).foregroundStyle(.white.opacity(0.5))
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Brand.page)
-    }
-
     // MARK: - Tab bar
 
     private var tabBar: some View {
@@ -92,8 +83,8 @@ struct MainTabView: View {
         let active = tab == t
         return Button { tab = t } label: {
             VStack(spacing: 4) {
-                Image(systemName: icon).font(.system(size: 19, weight: .bold))
-                Text(label).font(.system(size: 11, weight: .heavy))
+                Image(systemName: icon).font(.system(size: 22, weight: .bold))
+                Text(label).font(.system(size: 13, weight: .heavy))
             }
             .foregroundStyle(active ? Brand.tabActive : Brand.tabInactive)
             .frame(maxWidth: .infinity)

@@ -24,6 +24,7 @@
 		ECE8863350AD504CF43308C3 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 931E5F894F39FD8F30990C78 /* Models.swift */; };
 		A1A1A1A1A1A1A1A1A1A1A101 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A102 /* MainTabView.swift */; };
 		A1A1A1A1A1A1A1A1A1A1A201 /* RemindersHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A202 /* RemindersHomeView.swift */; };
+		A1A1A1A1A1A1A1A1A1A1A301 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A302 /* CalendarView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +57,7 @@
 		D85E54626A8DE911BCEC1324 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A1A102 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A1A202 /* RemindersHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersHomeView.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A302 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -108,6 +110,7 @@
 				D85E54626A8DE911BCEC1324 /* ContentView.swift */,
 				A1A1A1A1A1A1A1A1A1A1A102 /* MainTabView.swift */,
 				A1A1A1A1A1A1A1A1A1A1A202 /* RemindersHomeView.swift */,
+				A1A1A1A1A1A1A1A1A1A1A302 /* CalendarView.swift */,
 				1227A5BF6167BDE5AF79D61E /* LocalImageStore.swift */,
 				3379E1EBD3E2B8311EB905DE /* LocationProvider.swift */,
 				931E5F894F39FD8F30990C78 /* Models.swift */,
@@ -222,6 +225,7 @@
 				8A6E477479BD7E2877F5B81F /* ContentView.swift in Sources */,
 				A1A1A1A1A1A1A1A1A1A1A101 /* MainTabView.swift in Sources */,
 				A1A1A1A1A1A1A1A1A1A1A201 /* RemindersHomeView.swift in Sources */,
+				A1A1A1A1A1A1A1A1A1A1A301 /* CalendarView.swift in Sources */,
 				314E7B183548412A85799A47 /* LocalImageStore.swift in Sources */,
 				9C60A0460D2A3CBFF21DE867 /* LocationProvider.swift in Sources */,
 				ECE8863350AD504CF43308C3 /* Models.swift in Sources */,

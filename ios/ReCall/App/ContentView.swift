@@ -7,7 +7,7 @@ struct ContentView: View {
     @State private var didStartBootstrap = false
 
     var body: some View {
-        ReminderListView()
+        MainTabView()
             .environmentObject(store)
             .task {
                 await bootstrapAfterFirstFrame()

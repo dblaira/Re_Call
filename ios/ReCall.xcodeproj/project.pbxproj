@@ -22,6 +22,8 @@
 		DA8547B1B0922F41A8C55FD5 /* ReminderRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E3766D436B6955155E177E /* ReminderRepository.swift */; };
 		EBA6D7111CC8C0556CE4AD1D /* ReminderGenerationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */; };
 		ECE8863350AD504CF43308C3 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 931E5F894F39FD8F30990C78 /* Models.swift */; };
+		A1A1A1A1A1A1A1A1A1A1A101 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A102 /* MainTabView.swift */; };
+		A1A1A1A1A1A1A1A1A1A1A201 /* RemindersHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A202 /* RemindersHomeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +54,8 @@
 		931E5F894F39FD8F30990C78 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		C7116D79FD34A726158C3D32 /* ReCall.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ReCall.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D85E54626A8DE911BCEC1324 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A102 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A202 /* RemindersHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersHomeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -102,6 +106,8 @@
 			isa = PBXGroup;
 			children = (
 				D85E54626A8DE911BCEC1324 /* ContentView.swift */,
+				A1A1A1A1A1A1A1A1A1A1A102 /* MainTabView.swift */,
+				A1A1A1A1A1A1A1A1A1A1A202 /* RemindersHomeView.swift */,
 				1227A5BF6167BDE5AF79D61E /* LocalImageStore.swift */,
 				3379E1EBD3E2B8311EB905DE /* LocationProvider.swift */,
 				931E5F894F39FD8F30990C78 /* Models.swift */,
@@ -214,6 +220,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A6E477479BD7E2877F5B81F /* ContentView.swift in Sources */,
+				A1A1A1A1A1A1A1A1A1A1A101 /* MainTabView.swift in Sources */,
+				A1A1A1A1A1A1A1A1A1A1A201 /* RemindersHomeView.swift in Sources */,
 				314E7B183548412A85799A47 /* LocalImageStore.swift in Sources */,
 				9C60A0460D2A3CBFF21DE867 /* LocationProvider.swift in Sources */,
 				ECE8863350AD504CF43308C3 /* Models.swift in Sources */,

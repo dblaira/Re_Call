@@ -13,7 +13,7 @@ enum Brand {
     static let nearBlack   = Color(hex: 0x0A0A0A)   // hero background
     static let darkRed     = Color(hex: 0xB00124)   // story / tile red
     static let recallBlue  = Color(hex: 0x021784)   // "RECALL" label
-    static let cyan        = Color(hex: 0x18C8CF)   // "Capture first" card
+    static let cyan        = Color(hex: 0x0C8A92)   // deep aqua — white text pops
     static let tileBlue    = Color(hex: 0x0F288E)   // blue tile / cyan card text
     static let tileGray    = Color(hex: 0xCFD3D9)   // light gray tile
     static let tileDark    = Color(hex: 0x1A1A1A)   // near-black tile

@@ -16,7 +16,7 @@ struct RemindersHomeView: View {
         (.white, Brand.nearBlack, Brand.tan),
         (Brand.darkRed, .white, Brand.crimson),
         (Brand.nearBlack, .white, Brand.crimson),
-        (Brand.cyan, Brand.tileBlue, Brand.crimson),
+        (Brand.cyan, .white, Brand.crimson),
     ]
     private let leftTiles: [ShapeTileSpec] = [
         .init(title: "Add one movement",       bg: Brand.tileBlue, fg: .white, tags: ["PHOTO", "TIME", "URL"], height: 190, dark: true),

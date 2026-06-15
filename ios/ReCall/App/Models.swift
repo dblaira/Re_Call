@@ -167,6 +167,7 @@ struct Reminder: Identifiable, Codable, Equatable {
     var whenMessagingPerson: String = ""
     // Graph + lifecycle
     var seededFromTemplateID: String? = nil
+    var pinned: Bool = false                    // sorts to the top of the list
     var tags: [String] = []
     var subtasks: [Subtask] = []
     var status: ReminderStatus = .active

@@ -21,7 +21,10 @@ final class ReminderStore: ObservableObject {
 
     var active: [Reminder] {
         reminders.filter { $0.status == .active }
-            .sorted { sortKey($0) < sortKey($1) }
+            .sorted { lhs, rhs in
+                if lhs.pinned != rhs.pinned { return lhs.pinned }   // pinned float to the top
+                return sortKey(lhs) < sortKey(rhs)
+            }
     }
     var completed: [Reminder] {
         reminders.filter { $0.status == .completed }
@@ -68,6 +71,12 @@ final class ReminderStore: ObservableObject {
         var r = reminder
         r.status = .active
         r.completedAt = nil
+        save(r)
+    }
+
+    func togglePin(_ reminder: Reminder) {
+        var r = reminder
+        r.pinned.toggle()
         save(r)
     }
 
@@ -139,6 +148,7 @@ final class ReminderStore: ObservableObject {
             r.context = localCopy.context
             r.deferDate = localCopy.deferDate
             r.waitingOn = localCopy.waitingOn
+            r.pinned = localCopy.pinned
             return r
         }
 

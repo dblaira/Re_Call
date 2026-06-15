@@ -61,6 +61,14 @@ struct RemindersHomeView: View {
             .prefix(4))
     }
 
+    private func cardActions(_ r: Reminder) -> [SwipeAction] {
+        [
+            SwipeAction(title: "Done", icon: "checkmark", bg: Brand.crimson) { store.complete(r) },
+            SwipeAction(title: r.pinned ? "Unpin" : "Pin", icon: "pin", bg: Brand.tileBlue) { store.togglePin(r) },
+            SwipeAction(title: "Delete", icon: "trash", bg: Color(hex: 0xB00124)) { store.delete(r) },
+        ]
+    }
+
     private var band: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -75,11 +83,10 @@ struct RemindersHomeView: View {
             } else {
                 ForEach(Array(upcoming.enumerated()), id: \.element.id) { idx, rem in
                     let c = palette[idx % palette.count]
-                    Button { onOpen(rem) } label: {
+                    SwipeRow(actions: cardActions(rem), onTap: { onOpen(rem) }, cornerRadius: 8) {
                         BandCard(spec: .init(title: rem.title.isEmpty ? "Untitled" : rem.title,
                                              bg: c.bg, fg: c.fg, accent: c.accent, subtitle: rem.whenLabel))
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }

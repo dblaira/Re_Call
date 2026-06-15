@@ -165,3 +165,69 @@ struct ItemRow: View {
         return extras.isEmpty ? nil : extras.joined(separator: " · ")
     }
 }
+
+// MARK: - Reusable swipe container
+
+/// One revealed action behind a swiped row.
+struct SwipeAction: Identifiable {
+    let id = UUID()
+    let title: String
+    let icon: String
+    let bg: Color
+    let run: () -> Void
+}
+
+/// Wraps any row content and reveals leading action buttons on a right-swipe. Tap (when closed)
+/// fires `onTap`; tap (when open) closes. Works inside a ScrollView.
+struct SwipeRow<Content: View>: View {
+    let actions: [SwipeAction]
+    var onTap: () -> Void = {}
+    var cornerRadius: CGFloat = 12
+    @ViewBuilder var content: Content
+
+    @State private var offset: CGFloat = 0
+    private var actionsWidth: CGFloat { CGFloat(actions.count) * 64 }
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            HStack(spacing: 0) {
+                ForEach(actions) { a in
+                    Button {
+                        withAnimation(.snappy) { offset = 0 }
+                        a.run()
+                    } label: {
+                        VStack(spacing: 3) {
+                            Image(systemName: a.icon).font(.system(size: 16, weight: .bold))
+                            Text(a.title).font(.system(size: 10, weight: .heavy))
+                        }
+                        .foregroundStyle(.white)
+                        .frame(width: 64)
+                        .frame(maxHeight: .infinity)
+                        .background(a.bg)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .frame(width: actionsWidth)
+            .frame(maxHeight: .infinity)
+
+            content
+                .offset(x: offset)
+                .gesture(
+                    DragGesture(minimumDistance: 16)
+                        .onChanged { v in
+                            guard abs(v.translation.width) > abs(v.translation.height) else { return }
+                            offset = min(max(v.translation.width, 0), actionsWidth)
+                        }
+                        .onEnded { _ in
+                            withAnimation(.snappy) { offset = offset > actionsWidth / 2 ? actionsWidth : 0 }
+                        }
+                )
+                .onTapGesture {
+                    if offset != 0 { withAnimation(.snappy) { offset = 0 } }
+                    else { onTap() }
+                }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+    }
+}

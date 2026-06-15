@@ -20,9 +20,10 @@ enum Brand {
     static let tabActive   = Color(hex: 0x2E2716)   // active tab label
     static let tabInactive = Color(hex: 0x7D6A45)   // inactive tab label
 
-    /// Bodoni for editorial titles, with a graceful serif fallback if the face is absent.
+    /// Bodoni 72 Oldstyle (the "book" cut from the Figma) for editorial titles, with a graceful
+    /// serif fallback if the face is absent.
     static func serif(_ size: CGFloat, weight: Font.Weight = .bold) -> Font {
-        Font.custom("Bodoni 72", size: size).weight(weight)
+        Font.custom("Bodoni 72 Oldstyle", size: size).weight(weight)
     }
 }
 

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// A light-themed list of items of one kind: active rows on top, then completed greyed at the
-/// bottom — tap the check to reopen, the trash to permanently delete. Used by the Reminders and
+/// bottom. Each row swipes right to reveal Done/Reopen + Delete. Used by the Reminders and
 /// Actions tabs, both of which sit on a white page.
 struct ItemListView: View {
     @EnvironmentObject var store: ReminderStore
@@ -19,7 +19,10 @@ struct ItemListView: View {
                     .padding(.vertical, 8)
             }
             ForEach(active) { r in
-                ItemRow(reminder: r, onToggle: { store.complete(r) }, onTap: { onOpen(r) })
+                ItemRow(reminder: r,
+                        onToggle: { store.complete(r) },
+                        onTap: { onOpen(r) },
+                        onDelete: { store.delete(r) })
             }
             if !done.isEmpty {
                 Text("Completed")
@@ -37,8 +40,8 @@ struct ItemListView: View {
     }
 }
 
-/// One item row on a white page. Active: check to complete, meta on the right. Completed: greyed
-/// and struck through, with reopen (the check) and a trash to permanently delete.
+/// One item row on a white page. Tap to open; tap the circle to complete/reopen. Swipe right to
+/// reveal Done/Reopen + Delete.
 struct ItemRow: View {
     let reminder: Reminder
     var completed: Bool = false
@@ -46,7 +49,70 @@ struct ItemRow: View {
     var onTap: () -> Void
     var onDelete: (() -> Void)? = nil
 
+    @State private var offset: CGFloat = 0
+    private let actionsWidth: CGFloat = 132
+
     var body: some View {
+        ZStack(alignment: .leading) {
+            actions
+            rowContent
+                .background(completed ? Color.black.opacity(0.03) : Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.black.opacity(0.08)))
+                .offset(x: offset)
+                .gesture(swipe)
+                .onTapGesture {
+                    if offset != 0 { withAnimation(.snappy) { offset = 0 } }
+                    else { onTap() }
+                }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .opacity(completed ? 0.7 : 1)
+    }
+
+    private var swipe: some Gesture {
+        DragGesture(minimumDistance: 16)
+            .onChanged { v in
+                guard abs(v.translation.width) > abs(v.translation.height) else { return }
+                offset = min(max(v.translation.width, 0), actionsWidth)
+            }
+            .onEnded { _ in
+                withAnimation(.snappy) { offset = offset > actionsWidth / 2 ? actionsWidth : 0 }
+            }
+    }
+
+    private var actions: some View {
+        HStack(spacing: 0) {
+            swipeButton(completed ? "Reopen" : "Done",
+                        icon: completed ? "arrow.uturn.left" : "checkmark",
+                        bg: Brand.crimson) {
+                withAnimation(.snappy) { offset = 0 }
+                onToggle()
+            }
+            swipeButton("Delete", icon: "trash", bg: Color(hex: 0xB00124)) {
+                withAnimation(.snappy) { offset = 0 }
+                onDelete?()
+            }
+        }
+        .frame(width: actionsWidth)
+        .frame(maxHeight: .infinity)
+    }
+
+    private func swipeButton(_ title: String, icon: String, bg: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 3) {
+                Image(systemName: icon).font(.system(size: 16, weight: .bold))
+                Text(title).font(.system(size: 11, weight: .heavy))
+            }
+            .foregroundStyle(.white)
+            .frame(width: actionsWidth / 2)
+            .frame(maxHeight: .infinity)
+            .background(bg)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var rowContent: some View {
         HStack(spacing: 12) {
             Button(action: onToggle) {
                 Image(systemName: completed ? "checkmark.circle.fill" : "circle")
@@ -67,25 +133,10 @@ struct ItemRow: View {
             }
 
             Spacer(minLength: 8)
-
-            if completed {
-                if let onDelete {
-                    Button(action: onDelete) {
-                        Image(systemName: "trash").font(.system(size: 16)).foregroundStyle(.black.opacity(0.35))
-                    }
-                    .buttonStyle(.plain)
-                }
-            } else {
-                trailingMeta
-            }
+            if !completed { trailingMeta }
         }
         .padding(12)
-        .background(completed ? Color.black.opacity(0.03) : Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.black.opacity(0.08)))
-        .opacity(completed ? 0.7 : 1)
         .contentShape(Rectangle())
-        .onTapGesture(perform: onTap)
     }
 
     @ViewBuilder private var trailingMeta: some View {

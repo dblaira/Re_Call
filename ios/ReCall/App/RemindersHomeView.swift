@@ -9,11 +9,14 @@ struct RemindersHomeView: View {
     /// Tapping one of your reminders opens it for editing.
     var onOpen: (Reminder) -> Void = { _ in }
 
-    private let stories: [BandCardSpec] = [
-        .init(title: "Build a basic reminder app", bg: .white,          fg: Brand.nearBlack, accent: Brand.tan),
-        .init(title: "Drawing by Seeing / Gestalt meets UI", bg: Brand.darkRed, fg: .white, accent: Brand.crimson),
-        .init(title: "Quick kill switch",          bg: Brand.nearBlack, fg: .white,          accent: Brand.crimson),
-        .init(title: "Capture first / Organize later", bg: Brand.cyan,  fg: Brand.tileBlue,  accent: Brand.crimson),
+    @EnvironmentObject private var store: ReminderStore
+
+    /// Colors cycled across the "Up next" cards, in the original story-card order.
+    private let palette: [(bg: Color, fg: Color, accent: Color)] = [
+        (.white, Brand.nearBlack, Brand.tan),
+        (Brand.darkRed, .white, Brand.crimson),
+        (Brand.nearBlack, .white, Brand.crimson),
+        (Brand.cyan, Brand.tileBlue, Brand.crimson),
     ]
     private let leftTiles: [ShapeTileSpec] = [
         .init(title: "Add one movement",       bg: Brand.tileBlue, fg: .white, tags: ["PHOTO", "TIME", "URL"], height: 190, dark: true),
@@ -50,20 +53,34 @@ struct RemindersHomeView: View {
             .background(Brand.nearBlack)
     }
 
+    /// The next few upcoming reminders, shown as the colored cards.
+    private var upcoming: [Reminder] {
+        Array(store.active
+            .filter { $0.kind == .reminder }
+            .sorted { ($0.fireDate ?? $0.createdAt) < ($1.fireDate ?? $1.createdAt) }
+            .prefix(4))
+    }
+
     private var band: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("RECALL")
+                Text("UP NEXT")
                     .font(.system(size: 15, weight: .heavy)).tracking(2.5)
                     .foregroundStyle(Brand.recallBlue)
                 Spacer()
-                Text("See all")
-                    .font(.system(size: 15, weight: .heavy))
-                    .foregroundStyle(Brand.crimson)
             }
-            ForEach(stories) { spec in
-                Button { onPick(spec.title) } label: { BandCard(spec: spec) }
+            if upcoming.isEmpty {
+                BandCard(spec: .init(title: "Nothing scheduled yet — tap + to add a reminder.",
+                                     bg: .white, fg: Brand.nearBlack, accent: Brand.tan))
+            } else {
+                ForEach(Array(upcoming.enumerated()), id: \.element.id) { idx, rem in
+                    let c = palette[idx % palette.count]
+                    Button { onOpen(rem) } label: {
+                        BandCard(spec: .init(title: rem.title.isEmpty ? "Untitled" : rem.title,
+                                             bg: c.bg, fg: c.fg, accent: c.accent, subtitle: rem.whenLabel))
+                    }
                     .buttonStyle(.plain)
+                }
             }
         }
         .padding(.top, 14)
@@ -129,6 +146,7 @@ struct BandCardSpec: Identifiable {
     let bg: Color
     let fg: Color
     let accent: Color
+    var subtitle: String? = nil
 }
 
 struct BandCard: View {
@@ -140,6 +158,9 @@ struct BandCard: View {
                 .foregroundStyle(spec.fg)
                 .fixedSize(horizontal: false, vertical: true)
             Rectangle().fill(spec.accent).frame(width: 36, height: 2)
+            if let sub = spec.subtitle {
+                Text(sub).font(.system(size: 13, weight: .bold)).foregroundStyle(spec.fg.opacity(0.65))
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 11)

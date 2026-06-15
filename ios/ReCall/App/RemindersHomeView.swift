@@ -51,11 +51,11 @@ struct RemindersHomeView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("RECALL")
-                    .font(.system(size: 14, weight: .heavy)).tracking(2.5)
+                    .font(.system(size: 15, weight: .heavy)).tracking(2.5)
                     .foregroundStyle(Brand.recallBlue)
                 Spacer()
                 Text("See all")
-                    .font(.system(size: 14, weight: .heavy))
+                    .font(.system(size: 15, weight: .heavy))
                     .foregroundStyle(Brand.crimson)
             }
             ForEach(stories) { spec in
@@ -74,11 +74,11 @@ struct RemindersHomeView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Reminder shapes")
-                    .font(.system(size: 19, weight: .heavy))
+                    .font(.system(size: 22, weight: .heavy))
                     .foregroundStyle(.black)
                 Spacer()
                 Text("Edit")
-                    .font(.system(size: 14, weight: .heavy))
+                    .font(.system(size: 15, weight: .heavy))
                     .foregroundStyle(Brand.crimson)
             }
             HStack(alignment: .top, spacing: 10) {
@@ -119,7 +119,7 @@ struct BandCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             Text(spec.title)
-                .font(Brand.serif(24, weight: .regular))
+                .font(Brand.serif(27, weight: .regular))
                 .foregroundStyle(spec.fg)
                 .fixedSize(horizontal: false, vertical: true)
             Rectangle().fill(spec.accent).frame(width: 36, height: 2)
@@ -153,7 +153,7 @@ struct ShapeTile: View {
             Spacer(minLength: 8)
             VStack(alignment: .leading, spacing: 11) {
                 Text(spec.title)
-                    .font(.system(size: 21, weight: .heavy))
+                    .font(.system(size: 24, weight: .heavy))
                     .foregroundStyle(spec.fg)
                     .fixedSize(horizontal: false, vertical: true)
                 HStack(spacing: 6) {
@@ -179,7 +179,7 @@ struct ShapeTile: View {
 
     private func tagPill(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 9, weight: .heavy)).tracking(0.3)
+            .font(.system(size: 11, weight: .heavy)).tracking(0.3)
             .foregroundStyle(spec.fg)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)

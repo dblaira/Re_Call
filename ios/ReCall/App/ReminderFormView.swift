@@ -70,14 +70,14 @@ struct ReminderFormView: View {
     /// Dark-on-white group label so headers read against the white page.
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
-            .font(.system(size: 13, weight: .semibold))
+            .font(.system(size: 15, weight: .semibold))
             .foregroundStyle(.black.opacity(0.5))
     }
 
     private func optionButton(_ title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 16, weight: .semibold))
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity, minHeight: 36)
@@ -183,7 +183,7 @@ struct ReminderFormView: View {
                         HStack(spacing: 6) {
                             ForEach(r.tags, id: \.self) { tag in
                                 HStack(spacing: 4) {
-                                    Text(tag).font(.system(size: 13, weight: .semibold))
+                                    Text(tag).font(.system(size: 15, weight: .semibold))
                                     Button { r.tags.removeAll { $0 == tag } } label: {
                                         Image(systemName: "xmark.circle.fill")
                                     }.foregroundStyle(.secondary)

@@ -45,7 +45,7 @@ struct ReminderListView: View {
                     }
                     if !store.completed.isEmpty {
                         HStack {
-                            Text("Completed").font(.system(size: 13, weight: .heavy))
+                            Text("Completed").font(.system(size: 14, weight: .heavy))
                                 .foregroundStyle(.white.opacity(0.4)).textCase(.uppercase)
                             Spacer()
                         }
@@ -67,7 +67,7 @@ struct ReminderListView: View {
         VStack(spacing: 10) {
             Text("Re_Call").font(Brand.serif(34)).foregroundStyle(.white)
             Text("Tap + to capture your first reminder.")
-                .font(.system(size: 15)).foregroundStyle(.white.opacity(0.55))
+                .font(.system(size: 17)).foregroundStyle(.white.opacity(0.55))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -114,12 +114,12 @@ struct ReminderRowView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(reminder.title.isEmpty ? "Untitled" : reminder.title)
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.system(size: 19, weight: .bold))
                     .foregroundStyle(completed ? .white.opacity(0.5) : .white)
                     .strikethrough(completed)
                     .lineLimit(2)
                 if let sub = subtitle {
-                    Text(sub).font(.system(size: 14)).foregroundStyle(.white.opacity(0.55)).lineLimit(1)
+                    Text(sub).font(.system(size: 16)).foregroundStyle(.white.opacity(0.55)).lineLimit(1)
                 }
             }
 
@@ -128,14 +128,14 @@ struct ReminderRowView: View {
             VStack(alignment: .trailing, spacing: 4) {
                 HStack(spacing: 5) {
                     if reminder.flag {
-                        Image(systemName: "flag.fill").font(.system(size: 12)).foregroundStyle(Brand.crimson)
+                        Image(systemName: "flag.fill").font(.system(size: 13)).foregroundStyle(Brand.crimson)
                     }
                     if reminder.priority != .none {
-                        Text(reminder.priority.marks).font(.system(size: 13, weight: .heavy)).foregroundStyle(Brand.crimson)
+                        Text(reminder.priority.marks).font(.system(size: 14, weight: .heavy)).foregroundStyle(Brand.crimson)
                     }
                 }
                 if let when = reminder.whenLabel {
-                    Text(when).font(.system(size: 13, weight: .bold)).foregroundStyle(Brand.crimson)
+                    Text(when).font(.system(size: 14, weight: .bold)).foregroundStyle(Brand.crimson)
                 }
             }
         }

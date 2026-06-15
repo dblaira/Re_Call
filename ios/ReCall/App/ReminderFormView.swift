@@ -20,6 +20,9 @@ struct ReminderFormView: View {
     @State private var photoItem: PhotosPickerItem?
     @State private var pickedImage: UIImage?
 
+    private let listChoices = ["Reminders", "Work", "Personal", "Shopping", "Health"]
+    private let optionColumns = [GridItem(.adaptive(minimum: 96), spacing: 8)]
+
     init(existing: Reminder?, onSave: @escaping (Reminder) -> Void) {
         self.existing = existing
         self.onSave = onSave
@@ -71,6 +74,28 @@ struct ReminderFormView: View {
             .foregroundStyle(.white.opacity(0.6))
     }
 
+    private func optionButton(_ title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 14, weight: .semibold))
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity, minHeight: 36)
+                .padding(.horizontal, 10)
+                .background(isSelected ? Brand.crimson : Color(white: 0.92))
+                .foregroundStyle(isSelected ? .white : .black)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func optionGroup<Content: View>(_ title: String, systemImage: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(title, systemImage: systemImage)
+            content()
+        }
+    }
+
     private var coreSection: some View {
         Section {
             TextField("Title", text: $r.title)
@@ -96,23 +121,35 @@ struct ReminderFormView: View {
 
     private var dateTimeSection: some View {
         Section {
-            Toggle(isOn: $hasDate) { Label("Date", systemImage: "calendar") }
-            if hasDate {
-                DatePicker("", selection: $date, displayedComponents: .date)
-                    .labelsHidden().frame(maxWidth: .infinity, alignment: .trailing)
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle(isOn: $hasDate) { Label("Date", systemImage: "calendar") }
+                DatePicker("Date value", selection: $date, displayedComponents: .date)
+                    .labelsHidden()
+                    .disabled(!hasDate)
+                    .opacity(hasDate ? 1 : 0.45)
             }
-            Toggle(isOn: $hasTime) { Label("Time", systemImage: "clock") }
-            if hasTime {
-                DatePicker("", selection: $time, displayedComponents: .hourAndMinute)
-                    .labelsHidden().frame(maxWidth: .infinity, alignment: .trailing)
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle(isOn: $hasTime) { Label("Time", systemImage: "clock") }
+                DatePicker("Time value", selection: $time, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+                    .disabled(!hasTime)
+                    .opacity(hasTime ? 1 : 0.45)
             }
             Toggle(isOn: $r.urgent) { Label("Urgent", systemImage: "alarm") }
-            Picker(selection: $r.repeatRule) {
-                ForEach(RepeatRule.allCases) { Text($0.label).tag($0) }
-            } label: { Label("Repeat", systemImage: "repeat") }
-            Picker(selection: $r.earlyReminder) {
-                ForEach(EarlyReminder.allCases) { Text($0.label).tag($0) }
-            } label: { Label("Early Reminder", systemImage: "bell") }
+            optionGroup("Repeat", systemImage: "repeat") {
+                LazyVGrid(columns: optionColumns, spacing: 8) {
+                    ForEach(RepeatRule.allCases) { rule in
+                        optionButton(rule.label, isSelected: r.repeatRule == rule) { r.repeatRule = rule }
+                    }
+                }
+            }
+            optionGroup("Early Reminder", systemImage: "bell") {
+                LazyVGrid(columns: optionColumns, spacing: 8) {
+                    ForEach(EarlyReminder.allCases) { lead in
+                        optionButton(lead.label, isSelected: r.earlyReminder == lead) { r.earlyReminder = lead }
+                    }
+                }
+            }
         } header: {
             sectionHeader("Date & Time")
         }
@@ -121,14 +158,22 @@ struct ReminderFormView: View {
 
     private var organizationSection: some View {
         Section {
-            Picker(selection: $r.listName) {
-                ForEach(["Reminders", "Work", "Personal", "Shopping", "Health"], id: \.self) { Text($0).tag($0) }
-            } label: { Label("List", systemImage: "list.bullet") }
+            optionGroup("List", systemImage: "list.bullet") {
+                LazyVGrid(columns: optionColumns, spacing: 8) {
+                    ForEach(listChoices, id: \.self) { name in
+                        optionButton(name, isSelected: r.listName == name) { r.listName = name }
+                    }
+                }
+            }
 
             VStack(alignment: .leading, spacing: 8) {
                 Label("Tags", systemImage: "tag")
                 HStack {
-                    TextField("Add a tag", text: $tagDraft).onSubmit(addTag)
+                    TextField("Add a tag", text: $tagDraft)
+                        .onSubmit(addTag)
+                        .onChange(of: tagDraft) { _, value in
+                            if value.contains(",") { addTag() }
+                        }
                     Button("Add", action: addTag)
                         .foregroundStyle(Brand.crimson)
                         .disabled(tagDraft.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -168,9 +213,13 @@ struct ReminderFormView: View {
             }
 
             Toggle(isOn: $r.flag) { Label("Flag", systemImage: "flag") }
-            Picker(selection: $r.priority) {
-                ForEach(Priority.allCases) { Text($0.label).tag($0) }
-            } label: { Label("Priority", systemImage: "exclamationmark.3") }
+            optionGroup("Priority", systemImage: "exclamationmark.3") {
+                LazyVGrid(columns: optionColumns, spacing: 8) {
+                    ForEach(Priority.allCases) { priority in
+                        optionButton(priority.label, isSelected: r.priority == priority) { r.priority = priority }
+                    }
+                }
+            }
         } header: {
             sectionHeader("Organization")
         }
@@ -202,7 +251,10 @@ struct ReminderFormView: View {
     }
 
     private func addTag() {
-        let t = tagDraft.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "#", with: "")
+        let t = tagDraft
+            .replacingOccurrences(of: ",", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "#", with: "")
         if !t.isEmpty && !r.tags.contains(t) { r.tags.append(t) }
         tagDraft = ""
     }

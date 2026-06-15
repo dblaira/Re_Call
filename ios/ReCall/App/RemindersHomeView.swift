@@ -6,6 +6,8 @@ import SwiftUI
 struct RemindersHomeView: View {
     /// Tapping a story card or shape tile starts a new reminder seeded with a title.
     var onPick: (String) -> Void = { _ in }
+    /// Tapping one of your reminders opens it for editing.
+    var onOpen: (Reminder) -> Void = { _ in }
 
     private let stories: [BandCardSpec] = [
         .init(title: "Build a basic reminder app", bg: .white,          fg: Brand.nearBlack, accent: Brand.tan),
@@ -30,6 +32,7 @@ struct RemindersHomeView: View {
                 Rectangle().fill(Brand.crimson).frame(height: 2)
                 band
                 shapes
+                mine
             }
         }
         .background(Color.white)
@@ -85,6 +88,20 @@ struct RemindersHomeView: View {
                 column(leftTiles)
                 column(rightTiles)
             }
+        }
+        .padding(.top, 18)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+    }
+
+    private var mine: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Your reminders")
+                .font(.system(size: 22, weight: .heavy))
+                .foregroundStyle(.black)
+            ItemListView(kind: .reminder, onOpen: onOpen)
         }
         .padding(.top, 18)
         .padding(.horizontal, 16)

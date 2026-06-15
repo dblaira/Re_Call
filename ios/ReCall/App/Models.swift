@@ -69,6 +69,19 @@ enum EarlyReminder: String, Codable, CaseIterable, Identifiable {
 
 enum ReminderStatus: String, Codable { case active, completed, deleted }
 
+/// What an item *is*: a timed nudge, a thing you do, or a time block. One model, three faces.
+enum ReminderKind: String, Codable, CaseIterable, Identifiable {
+    case reminder, action, event
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .reminder: return "Reminder"
+        case .action: return "Action"
+        case .event: return "Event"
+        }
+    }
+}
+
 struct Subtask: Identifiable, Codable, Equatable, Hashable {
     var id: UUID = UUID()
     var title: String = ""
@@ -79,6 +92,7 @@ struct Subtask: Identifiable, Codable, Equatable, Hashable {
 /// Every "part" from the entry form is a field here so nothing the user enters is dropped.
 struct Reminder: Identifiable, Codable, Equatable {
     var id: UUID = UUID()
+    var kind: ReminderKind = .reminder         // reminder / action / event (local-first for now)
     // Core
     var title: String = ""
     var notes: String = ""
@@ -87,6 +101,7 @@ struct Reminder: Identifiable, Codable, Equatable {
     // Date & Time
     var dueDate: Date? = nil                    // calendar date (date-only meaning)
     var dueTime: Date? = nil                    // clock time (time-only meaning)
+    var endTime: Date? = nil                    // event end (time-only meaning); local-first for now
     var urgent: Bool = false
     var repeatRule: RepeatRule = .none
     var earlyReminder: EarlyReminder = .none

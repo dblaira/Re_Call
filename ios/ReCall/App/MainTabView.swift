@@ -1,15 +1,15 @@
 import SwiftUI
 
-/// App scaffold matching the Figma frames: a custom tan tab bar (Reminders / Tasks / Calendar)
-/// and a crimson FAB that floats above it. Reminders is the editorial home; Tasks is the real
-/// reminder list; Calendar is a placeholder for now.
+/// App scaffold: a custom tan tab bar (Reminders / Actions / Calendar) and a crimson FAB. Each tab
+/// owns its type — Reminders lists reminders (under the story gallery), Actions lists actions,
+/// Calendar is the time view. The FAB opens the entry form defaulted to the current tab's type.
 struct MainTabView: View {
     @EnvironmentObject var store: ReminderStore
     @State private var tab: Tab = .reminders
     @State private var showingForm = false
     @State private var editing: Reminder?
 
-    enum Tab: CaseIterable { case reminders, tasks, calendar }
+    enum Tab: CaseIterable { case reminders, actions, calendar }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -20,48 +20,39 @@ struct MainTabView: View {
         .overlay(alignment: .bottomTrailing) { fab }
         .preferredColorScheme(.dark)
         .sheet(isPresented: $showingForm, onDismiss: { editing = nil }) {
-            ReminderFormView(existing: editing) { store.save($0) }
+            ReminderFormView(initialKind: editing?.kind ?? defaultKind, existing: editing) { store.save($0) }
         }
     }
 
     @ViewBuilder private var content: some View {
         switch tab {
         case .reminders:
-            RemindersHomeView { _ in editing = nil; showingForm = true }
-        case .tasks:
-            tasksList
+            RemindersHomeView(onPick: { _ in newItem() }, onOpen: { open($0) })
+        case .actions:
+            actionsPage
         case .calendar:
-            CalendarView { editing = $0; showingForm = true }
+            CalendarView(onOpen: { open($0) })
         }
     }
 
-    private var tasksList: some View {
+    private var actionsPage: some View {
         ScrollView {
-            LazyVStack(spacing: 10) {
-                ForEach(store.active) { r in
-                    ReminderRowView(reminder: r,
-                                    onToggle: { store.complete(r) },
-                                    onTap: { editing = r; showingForm = true })
-                }
-                if !store.completed.isEmpty {
-                    HStack {
-                        Text("Completed").font(.system(size: 13, weight: .heavy))
-                            .foregroundStyle(.white.opacity(0.4)).textCase(.uppercase)
-                        Spacer()
-                    }
-                    .padding(.top, 18).padding(.horizontal, 4)
-                    ForEach(store.completed) { r in
-                        ReminderRowView(reminder: r, completed: true,
-                                        onToggle: { store.uncomplete(r) },
-                                        onTap: { editing = r; showingForm = true })
-                    }
-                }
+            VStack(spacing: 0) {
+                Text("Actions")
+                    .font(Brand.serif(40)).foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 60).padding(.bottom, 18).padding(.horizontal, 16)
+                    .background(Brand.nearBlack)
+                Rectangle().fill(Brand.crimson).frame(height: 2)
+                ItemListView(kind: .action, onOpen: { open($0) })
+                    .padding(16)
+                    .padding(.bottom, 150)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.white)
             }
-            .padding(16)
-            .padding(.top, 60)
-            .padding(.bottom, 150)
         }
-        .background(Brand.page)
+        .background(Color.white)
+        .ignoresSafeArea(edges: .top)
     }
 
     // MARK: - Tab bar
@@ -69,8 +60,8 @@ struct MainTabView: View {
     private var tabBar: some View {
         HStack(spacing: 0) {
             tabButton(.reminders, icon: "clock", label: "Reminders")
-            tabButton(.tasks, icon: "list.bullet", label: "Tasks")
-            tabButton(.calendar, icon: "square.grid.2x2", label: "Calendar")
+            tabButton(.actions, icon: "bolt", label: "Actions")
+            tabButton(.calendar, icon: "calendar", label: "Calendar")
         }
         .padding(.top, 10)
         .padding(.horizontal, 8)
@@ -93,10 +84,7 @@ struct MainTabView: View {
     }
 
     private var fab: some View {
-        Button {
-            editing = nil
-            showingForm = true
-        } label: {
+        Button { newItem() } label: {
             Image(systemName: "plus")
                 .font(.system(size: 30, weight: .bold))
                 .foregroundStyle(.white)
@@ -107,6 +95,19 @@ struct MainTabView: View {
         }
         .padding(.trailing, 20)
         .padding(.bottom, 96)
-        .accessibilityLabel("New reminder")
+        .accessibilityLabel("New item")
     }
+
+    // MARK: - Actions
+
+    private var defaultKind: ReminderKind {
+        switch tab {
+        case .reminders: return .reminder
+        case .actions: return .action
+        case .calendar: return .event
+        }
+    }
+
+    private func newItem() { editing = nil; showingForm = true }
+    private func open(_ r: Reminder) { editing = r; showingForm = true }
 }

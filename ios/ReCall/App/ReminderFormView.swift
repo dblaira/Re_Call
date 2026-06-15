@@ -23,10 +23,11 @@ struct ReminderFormView: View {
     private let listChoices = ["Reminders", "Work", "Personal", "Shopping", "Health"]
     private let optionColumns = [GridItem(.adaptive(minimum: 96), spacing: 8)]
 
-    init(existing: Reminder?, onSave: @escaping (Reminder) -> Void) {
+    init(initialKind: ReminderKind = .reminder, existing: Reminder?, onSave: @escaping (Reminder) -> Void) {
         self.existing = existing
         self.onSave = onSave
-        let base = existing ?? Reminder()
+        var base = existing ?? Reminder()
+        if existing == nil { base.kind = initialKind }
         _r = State(initialValue: base)
         _hasDate = State(initialValue: base.dueDate != nil)
         _hasTime = State(initialValue: base.dueTime != nil)
@@ -38,6 +39,13 @@ struct ReminderFormView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    Picker("Type", selection: $r.kind) {
+                        ForEach(ReminderKind.allCases) { Text($0.label).tag($0) }
+                    }
+                    .pickerStyle(.segmented)
+                }
+                .listRowBackground(Brand.card)
                 coreSection
                 dateTimeSection
                 organizationSection
@@ -46,7 +54,7 @@ struct ReminderFormView: View {
             .scrollContentBackground(.hidden)
             .background(Color.white.ignoresSafeArea())   // white sides / gaps / bottom
             .tint(Brand.crimson)
-            .navigationTitle(existing == nil ? "New Reminder" : "Edit Reminder")
+            .navigationTitle((existing == nil ? "New " : "Edit ") + r.kind.label)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

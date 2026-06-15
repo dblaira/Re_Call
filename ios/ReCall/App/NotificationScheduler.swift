@@ -4,16 +4,37 @@ import UserNotifications
 /// Local notifications for the Date/Time/Early-Reminder/Repeat parts. One request per reminder,
 /// keyed by its id, so rescheduling and cancellation are deterministic.
 enum NotificationScheduler {
-    static func requestAuth() async {
-        _ = try? await UNUserNotificationCenter.current()
-            .requestAuthorization(options: [.alert, .sound, .badge])
-    }
-
     static func schedule(_ r: Reminder) {
         cancel(r)
         guard r.status == .active, let base = r.fireDate else { return }
         let fire = base.addingTimeInterval(-r.earlyReminder.lead)
 
+        Task {
+            guard await ensureAuthorized() else { return }
+            scheduleAuthorized(r, fire: fire)
+        }
+    }
+
+    static func cancel(_ r: Reminder) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids(r))
+    }
+
+    private static func ensureAuthorized() async -> Bool {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+        switch settings.authorizationStatus {
+        case .authorized, .provisional, .ephemeral:
+            return true
+        case .notDetermined:
+            return (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
+        case .denied:
+            return false
+        @unknown default:
+            return false
+        }
+    }
+
+    private static func scheduleAuthorized(_ r: Reminder, fire: Date) {
         let content = UNMutableNotificationContent()
         content.title = r.title.isEmpty ? "Reminder" : r.title
         if !r.notes.isEmpty { content.body = r.notes }
@@ -51,10 +72,6 @@ enum NotificationScheduler {
         }
 
         addRequest(identifier: id(r), content: content, components: comps, repeats: repeats)
-    }
-
-    static func cancel(_ r: Reminder) {
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids(r))
     }
 
     private static func id(_ r: Reminder) -> String { "recall.reminder.\(r.id.uuidString)" }

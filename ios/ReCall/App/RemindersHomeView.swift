@@ -30,19 +30,19 @@ struct RemindersHomeView: View {
                 shapes
             }
         }
-        .background(Color.white)
+        .background(Brand.page)
         .ignoresSafeArea(edges: .top)
     }
 
     private var hero: some View {
         Text("Notorious")
             .font(Brand.serif(48))
-            .foregroundStyle(.white)
+            .foregroundStyle(Brand.nearBlack)
             .frame(maxWidth: .infinity)
             .padding(.top, 60)
             .padding(.bottom, 18)
             .padding(.horizontal, 16)
-            .background(Brand.nearBlack)
+            .background(Brand.tan)
     }
 
     /// The "what matters now" feed — reminders, actions, and events together, pinned first then
@@ -62,12 +62,12 @@ struct RemindersHomeView: View {
             HStack {
                 Text("UP NEXT")
                     .font(.system(size: 15, weight: .heavy)).tracking(2.5)
-                    .foregroundStyle(Brand.recallBlue)
+                    .foregroundStyle(Brand.tan)
                 Spacer()
             }
             if feed.isEmpty {
                 Text("Nothing yet — tap + to add your first.")
-                    .font(.system(size: 15)).foregroundStyle(Brand.nearBlack.opacity(0.5))
+                    .font(.system(size: 15)).foregroundStyle(.white.opacity(0.5))
                     .padding(.vertical, 6)
             } else {
                 ForEach(Array(feed.enumerated()), id: \.element.id) { idx, rem in
@@ -75,7 +75,7 @@ struct RemindersHomeView: View {
                     let c: (bg: Color, fg: Color, accent: Color) =
                         idx == 0 ? (.white, Brand.nearBlack, Brand.crimson)
                         : idx == 1 ? (Brand.darkRed, .white, .white)
-                        : (Brand.nearBlack, .white, Brand.crimson)
+                        : (Brand.tan, Brand.nearBlack, Brand.crimson)   // light brown, dark text
                     let detail: CardDetail = idx == 0 ? .full : (idx == 1 ? .medium : .minimal)
                     SwipeRow(actions: cardActions(rem), onTap: { onOpen(rem) }, cornerRadius: 8) {
                         BandCard(reminder: rem, bg: c.bg, fg: c.fg, accent: c.accent, detail: detail)
@@ -87,7 +87,7 @@ struct RemindersHomeView: View {
         .padding(.bottom, 16)
         .padding(.horizontal, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Brand.tan)
+        .background(Brand.page)
     }
 
     private var shapes: some View {

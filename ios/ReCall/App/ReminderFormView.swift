@@ -26,7 +26,7 @@ struct ReminderFormView: View {
     @State private var committed = false
     @State private var cancelled = false
 
-    private let listChoices = ["Reminders", "Work", "Personal", "Shopping", "Health"]
+    private let listChoices = ["Learning", "Leverage", "Delegation", "Inspiration", "Risk", "Health"]
     private let optionColumns = [GridItem(.adaptive(minimum: 96), spacing: 8)]
 
     init(initialKind: ReminderKind = .reminder, existing: Reminder?, onSave: @escaping (Reminder) -> Void) {
@@ -286,7 +286,7 @@ struct ReminderFormView: View {
         grid("Context", icon: "mappin.circle", ActionContext.allCases, selected: r.context, label: { $0.label }) { r.context = $0 }
     }
     private var listGroup: some View {
-        optionGroup("List", systemImage: "list.bullet") {
+        optionGroup("Lift", systemImage: "sparkles") {
             LazyVGrid(columns: optionColumns, spacing: 8) {
                 ForEach(listChoices, id: \.self) { name in
                     optionButton(name, isSelected: r.listName == name) { r.listName = name }

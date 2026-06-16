@@ -234,7 +234,7 @@ struct CalendarView: View {
 
     private func subtitle(_ r: Reminder) -> String? {
         if !r.notes.isEmpty { return r.notes }
-        return r.listName == "Reminders" ? nil : r.listName
+        return r.listName.isEmpty || r.listName == "Reminders" ? nil : r.listName
     }
 
     private func dateAtHour(_ h: Int) -> Date { cal.date(from: DateComponents(hour: h)) ?? Date() }

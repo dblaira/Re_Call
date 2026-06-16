@@ -152,7 +152,7 @@ struct Reminder: Identifiable, Codable, Equatable {
     var repeatRule: RepeatRule = .none
     var earlyReminder: EarlyReminder = .none
     // Organization
-    var listName: String = "Reminders"
+    var listName: String = ""           // no list until the user picks one
     var flag: Bool = false
     var priority: Priority = .none
     // Action (local-first for now)

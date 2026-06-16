@@ -1,0 +1,2736 @@
+diff --git a/HANDOFF.md b/HANDOFF.md
+new file mode 100644
+index 0000000..1019a43
+--- /dev/null
++++ b/HANDOFF.md
+@@ -0,0 +1,146 @@
++# Re_Call — Native iOS Reminders: Handoff
++
++Handoff for continuing the native SwiftUI reminders feature. Written 2026-06-15. Read this
++top to bottom before touching the iOS build — the **Gotchas** section is what caused repeated
++build/crash loops.
++
++---
++
++## 1. What was built
++
++A **native SwiftUI** reminders app (replacing the old WebView-only shell), backed by
++**Supabase**, implementing all 16 "parts" from the Figma board.
++
++**Native-only rule:** Re_Call is an iOS-only native app. Web, CSS, HTML, and WebKit artifacts may
++remain in the repository only as legacy/reference material; they must not be bundled into the app,
++compiled into the app target, or restored as the runtime surface.
++
++- **List screen** (`ReminderListView`): black page, "Notorious" Bodoni title, crimson FAB,
++  active + completed (retained) sections, tap-a-row-to-edit.
++- **Entry form** (`ReminderFormView`): **black background, white entry-row cells only**, grouped
++  Core / Date & Time / Organization / Places & People. All 16 parts: Title, Notes, URL, Image
++  (PhotosPicker), Date, Time, Urgent, Repeat, Early Reminder, List, Tags, Subtasks, Flag,
++  Priority, Location (CoreLocation), When-Messaging.
++- **Persistence**: local-first cache (`reminders.json` in Application Support) is the on-device
++  source of truth; syncs to Supabase behind a `ReminderRepository` protocol. Completed reminders
++  keep `status='completed'` (never deleted).
++- **Native capabilities**: local notifications (Date/Time/Early/Urgent), PhotosPicker image,
++  CoreLocation "use current location".
++
++**Verified working:** clean device build + valid signature, installed + launched on Adam's
++iPhone 17 Pro Max, two real reminders created on-device and confirmed in Supabase
++(`recall.reminders`) with all parts (priority, date/time, tags, notes, list).
++
++---
++
++## 2. Files (all currently UNCOMMITTED in the working tree)
++
++New native Swift (`ios/ReCall/App/`):
++- `Theme.swift` — Notorious palette (crimson/black/white) + Bodoni helper
++- `Models.swift` — `Reminder`, `Subtask`, `Priority`/`RepeatRule`/`EarlyReminder`/`ReminderStatus` enums, JSON coders
++- `Supabase.swift` — `SupabaseService` actor: anonymous auth + REST over **URLSession** (NO SDK)
++- `ReminderRepository.swift` — `ReminderRepository` protocol + `SupabaseReminderRepository` (URLSession/PostgREST) + DB row DTOs
++- `ReminderStore.swift` — `@MainActor` ObservableObject: local-first cache + sync + offline retry
++- `NotificationScheduler.swift` — UNUserNotificationCenter scheduling
++- `LocationProvider.swift` — one-shot CoreLocation place lookup
++- `LocalImageStore.swift` — saves picked photos to Application Support (cloud upload = 1.0.1)
++- `ReminderListView.swift` — list + row + FAB
++- `ReminderFormView.swift` — the full-page 16-part form
++
++Modified:
++- `ios/ReCall/App/ContentView.swift` — root is now `ReminderListView` + store bootstrap
++- `ios/project.yml` — native app target, Info.plist usage strings (location, photos). **No Swift package** (intentional — see Gotchas).
++- `ios/ReCallUITests/SmokeTests.swift` — native smoke tests (launch, form opens, create→list)
++- `ios/ReCall/Web/index.html`, `tests/web/reminders.spec.js` — earlier web full-page form work; legacy/reference only, not part of the iOS runtime
++- `supabase/migrations/README.md` — documents the two new migrations
++
++New Supabase migrations (applied to the live project):
++- `supabase/migrations/20260615120000_add_reminders_tables.sql`
++- `supabase/migrations/20260615120001_harden_set_updated_at_search_path.sql`
++
++`ios/ReCall.xcodeproj/project.pbxproj` is **generated** from `project.yml` — don't hand-edit; regenerate with xcodegen.
++
++---
++
++## 3. Supabase state (already live)
++
++- Project: **`vzaceoipwimphdvdxcpa`** ("Re_Call"), schema **`recall`**.
++- Tables: `recall.reminders` (16 scalar parts as columns), `recall.reminder_tags`,
++  `recall.reminder_subtasks` (child tables → clean RDF/Neo4j edge projection later).
++  `seeded_from_template_id` FK links a reminder into the existing `recall.reminder_templates` graph.
++- RLS: own-rows only `to authenticated` via `(select auth.uid())`; grants to `authenticated` + `service_role`.
++- Auth: **anonymous sign-ins are ENABLED** (Adam turned the toggle on). The Swift client signs in
++  anonymously and persists the refresh token so the same anon user (and rows) survive relaunch.
++- Anon key + URL are in `Supabase.swift` (safe to ship; RLS protects rows).
++
++---
++
++## 4. Build / deploy / verify (commands that work)
++
++```bash
++# Regenerate the Xcode project (see Gotcha #2 — do this with Xcode QUIT):
++cd ios && xcodegen generate
++
++# Clean DEVICE build (this is what reproduces a Run-on-device):
++DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild clean build \
++  -project ios/ReCall.xcodeproj -scheme ReCall \
++  -destination 'generic/platform=iOS' -allowProvisioningUpdates \
++  -derivedDataPath /tmp/ReCall-build
++# Expect: BUILD SUCCEEDED, 0 errors, .app/Frameworks EMPTY, valid Apple Development signature.
++
++# Simulator build/run:
++xcodebuild ... -sdk iphonesimulator -destination 'platform=iOS Simulator,id=<sim-udid>' build
++xcrun simctl install <sim> <app> ; xcrun simctl launch <sim> app.understood.recall
++
++# Device: prefer Xcode ⌘R (devicectl over the network is slow/hangs — see Gotcha #4).
++# Bundle id: app.understood.recall ; device: Adam's iPhone 17 Pro Max (B03CFB03-AA65-5941-BD82-8CBC60092BD9)
++
++# Full QC (web behavior + native build + bundle stamp):
++./qc.sh
++```
++
++---
++
++## 5. GOTCHAS — these caused the loops, do not relearn them the hard way
++
++1. **DO NOT add the `supabase-swift` SPM package.** Its dynamic frameworks (Supabase/Auth/Crypto/
++   HTTPTypes/…) do **not** embed in the app bundle for **device** builds → the app builds and runs
++   on the **Simulator** but `abort_with_payload` (dyld "can't load frameworks") crashes at launch on
++   a **physical iPhone**. The whole Supabase layer is intentionally plain **URLSession** in
++   `Supabase.swift` for exactly this reason. Keep it dependency-free.
++2. **xcodegen vs. open Xcode:** if Xcode is OPEN it reverts `project.pbxproj` to its stale in-memory
++   copy. Always `xcodegen generate` with Xcode **quit**, then reopen. If builds go stale/crash again:
++   quit Xcode → `rm -rf ~/Library/Developer/Xcode/DerivedData/ReCall-*` → delete any junk
++   `ios/ReCall N.xcodeproj` duplicates → `cd ios && xcodegen generate` → reopen.
++3. **The crash signature** to recognize: `Thread 1: abort with payload or reason` /
++   `__abort_with_payload` in disassembly on launch = missing dynamic frameworks = something re-added
++   an SPM package. Check `.app/Frameworks` is empty and `grep supabase-swift project.pbxproj` is 0.
++4. **`devicectl` over the network connection is slow / hangs** (the device is paired over
++   `*.coredevice.local`). For install/launch, use **Xcode ⌘R** rather than CLI devicectl.
++5. **Signing:** automatic, `Apple Development: Adam Blair`, bundle `app.understood.recall`. First
++   device launch may need the dev cert trusted on the phone (Settings → General → VPN & Device
++   Management). It's already trusted on Adam's device.
++
++---
++
++## 6. Status + what's pending
++
++**Working:** native list + 16-part form, builds clean, signs, runs on device, data syncs to
++Supabase (verified with two real reminders).
++
++**Pending / next:**
++- **Git:** nothing committed yet; repo is on `main` which is **4 commits BEHIND `origin/main`**.
++  `origin/main` has Adam's own native work — `NativeCaptureSheet.swift` (voice-memo capture bridged
++  from the web prototype, commit `b3d410f`), a post-run body-scan KG field (`f184268`), a user-zero
++  strategy memory (`3367aaa`), and `AGENTS.md` (`ef460db`). Recommended: commit this native work to a
++  branch and open a PR against `main` so it reconciles with `NativeCaptureSheet` (overlaps on
++  `ContentView.swift`, `index.html`, `project.yml`, tests) instead of clobbering it.
++- **Reconcile** the two native approaches: this build removes the WebView runtime; `NativeCaptureSheet`
++  should be re-wired natively rather than kept behind the web layer.
++- **Figma mirror** of the form (deferred; design artifact only).
++- **Image → Supabase Storage** (v1 keeps photos local; `image_path` stays null server-side).
++- **Import** old localStorage reminders (from the web prototype) into Supabase, if wanted.
++
++**Product doctrine (from `3367aaa` on origin/main):** the app is built for Adam (user zero) first;
++his taste/judgment is the only success bar; anything he doesn't understand in agent communication is
++treated as potentially harmful. Optimize for *his* resonance, not generic best practice.
+diff --git a/ios/README.md b/ios/README.md
+index 60a445d..93765ed 100644
+--- a/ios/README.md
++++ b/ios/README.md
+@@ -1,11 +1,10 @@
+-# Notorious Recall — iOS App
++# Notorious Recall — Native iOS App
+ 
+-A real iPhone app that renders the existing Notorious Recall prototype full-screen, edge-to-edge,
+-inside a `WKWebView` (no Safari chrome). The HTML prototype remains the design source of
+-truth; this target ships a bundled copy of it so the app runs offline as a native iPhone app.
++Re_Call is an iOS-only native SwiftUI app. The app surface is the native reminders list and
++full-screen native reminder form; Web, CSS, HTML, and WebKit artifacts are legacy/reference
++material only and must not be bundled into the app target or restored as the runtime surface.
+ 
+-> Native SwiftUI re-implementation is intentional future work. Today this is a thin,
+-> production-feel shell around the bundled web prototype.
++The app is built for Adam first: his taste, language, and reaction are the bar for success.
+ 
+ ## Open & Run in Xcode
+ 
+@@ -15,7 +14,7 @@ truth; this target ships a bundled copy of it so the app runs offline as a nativ
+ open ios/ReCall.xcodeproj
+ ```
+ 
+-2. In the toolbar, select an iPhone simulator (e.g. **iPhone 16 Pro**).
++2. In the toolbar, select Adam's iPhone or another iOS device.
+ 3. Press **Run** (⌘R).
+ 
+ - Bundle id: `app.understood.recall`
+@@ -25,8 +24,9 @@ open ios/ReCall.xcodeproj
+ ## Build from the command line
+ 
+ ```bash
+-xcodebuild -project ios/ReCall.xcodeproj -scheme ReCall \
+-  -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
++DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
++  -project ios/ReCall.xcodeproj -scheme ReCall \
++  -destination 'generic/platform=iOS' -allowProvisioningUpdates build
+ ```
+ 
+ > If `xcodebuild` errors with "requires Xcode … CommandLineTools", prefix the command with
+@@ -75,7 +75,7 @@ Apple ID isn't signed into Xcode's Accounts.
+ > `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` because the system
+ > `xcode-select` points at CommandLineTools rather than full Xcode.
+ 
+-## How the web bundle is wired
++## Native app layout
+ 
+ ```
+ ios/
+@@ -83,36 +83,20 @@ ios/
+   ReCall/
+     App/
+       ReCallApp.swift    # @main SwiftUI entry point
+-      ContentView.swift  # dark canvas + edge-to-edge web view
+-      WebView.swift      # WKWebView wrapper, loads the bundled prototype offline
++      ContentView.swift  # native reminder list root + store bootstrap
++      ReminderListView.swift
++      ReminderFormView.swift
++      ReminderStore.swift
++      ReminderRepository.swift
++      Supabase.swift     # URLSession-only Supabase client; no SDK package
+     Resources/
+       Assets.xcassets/   # AppIcon placeholder + AccentColor
+-    Web/                 # bundled as a FOLDER REFERENCE (structure preserved)
+-      index.html         # copy of wireframes/template-gallery-ios.html
+-      covers/            # copy of wireframes/covers/*.png
+-```
+-
+-- `Web/` is added to the target as a **folder reference** (`type: folder` in `project.yml`),
+-  so the whole tree is copied into the app bundle with its relative layout intact.
+-- `WebView.swift` loads it with
+-  `WKWebView.loadFileURL(indexURL, allowingReadAccessTo: webDir)`, granting read access to the
+-  entire `Web/` directory so the prototype's relative `covers/*.png` references resolve offline.
+-- Scroll bounce is disabled and the background is set to the prototype's dark canvas
+-  (`#2B2E38`) so it reads like a native screen rather than a web page.
+-
+-## Refresh the bundled copy when the prototype changes
+-
+-The files under `ios/ReCall/Web/` are copies. After editing the prototype in `wireframes/`,
+-refresh them with one command:
+-
+-```bash
+-cp wireframes/template-gallery-ios.html ios/ReCall/Web/index.html && \
+-  cp wireframes/covers/*.png ios/ReCall/Web/covers/
+ ```
+ 
+-(No Xcode project regeneration is needed — the folder reference picks up the new contents on
+-the next build. If you add brand-new files/folders to `Web/`, run `cd ios && xcodegen generate`
+-to refresh the project, though folder references generally pick up new files automatically.)
++- Supabase stays dependency-free on purpose. Do not add `supabase-swift` or any other SPM package
++  for the current reminders runtime.
++- The old `ios/ReCall/Web/` prototype is not included in `project.yml` and should stay out of the
++  shipped iOS app.
+ 
+ ## Regenerate the Xcode project
+ 
+diff --git a/ios/ReCall.xcodeproj/project.pbxproj b/ios/ReCall.xcodeproj/project.pbxproj
+index a64bfc2..d7f82a4 100644
+--- a/ios/ReCall.xcodeproj/project.pbxproj
++++ b/ios/ReCall.xcodeproj/project.pbxproj
+@@ -7,13 +7,21 @@
+ 	objects = {
+ 
+ /* Begin PBXBuildFile section */
+-		0554BA371B9D9FB3FE365777 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFE45B7861104DB1ACF54C56 /* WebView.swift */; };
+ 		134FDD757C7A6C7FC746EF94 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1204A47B34D6B6201D2B3472 /* Assets.xcassets */; };
+ 		19845D503271B60B97E779E1 /* ReCallApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D059ADF056549352B1B7CBD /* ReCallApp.swift */; };
++		19DA60DE89EBB97D72068A99 /* ReminderListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE1A2CBC8BECFA9D2824C3D /* ReminderListView.swift */; };
++		20C542F9C614421E15C311CB /* Supabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8881E4FF233B1140BB438265 /* Supabase.swift */; };
++		314E7B183548412A85799A47 /* LocalImageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1227A5BF6167BDE5AF79D61E /* LocalImageStore.swift */; };
+ 		45BBBDEA593671D0262699AB /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 575C1741D3B349AB4757A98D /* SmokeTests.swift */; };
++		600F616D8C113B298E6F5C93 /* ReminderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47341608127B4B40EEB397EE /* ReminderStore.swift */; };
++		880849CE3C77576F22182A3D /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76ECEE3848A4C169603E8391 /* NotificationScheduler.swift */; };
+ 		8A6E477479BD7E2877F5B81F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85E54626A8DE911BCEC1324 /* ContentView.swift */; };
+-		DB8165B735EBA06612CFABDC /* Web in Resources */ = {isa = PBXBuildFile; fileRef = EB03A60A77BF4626FE52C6BF /* Web */; };
++		9187046D9BD8BF7CB92CA2A5 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DDD25FE4FF705D153B2111 /* Theme.swift */; };
++		9C60A0460D2A3CBFF21DE867 /* LocationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3379E1EBD3E2B8311EB905DE /* LocationProvider.swift */; };
++		B64BB1CBF9389567CA3C2F49 /* ReminderFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 806A9FA6D6F37A46C8EAB527 /* ReminderFormView.swift */; };
++		DA8547B1B0922F41A8C55FD5 /* ReminderRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E3766D436B6955155E177E /* ReminderRepository.swift */; };
+ 		EBA6D7111CC8C0556CE4AD1D /* ReminderGenerationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */; };
++		ECE8863350AD504CF43308C3 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 931E5F894F39FD8F30990C78 /* Models.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -28,14 +36,22 @@
+ 
+ /* Begin PBXFileReference section */
+ 		1204A47B34D6B6201D2B3472 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
++		1227A5BF6167BDE5AF79D61E /* LocalImageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalImageStore.swift; sourceTree = "<group>"; };
++		3379E1EBD3E2B8311EB905DE /* LocationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationProvider.swift; sourceTree = "<group>"; };
+ 		3D059ADF056549352B1B7CBD /* ReCallApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReCallApp.swift; sourceTree = "<group>"; };
+ 		4079AAC3EA2A59744AF1F729 /* ReCallUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReCallUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
++		47341608127B4B40EEB397EE /* ReminderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderStore.swift; sourceTree = "<group>"; };
++		50E3766D436B6955155E177E /* ReminderRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderRepository.swift; sourceTree = "<group>"; };
++		54DDD25FE4FF705D153B2111 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+ 		575C1741D3B349AB4757A98D /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
+ 		6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderGenerationProvider.swift; sourceTree = "<group>"; };
+-		AFE45B7861104DB1ACF54C56 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
++		76ECEE3848A4C169603E8391 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
++		7CE1A2CBC8BECFA9D2824C3D /* ReminderListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderListView.swift; sourceTree = "<group>"; };
++		806A9FA6D6F37A46C8EAB527 /* ReminderFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderFormView.swift; sourceTree = "<group>"; };
++		8881E4FF233B1140BB438265 /* Supabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Supabase.swift; sourceTree = "<group>"; };
++		931E5F894F39FD8F30990C78 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+ 		C7116D79FD34A726158C3D32 /* ReCall.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ReCall.app; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		D85E54626A8DE911BCEC1324 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+-		EB03A60A77BF4626FE52C6BF /* Web */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Web; path = ReCall/Web; sourceTree = SOURCE_ROOT; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXGroup section */
+@@ -51,7 +67,6 @@
+ 		3E475665A79681B465B66A3A /* ReCall */ = {
+ 			isa = PBXGroup;
+ 			children = (
+-				EB03A60A77BF4626FE52C6BF /* Web */,
+ 				E0A2A9715DDAA6CEE5DD6AB5 /* App */,
+ 				D66B9F9B1E3F6DD0AE2632BF /* Resources */,
+ 			);
+@@ -87,9 +102,18 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				D85E54626A8DE911BCEC1324 /* ContentView.swift */,
++				1227A5BF6167BDE5AF79D61E /* LocalImageStore.swift */,
++				3379E1EBD3E2B8311EB905DE /* LocationProvider.swift */,
++				931E5F894F39FD8F30990C78 /* Models.swift */,
++				76ECEE3848A4C169603E8391 /* NotificationScheduler.swift */,
+ 				3D059ADF056549352B1B7CBD /* ReCallApp.swift */,
++				806A9FA6D6F37A46C8EAB527 /* ReminderFormView.swift */,
+ 				6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */,
+-				AFE45B7861104DB1ACF54C56 /* WebView.swift */,
++				7CE1A2CBC8BECFA9D2824C3D /* ReminderListView.swift */,
++				50E3766D436B6955155E177E /* ReminderRepository.swift */,
++				47341608127B4B40EEB397EE /* ReminderStore.swift */,
++				8881E4FF233B1140BB438265 /* Supabase.swift */,
++				54DDD25FE4FF705D153B2111 /* Theme.swift */,
+ 			);
+ 			path = App;
+ 			sourceTree = "<group>";
+@@ -179,7 +203,6 @@
+ 			buildActionMask = 2147483647;
+ 			files = (
+ 				134FDD757C7A6C7FC746EF94 /* Assets.xcassets in Resources */,
+-				DB8165B735EBA06612CFABDC /* Web in Resources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+@@ -191,9 +214,18 @@
+ 			buildActionMask = 2147483647;
+ 			files = (
+ 				8A6E477479BD7E2877F5B81F /* ContentView.swift in Sources */,
++				314E7B183548412A85799A47 /* LocalImageStore.swift in Sources */,
++				9C60A0460D2A3CBFF21DE867 /* LocationProvider.swift in Sources */,
++				ECE8863350AD504CF43308C3 /* Models.swift in Sources */,
++				880849CE3C77576F22182A3D /* NotificationScheduler.swift in Sources */,
+ 				19845D503271B60B97E779E1 /* ReCallApp.swift in Sources */,
++				B64BB1CBF9389567CA3C2F49 /* ReminderFormView.swift in Sources */,
+ 				EBA6D7111CC8C0556CE4AD1D /* ReminderGenerationProvider.swift in Sources */,
+-				0554BA371B9D9FB3FE365777 /* WebView.swift in Sources */,
++				19DA60DE89EBB97D72068A99 /* ReminderListView.swift in Sources */,
++				DA8547B1B0922F41A8C55FD5 /* ReminderRepository.swift in Sources */,
++				600F616D8C113B298E6F5C93 /* ReminderStore.swift in Sources */,
++				20C542F9C614421E15C311CB /* Supabase.swift in Sources */,
++				9187046D9BD8BF7CB92CA2A5 /* Theme.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+@@ -222,8 +254,11 @@
+ 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+ 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+ 				CODE_SIGN_IDENTITY = "iPhone Developer";
++				ENABLE_DEBUG_DYLIB = NO;
+ 				GENERATE_INFOPLIST_FILE = YES;
+ 				INFOPLIST_KEY_CFBundleDisplayName = "Notorious Recall";
++				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Re_Call uses your location to tag a reminder with where it matters.";
++				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Re_Call attaches photos you choose to your reminders.";
+ 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+ 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
+ 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+@@ -386,8 +421,11 @@
+ 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+ 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+ 				CODE_SIGN_IDENTITY = "iPhone Developer";
++				ENABLE_DEBUG_DYLIB = NO;
+ 				GENERATE_INFOPLIST_FILE = YES;
+ 				INFOPLIST_KEY_CFBundleDisplayName = "Notorious Recall";
++				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Re_Call uses your location to tag a reminder with where it matters.";
++				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Re_Call attaches photos you choose to your reminders.";
+ 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+ 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
+ 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+diff --git a/ios/ReCall/App/ContentView.swift b/ios/ReCall/App/ContentView.swift
+index 1dd5f9c..99a9fbb 100644
+--- a/ios/ReCall/App/ContentView.swift
++++ b/ios/ReCall/App/ContentView.swift
+@@ -1,14 +1,17 @@
+ import SwiftUI
+ 
+-/// Background matching the prototype's dark canvas so there is no white flash
+-/// behind the web content during load or in the safe-area insets.
+-private let canvasBackground = Color(red: 0x2B / 255, green: 0x2E / 255, blue: 0x38 / 255)
+-
++/// App root: the native Reminders list owns the store, requests notification permission, and
++/// kicks off the Supabase sync.
+ struct ContentView: View {
++    @StateObject private var store = ReminderStore()
++
+     var body: some View {
+-        WebView()
+-            .background(canvasBackground)
+-            .ignoresSafeArea()
++        ReminderListView()
++            .environmentObject(store)
++            .task {
++                await NotificationScheduler.requestAuth()
++                await store.bootstrap()
++            }
+     }
+ }
+ 
+diff --git a/ios/ReCall/App/LocalImageStore.swift b/ios/ReCall/App/LocalImageStore.swift
+new file mode 100644
+index 0000000..b605d1a
+--- /dev/null
++++ b/ios/ReCall/App/LocalImageStore.swift
+@@ -0,0 +1,24 @@
++import UIKit
++
++/// Persists picked photos to Application Support and loads them back. v1 keeps images on-device;
++/// cloud upload to Supabase Storage is the 1.0.1 follow-up (image_path stays null server-side).
++enum LocalImageStore {
++    private static var dir: URL {
++        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
++            .appendingPathComponent("reminder-images", isDirectory: true)
++        try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
++        return base
++    }
++
++    static func save(_ image: UIImage) -> String? {
++        guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
++        let name = UUID().uuidString + ".jpg"
++        do { try data.write(to: dir.appendingPathComponent(name), options: .atomic); return name }
++        catch { return nil }
++    }
++
++    static func load(_ name: String?) -> UIImage? {
++        guard let name else { return nil }
++        return UIImage(contentsOfFile: dir.appendingPathComponent(name).path)
++    }
++}
+diff --git a/ios/ReCall/App/LocationProvider.swift b/ios/ReCall/App/LocationProvider.swift
+new file mode 100644
+index 0000000..cb6631a
+--- /dev/null
++++ b/ios/ReCall/App/LocationProvider.swift
+@@ -0,0 +1,48 @@
++import Foundation
++import CoreLocation
++
++/// One-shot current-place lookup for the Location part ("Use current location"). Best-effort:
++/// if permission is denied or it fails, the user can still type a location by hand.
++@MainActor
++final class LocationProvider: NSObject, ObservableObject, CLLocationManagerDelegate {
++    @Published var isResolving = false
++    private let manager = CLLocationManager()
++    private var continuation: CheckedContinuation<String?, Never>?
++
++    override init() {
++        super.init()
++        manager.delegate = self
++        manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
++    }
++
++    func currentPlaceName() async -> String? {
++        if continuation != nil { return nil }   // already resolving
++        isResolving = true
++        if manager.authorizationStatus == .notDetermined {
++            manager.requestWhenInUseAuthorization()
++        }
++        return await withCheckedContinuation { cont in
++            self.continuation = cont
++            self.manager.requestLocation()
++        }
++    }
++
++    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
++        guard let loc = locations.first else { Task { @MainActor in self.finish(nil) }; return }
++        CLGeocoder().reverseGeocodeLocation(loc) { placemarks, _ in
++            let p = placemarks?.first
++            let name = [p?.name, p?.subLocality, p?.locality].compactMap { $0 }.first
++            Task { @MainActor in self.finish(name) }
++        }
++    }
++
++    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
++        Task { @MainActor in self.finish(nil) }
++    }
++
++    private func finish(_ value: String?) {
++        isResolving = false
++        continuation?.resume(returning: value)
++        continuation = nil
++    }
++}
+diff --git a/ios/ReCall/App/Models.swift b/ios/ReCall/App/Models.swift
+new file mode 100644
+index 0000000..dbd2a6e
+--- /dev/null
++++ b/ios/ReCall/App/Models.swift
+@@ -0,0 +1,153 @@
++import Foundation
++
++enum Priority: String, Codable, CaseIterable, Identifiable {
++    case none, low, medium, high
++    var id: String { rawValue }
++    var label: String {
++        switch self {
++        case .none: return "None"
++        case .low: return "Low"
++        case .medium: return "Medium"
++        case .high: return "High"
++        }
++    }
++    var marks: String {
++        switch self {
++        case .none: return ""
++        case .low: return "!"
++        case .medium: return "!!"
++        case .high: return "!!!"
++        }
++    }
++}
++
++enum RepeatRule: String, Codable, CaseIterable, Identifiable {
++    case none, daily, weekdays, weekly, monthly, yearly
++    var id: String { rawValue }
++    var label: String {
++        switch self {
++        case .none: return "Never"
++        case .daily: return "Daily"
++        case .weekdays: return "Weekdays"
++        case .weekly: return "Weekly"
++        case .monthly: return "Monthly"
++        case .yearly: return "Yearly"
++        }
++    }
++}
++
++enum EarlyReminder: String, Codable, CaseIterable, Identifiable {
++    case none
++    case m5 = "5m"
++    case m10 = "10m"
++    case m30 = "30m"
++    case h1 = "1h"
++    case d1 = "1d"
++    var id: String { rawValue }
++    var label: String {
++        switch self {
++        case .none: return "None"
++        case .m5: return "5 minutes before"
++        case .m10: return "10 minutes before"
++        case .m30: return "30 minutes before"
++        case .h1: return "1 hour before"
++        case .d1: return "1 day before"
++        }
++    }
++    /// Seconds to subtract from the fire date.
++    var lead: TimeInterval {
++        switch self {
++        case .none: return 0
++        case .m5: return 300
++        case .m10: return 600
++        case .m30: return 1800
++        case .h1: return 3600
++        case .d1: return 86400
++        }
++    }
++}
++
++enum ReminderStatus: String, Codable { case active, completed, deleted }
++
++struct Subtask: Identifiable, Codable, Equatable, Hashable {
++    var id: UUID = UUID()
++    var title: String = ""
++    var done: Bool = false
++}
++
++/// The domain model. Codable for the on-device cache; mapped to/from DB rows in the repository.
++/// Every "part" from the entry form is a field here so nothing the user enters is dropped.
++struct Reminder: Identifiable, Codable, Equatable {
++    var id: UUID = UUID()
++    // Core
++    var title: String = ""
++    var notes: String = ""
++    var url: String = ""
++    var imageLocalPath: String? = nil          // local filename; cloud upload is 1.0.1
++    // Date & Time
++    var dueDate: Date? = nil                    // calendar date (date-only meaning)
++    var dueTime: Date? = nil                    // clock time (time-only meaning)
++    var urgent: Bool = false
++    var repeatRule: RepeatRule = .none
++    var earlyReminder: EarlyReminder = .none
++    // Organization
++    var listName: String = "Reminders"
++    var flag: Bool = false
++    var priority: Priority = .none
++    // Places & People
++    var locationName: String = ""
++    var whenMessagingPerson: String = ""
++    // Graph + lifecycle
++    var seededFromTemplateID: String? = nil
++    var tags: [String] = []
++    var subtasks: [Subtask] = []
++    var status: ReminderStatus = .active
++    var createdAt: Date = Date()
++    var updatedAt: Date = Date()
++    var completedAt: Date? = nil
++    var needsSync: Bool = false
++}
++
++extension Reminder {
++    /// The concrete moment a notification should fire, if this reminder carries a date and/or time.
++    var fireDate: Date? {
++        if dueDate == nil && dueTime == nil { return nil }
++        let cal = Calendar.current
++        let base = dueDate ?? Date()
++        var comps = cal.dateComponents([.year, .month, .day], from: base)
++        if let t = dueTime {
++            let tc = cal.dateComponents([.hour, .minute], from: t)
++            comps.hour = tc.hour
++            comps.minute = tc.minute
++        } else {
++            comps.hour = 9
++            comps.minute = 0
++        }
++        return cal.date(from: comps)
++    }
++
++    /// Compact "Jun 20 9:30 AM" style label for the row.
++    var whenLabel: String? {
++        let dayFmt = DateFormatter(); dayFmt.dateFormat = "MMM d"
++        let timeFmt = DateFormatter(); timeFmt.dateFormat = "h:mm a"
++        if let date = dueDate, let time = dueTime {
++            return dayFmt.string(from: date) + " " + timeFmt.string(from: time)
++        } else if let date = dueDate {
++            return dayFmt.string(from: date)
++        } else if let time = dueTime {
++            return timeFmt.string(from: time)
++        }
++        return nil
++    }
++}
++
++extension JSONEncoder {
++    static let recall: JSONEncoder = {
++        let e = JSONEncoder(); e.dateEncodingStrategy = .iso8601; return e
++    }()
++}
++extension JSONDecoder {
++    static let recall: JSONDecoder = {
++        let d = JSONDecoder(); d.dateDecodingStrategy = .iso8601; return d
++    }()
++}
+diff --git a/ios/ReCall/App/NotificationScheduler.swift b/ios/ReCall/App/NotificationScheduler.swift
+new file mode 100644
+index 0000000..552523f
+--- /dev/null
++++ b/ios/ReCall/App/NotificationScheduler.swift
+@@ -0,0 +1,68 @@
++import Foundation
++import UserNotifications
++
++/// Local notifications for the Date/Time/Early-Reminder/Repeat parts. One request per reminder,
++/// keyed by its id, so rescheduling and cancellation are deterministic.
++enum NotificationScheduler {
++    static func requestAuth() async {
++        _ = try? await UNUserNotificationCenter.current()
++            .requestAuthorization(options: [.alert, .sound, .badge])
++    }
++
++    static func schedule(_ r: Reminder) {
++        cancel(r)
++        guard r.status == .active, let base = r.fireDate else { return }
++        let fire = base.addingTimeInterval(-r.earlyReminder.lead)
++
++        let content = UNMutableNotificationContent()
++        content.title = r.title.isEmpty ? "Reminder" : r.title
++        if !r.notes.isEmpty { content.body = r.notes }
++        content.sound = .default
++        if r.urgent { content.interruptionLevel = .timeSensitive }
++
++        let cal = Calendar.current
++        let repeats = r.repeatRule != .none
++        if r.repeatRule == .weekdays {
++            let time = cal.dateComponents([.hour, .minute], from: fire)
++            for weekday in 2...6 {
++                var comps = DateComponents()
++                comps.weekday = weekday
++                comps.hour = time.hour
++                comps.minute = time.minute
++                addRequest(identifier: id(r, suffix: "\(weekday)"), content: content, components: comps, repeats: true)
++            }
++            return
++        }
++
++        let comps: DateComponents
++        switch r.repeatRule {
++        case .none:
++            comps = cal.dateComponents([.year, .month, .day, .hour, .minute], from: fire)
++        case .daily:
++            comps = cal.dateComponents([.hour, .minute], from: fire)
++        case .weekly:
++            comps = cal.dateComponents([.weekday, .hour, .minute], from: fire)
++        case .weekdays:
++            return
++        case .monthly:
++            comps = cal.dateComponents([.day, .hour, .minute], from: fire)
++        case .yearly:
++            comps = cal.dateComponents([.month, .day, .hour, .minute], from: fire)
++        }
++
++        addRequest(identifier: id(r), content: content, components: comps, repeats: repeats)
++    }
++
++    static func cancel(_ r: Reminder) {
++        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids(r))
++    }
++
++    private static func id(_ r: Reminder) -> String { "recall.reminder.\(r.id.uuidString)" }
++    private static func id(_ r: Reminder, suffix: String) -> String { "\(id(r)).\(suffix)" }
++    private static func ids(_ r: Reminder) -> [String] { [id(r)] + (2...6).map { id(r, suffix: "\($0)") } }
++    private static func addRequest(identifier: String, content: UNNotificationContent, components: DateComponents, repeats: Bool) {
++        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: repeats)
++        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
++        UNUserNotificationCenter.current().add(request)
++    }
++}
+diff --git a/ios/ReCall/App/ReminderFormView.swift b/ios/ReCall/App/ReminderFormView.swift
+new file mode 100644
+index 0000000..689aa72
+--- /dev/null
++++ b/ios/ReCall/App/ReminderFormView.swift
+@@ -0,0 +1,283 @@
++import SwiftUI
++import PhotosUI
++
++/// The full-page native entry form: BLACK page (sides, gaps, bottom) with WHITE entry-row cells,
++/// grouping all 16 "parts" like the Figma board — Core / Date & Time / Organization /
++/// Places & People. Reused for create and edit.
++struct ReminderFormView: View {
++    @Environment(\.dismiss) private var dismiss
++    @StateObject private var location = LocationProvider()
++
++    let existing: Reminder?
++    var onSave: (Reminder) -> Void
++
++    @State private var r: Reminder
++    @State private var hasDate: Bool
++    @State private var hasTime: Bool
++    @State private var date: Date
++    @State private var time: Date
++    @State private var tagDraft = ""
++    @State private var photoItem: PhotosPickerItem?
++    @State private var pickedImage: UIImage?
++
++    private let listChoices = ["Reminders", "Work", "Personal", "Shopping", "Health"]
++    private let optionColumns = [GridItem(.adaptive(minimum: 96), spacing: 8)]
++
++    init(existing: Reminder?, onSave: @escaping (Reminder) -> Void) {
++        self.existing = existing
++        self.onSave = onSave
++        let base = existing ?? Reminder()
++        _r = State(initialValue: base)
++        _hasDate = State(initialValue: base.dueDate != nil)
++        _hasTime = State(initialValue: base.dueTime != nil)
++        _date = State(initialValue: base.dueDate ?? Date())
++        _time = State(initialValue: base.dueTime ?? Date())
++        _pickedImage = State(initialValue: LocalImageStore.load(base.imageLocalPath))
++    }
++
++    var body: some View {
++        NavigationStack {
++            Form {
++                coreSection
++                dateTimeSection
++                organizationSection
++                placesSection
++            }
++            .scrollContentBackground(.hidden)
++            .background(Color.black.ignoresSafeArea())   // black sides / gaps / bottom
++            .tint(Brand.crimson)
++            .navigationTitle(existing == nil ? "New Reminder" : "Edit Reminder")
++            .navigationBarTitleDisplayMode(.inline)
++            .toolbar {
++                ToolbarItem(placement: .cancellationAction) {
++                    Button("Cancel") { dismiss() }.tint(.white)
++                }
++                ToolbarItem(placement: .confirmationAction) {
++                    Button(existing == nil ? "Add" : "Save") { commit() }
++                        .fontWeight(.bold).tint(Brand.crimson)
++                }
++            }
++            .toolbarBackground(Color.black, for: .navigationBar)
++            .toolbarBackground(.visible, for: .navigationBar)
++            .toolbarColorScheme(.dark, for: .navigationBar)
++            .onChange(of: photoItem) { _, item in loadPhoto(item) }
++        }
++        // Light color scheme so the WHITE row cells render dark, legible text/controls.
++        // Section headers/footers sit on the black page and are colored light explicitly below.
++        .preferredColorScheme(.light)
++    }
++
++    /// Light-on-black group label so headers read against the black page.
++    private func sectionHeader(_ title: String) -> some View {
++        Text(title)
++            .font(.system(size: 13, weight: .semibold))
++            .foregroundStyle(.white.opacity(0.6))
++    }
++
++    private func optionButton(_ title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
++        Button(action: action) {
++            Text(title)
++                .font(.system(size: 14, weight: .semibold))
++                .lineLimit(2)
++                .minimumScaleFactor(0.8)
++                .frame(maxWidth: .infinity, minHeight: 36)
++                .padding(.horizontal, 10)
++                .background(isSelected ? Brand.crimson : Color(white: 0.92))
++                .foregroundStyle(isSelected ? .white : .black)
++                .clipShape(RoundedRectangle(cornerRadius: 8))
++        }
++        .buttonStyle(.plain)
++    }
++
++    private func optionGroup<Content: View>(_ title: String, systemImage: String, @ViewBuilder content: () -> Content) -> some View {
++        VStack(alignment: .leading, spacing: 10) {
++            Label(title, systemImage: systemImage)
++            content()
++        }
++    }
++
++    private var coreSection: some View {
++        Section {
++            TextField("Title", text: $r.title)
++            TextField("Notes", text: $r.notes, axis: .vertical).lineLimit(1...5)
++            TextField("URL", text: $r.url)
++                .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
++            HStack {
++                Label("Image", systemImage: "photo")
++                Spacer()
++                if let img = pickedImage {
++                    Image(uiImage: img).resizable().scaledToFill()
++                        .frame(width: 40, height: 40).clipShape(RoundedRectangle(cornerRadius: 8))
++                }
++                PhotosPicker(selection: $photoItem, matching: .images) {
++                    Text(pickedImage == nil ? "Add" : "Change").foregroundStyle(Brand.crimson)
++                }
++            }
++        } header: {
++            sectionHeader("Core")
++        }
++        .listRowBackground(Color.white)
++    }
++
++    private var dateTimeSection: some View {
++        Section {
++            VStack(alignment: .leading, spacing: 8) {
++                Toggle(isOn: $hasDate) { Label("Date", systemImage: "calendar") }
++                DatePicker("Date value", selection: $date, displayedComponents: .date)
++                    .labelsHidden()
++                    .disabled(!hasDate)
++                    .opacity(hasDate ? 1 : 0.45)
++            }
++            VStack(alignment: .leading, spacing: 8) {
++                Toggle(isOn: $hasTime) { Label("Time", systemImage: "clock") }
++                DatePicker("Time value", selection: $time, displayedComponents: .hourAndMinute)
++                    .labelsHidden()
++                    .disabled(!hasTime)
++                    .opacity(hasTime ? 1 : 0.45)
++            }
++            Toggle(isOn: $r.urgent) { Label("Urgent", systemImage: "alarm") }
++            optionGroup("Repeat", systemImage: "repeat") {
++                LazyVGrid(columns: optionColumns, spacing: 8) {
++                    ForEach(RepeatRule.allCases) { rule in
++                        optionButton(rule.label, isSelected: r.repeatRule == rule) { r.repeatRule = rule }
++                    }
++                }
++            }
++            optionGroup("Early Reminder", systemImage: "bell") {
++                LazyVGrid(columns: optionColumns, spacing: 8) {
++                    ForEach(EarlyReminder.allCases) { lead in
++                        optionButton(lead.label, isSelected: r.earlyReminder == lead) { r.earlyReminder = lead }
++                    }
++                }
++            }
++        } header: {
++            sectionHeader("Date & Time")
++        }
++        .listRowBackground(Color.white)
++    }
++
++    private var organizationSection: some View {
++        Section {
++            optionGroup("List", systemImage: "list.bullet") {
++                LazyVGrid(columns: optionColumns, spacing: 8) {
++                    ForEach(listChoices, id: \.self) { name in
++                        optionButton(name, isSelected: r.listName == name) { r.listName = name }
++                    }
++                }
++            }
++
++            VStack(alignment: .leading, spacing: 8) {
++                Label("Tags", systemImage: "tag")
++                HStack {
++                    TextField("Add a tag", text: $tagDraft)
++                        .onSubmit(addTag)
++                        .onChange(of: tagDraft) { _, value in
++                            if value.contains(",") { addTag() }
++                        }
++                    Button("Add", action: addTag)
++                        .foregroundStyle(Brand.crimson)
++                        .disabled(tagDraft.trimmingCharacters(in: .whitespaces).isEmpty)
++                }
++                if !r.tags.isEmpty {
++                    ScrollView(.horizontal, showsIndicators: false) {
++                        HStack(spacing: 6) {
++                            ForEach(r.tags, id: \.self) { tag in
++                                HStack(spacing: 4) {
++                                    Text(tag).font(.system(size: 13, weight: .semibold))
++                                    Button { r.tags.removeAll { $0 == tag } } label: {
++                                        Image(systemName: "xmark.circle.fill")
++                                    }.foregroundStyle(.secondary)
++                                }
++                                .padding(.vertical, 5).padding(.horizontal, 10)
++                                .background(Color(white: 0.92)).clipShape(Capsule())
++                            }
++                        }
++                    }
++                }
++            }
++
++            VStack(alignment: .leading, spacing: 8) {
++                Label("Subtasks", systemImage: "checklist")
++                ForEach($r.subtasks) { $sub in
++                    HStack {
++                        Image(systemName: "circle").foregroundStyle(.secondary)
++                        TextField("Subtask", text: $sub.title)
++                        Button { r.subtasks.removeAll { $0.id == sub.id } } label: {
++                            Image(systemName: "minus.circle.fill")
++                        }.foregroundStyle(.secondary)
++                    }
++                }
++                Button { r.subtasks.append(Subtask()) } label: {
++                    Text("Add Subtask").foregroundStyle(Brand.crimson)
++                }
++            }
++
++            Toggle(isOn: $r.flag) { Label("Flag", systemImage: "flag") }
++            optionGroup("Priority", systemImage: "exclamationmark.3") {
++                LazyVGrid(columns: optionColumns, spacing: 8) {
++                    ForEach(Priority.allCases) { priority in
++                        optionButton(priority.label, isSelected: r.priority == priority) { r.priority = priority }
++                    }
++                }
++            }
++        } header: {
++            sectionHeader("Organization")
++        }
++        .listRowBackground(Color.white)
++    }
++
++    private var placesSection: some View {
++        Section {
++            HStack {
++                Image(systemName: "mappin.and.ellipse").foregroundStyle(.secondary)
++                TextField("Location", text: $r.locationName)
++                Button {
++                    Task { if let name = await location.currentPlaceName() { r.locationName = name } }
++                } label: {
++                    if location.isResolving { ProgressView() } else { Image(systemName: "location") }
++                }.foregroundStyle(Brand.crimson)
++            }
++            HStack {
++                Image(systemName: "message").foregroundStyle(.secondary)
++                TextField("When messaging a person", text: $r.whenMessagingPerson)
++            }
++        } header: {
++            sectionHeader("Places & People")
++        } footer: {
++            Text("Saved with the reminder. Apple limits live Messages integration to its own Reminders app.")
++                .foregroundStyle(.white.opacity(0.4))
++        }
++        .listRowBackground(Color.white)
++    }
++
++    private func addTag() {
++        let t = tagDraft
++            .replacingOccurrences(of: ",", with: "")
++            .trimmingCharacters(in: .whitespacesAndNewlines)
++            .replacingOccurrences(of: "#", with: "")
++        if !t.isEmpty && !r.tags.contains(t) { r.tags.append(t) }
++        tagDraft = ""
++    }
++
++    private func loadPhoto(_ item: PhotosPickerItem?) {
++        guard let item else { return }
++        Task {
++            if let data = try? await item.loadTransferable(type: Data.self), let img = UIImage(data: data) {
++                pickedImage = img
++            }
++        }
++    }
++
++    private func commit() {
++        addTag()
++        if let pickedImage {
++            r.imageLocalPath = LocalImageStore.save(pickedImage)
++        }
++        r.dueDate = hasDate ? date : nil
++        r.dueTime = hasTime ? time : nil
++        r.subtasks.removeAll { $0.title.trimmingCharacters(in: .whitespaces).isEmpty }
++        if r.title.trimmingCharacters(in: .whitespaces).isEmpty { r.title = "New Reminder" }
++        onSave(r)
++        dismiss()
++    }
++}
+diff --git a/ios/ReCall/App/ReminderListView.swift b/ios/ReCall/App/ReminderListView.swift
+new file mode 100644
+index 0000000..837a593
+--- /dev/null
++++ b/ios/ReCall/App/ReminderListView.swift
+@@ -0,0 +1,159 @@
++import SwiftUI
++
++/// The primary native surface: a black page listing active reminders, a crimson FAB that opens
++/// the full-page form, and a completed section (retained).
++struct ReminderListView: View {
++    @EnvironmentObject var store: ReminderStore
++    @State private var showingForm = false
++    @State private var editing: Reminder?
++
++    var body: some View {
++        NavigationStack {
++            ZStack(alignment: .bottomTrailing) {
++                Brand.page.ignoresSafeArea()
++                content
++                fab
++            }
++            .toolbar {
++                ToolbarItem(placement: .principal) {
++                    Text("Notorious").font(Brand.serif(26)).foregroundStyle(.white)
++                }
++            }
++            .toolbarBackground(Brand.page, for: .navigationBar)
++            .toolbarBackground(.visible, for: .navigationBar)
++            .toolbarColorScheme(.dark, for: .navigationBar)
++            .onAppear {
++                // UI-test / screenshot affordance only; never fires in normal use.
++                if ProcessInfo.processInfo.arguments.contains("-recallOpenForm") { showingForm = true }
++            }
++        }
++        .sheet(isPresented: $showingForm, onDismiss: { editing = nil }) {
++            ReminderFormView(existing: editing) { store.save($0) }
++        }
++    }
++
++    @ViewBuilder private var content: some View {
++        if store.active.isEmpty && store.completed.isEmpty {
++            emptyState
++        } else {
++            ScrollView {
++                LazyVStack(spacing: 10) {
++                    ForEach(store.active) { r in
++                        ReminderRowView(reminder: r,
++                                        onToggle: { store.complete(r) },
++                                        onTap: { editing = r; showingForm = true })
++                    }
++                    if !store.completed.isEmpty {
++                        HStack {
++                            Text("Completed").font(.system(size: 13, weight: .heavy))
++                                .foregroundStyle(.white.opacity(0.4)).textCase(.uppercase)
++                            Spacer()
++                        }
++                        .padding(.top, 18).padding(.horizontal, 4)
++                        ForEach(store.completed) { r in
++                            ReminderRowView(reminder: r, completed: true,
++                                            onToggle: { store.uncomplete(r) },
++                                            onTap: { editing = r; showingForm = true })
++                        }
++                    }
++                }
++                .padding(16)
++                .padding(.bottom, 100)
++            }
++        }
++    }
++
++    private var emptyState: some View {
++        VStack(spacing: 10) {
++            Text("Re_Call").font(Brand.serif(34)).foregroundStyle(.white)
++            Text("Tap + to capture your first reminder.")
++                .font(.system(size: 15)).foregroundStyle(.white.opacity(0.55))
++        }
++        .frame(maxWidth: .infinity, maxHeight: .infinity)
++    }
++
++    private var fab: some View {
++        Button {
++            editing = nil
++            showingForm = true
++        } label: {
++            Image(systemName: "plus")
++                .font(.system(size: 26, weight: .bold))
++                .foregroundStyle(.white)
++                .frame(width: 64, height: 64)
++                .background(Brand.crimson)
++                .clipShape(Circle())
++                .shadow(color: .black.opacity(0.35), radius: 12, y: 8)
++        }
++        .padding(.trailing, 20)
++        .padding(.bottom, 28)
++        .accessibilityLabel("New reminder")
++    }
++}
++
++/// A row in the reminders list — title, a one-line subtitle, and crimson flag/priority/when meta.
++struct ReminderRowView: View {
++    let reminder: Reminder
++    var completed: Bool = false
++    var onToggle: () -> Void
++    var onTap: () -> Void
++
++    var body: some View {
++        HStack(spacing: 12) {
++            Button(action: onToggle) {
++                Image(systemName: completed ? "checkmark.circle.fill" : "circle")
++                    .font(.system(size: 24))
++                    .foregroundStyle(completed ? Brand.crimson : Color.white.opacity(0.5))
++            }
++            .buttonStyle(.plain)
++
++            if let img = LocalImageStore.load(reminder.imageLocalPath) {
++                Image(uiImage: img).resizable().scaledToFill()
++                    .frame(width: 38, height: 38).clipShape(RoundedRectangle(cornerRadius: 9))
++            }
++
++            VStack(alignment: .leading, spacing: 4) {
++                Text(reminder.title.isEmpty ? "Untitled" : reminder.title)
++                    .font(.system(size: 17, weight: .bold))
++                    .foregroundStyle(completed ? .white.opacity(0.5) : .white)
++                    .strikethrough(completed)
++                    .lineLimit(2)
++                if let sub = subtitle {
++                    Text(sub).font(.system(size: 14)).foregroundStyle(.white.opacity(0.55)).lineLimit(1)
++                }
++            }
++
++            Spacer(minLength: 8)
++
++            VStack(alignment: .trailing, spacing: 4) {
++                HStack(spacing: 5) {
++                    if reminder.flag {
++                        Image(systemName: "flag.fill").font(.system(size: 12)).foregroundStyle(Brand.crimson)
++                    }
++                    if reminder.priority != .none {
++                        Text(reminder.priority.marks).font(.system(size: 13, weight: .heavy)).foregroundStyle(Brand.crimson)
++                    }
++                }
++                if let when = reminder.whenLabel {
++                    Text(when).font(.system(size: 13, weight: .bold)).foregroundStyle(Brand.crimson)
++                }
++            }
++        }
++        .padding(12)
++        .background(Color.white.opacity(0.05))
++        .clipShape(RoundedRectangle(cornerRadius: 10))
++        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.08)))
++        .contentShape(Rectangle())
++        .onTapGesture(perform: onTap)
++    }
++
++    private var subtitle: String? {
++        if !reminder.notes.isEmpty { return reminder.notes }
++        let extras = [
++            reminder.listName == "Reminders" ? "" : reminder.listName,
++            reminder.locationName,
++            reminder.tags.map { "#\($0)" }.joined(separator: " "),
++        ].filter { !$0.isEmpty }
++        return extras.isEmpty ? nil : extras.joined(separator: " · ")
++    }
++}
+diff --git a/ios/ReCall/App/ReminderRepository.swift b/ios/ReCall/App/ReminderRepository.swift
+new file mode 100644
+index 0000000..5c011e0
+--- /dev/null
++++ b/ios/ReCall/App/ReminderRepository.swift
+@@ -0,0 +1,194 @@
++import Foundation
++
++/// The seam the app codes against. Backed by Supabase over plain URLSession (no SDK), so swapping
++/// to the Vercel API contract or a Neo4j-backed store later stays a one-file change.
++protocol ReminderRepository {
++    func ensureReady() async -> Bool
++    func fetchAll() async throws -> [Reminder]
++    func upsert(_ reminder: Reminder) async throws
++    func delete(id: UUID) async throws
++}
++
++// MARK: - DB row shapes (snake_case columns in recall.*)
++
++private struct ReminderRow: Decodable {
++    var id: String
++    var title: String
++    var notes: String
++    var url: String
++    var image_path: String?
++    var due_date: String?
++    var due_time: String?
++    var urgent: Bool
++    var repeat_rule: String
++    var early_reminder: String
++    var list_name: String
++    var flag: Bool
++    var priority: String
++    var location_name: String
++    var when_messaging_person: String
++    var seeded_from_template_id: String?
++    var status: String
++    var completed_at: String?
++    var created_at: String?
++    var updated_at: String?
++}
++
++/// Write payload — omits server-managed columns (user_id default auth.uid(), created_at,
++/// updated_at) so an upsert never clobbers them.
++private struct ReminderUpsert: Encodable {
++    var id: String
++    var title: String
++    var notes: String
++    var url: String
++    var image_path: String?
++    var due_date: String?
++    var due_time: String?
++    var urgent: Bool
++    var repeat_rule: String
++    var early_reminder: String
++    var list_name: String
++    var flag: Bool
++    var priority: String
++    var location_name: String
++    var when_messaging_person: String
++    var seeded_from_template_id: String?
++    var status: String
++    var completed_at: String?
++}
++
++private struct TagRow: Codable { var reminder_id: String; var tag: String }
++private struct SubtaskRow: Codable {
++    var id: String; var reminder_id: String; var title: String; var done: Bool; var position: Int
++}
++
++private enum PG {
++    static let date: DateFormatter = {
++        let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd"; return f
++    }()
++    static let time: DateFormatter = {
++        let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "HH:mm:ss"; return f
++    }()
++    static func parseTimestamp(_ s: String) -> Date? {
++        let withFrac = ISO8601DateFormatter(); withFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
++        if let d = withFrac.date(from: s) { return d }
++        let plain = ISO8601DateFormatter(); plain.formatOptions = [.withInternetDateTime]
++        return plain.date(from: s)
++    }
++}
++
++// MARK: - Supabase implementation (URLSession / PostgREST)
++
++final class SupabaseReminderRepository: ReminderRepository {
++    private let service = SupabaseService.shared
++    private let encoder = JSONEncoder()
++    private let decoder = JSONDecoder()
++
++    func ensureReady() async -> Bool { await service.ensureSession() }
++
++    func fetchAll() async throws -> [Reminder] {
++        guard let rReq = await service.request("GET", "reminders", query: "status=neq.deleted&order=created_at.desc") else { return [] }
++        let rows = try decoder.decode([ReminderRow].self, from: try await service.send(rReq))
++
++        var tagMap: [String: [String]] = [:]
++        if let tReq = await service.request("GET", "reminder_tags", query: "select=*") {
++            let tags = (try? decoder.decode([TagRow].self, from: try await service.send(tReq))) ?? []
++            for t in tags { tagMap[t.reminder_id, default: []].append(t.tag) }
++        }
++        var subMap: [String: [Subtask]] = [:]
++        if let sReq = await service.request("GET", "reminder_subtasks", query: "select=*&order=position.asc") {
++            let subs = (try? decoder.decode([SubtaskRow].self, from: try await service.send(sReq))) ?? []
++            for s in subs {
++                subMap[s.reminder_id, default: []].append(
++                    Subtask(id: UUID(uuidString: s.id) ?? UUID(), title: s.title, done: s.done))
++            }
++        }
++        return rows.map { reminder(from: $0, tags: tagMap[$0.id] ?? [], subtasks: subMap[$0.id] ?? []) }
++    }
++
++    func upsert(_ r: Reminder) async throws {
++        let rid = r.id.uuidString.lowercased()
++        let body = try encoder.encode([upsertRow(from: r)])
++        guard let req = await service.request("POST", "reminders", query: "on_conflict=id", body: body,
++                                              prefer: "resolution=merge-duplicates,return=minimal") else {
++            throw NSError(domain: "Supabase", code: -1, userInfo: [NSLocalizedDescriptionKey: "not signed in"])
++        }
++        try await service.send(req)
++
++        // Replace child rows so tags/subtasks always mirror the reminder.
++        if let del = await service.request("DELETE", "reminder_tags", query: "reminder_id=eq.\(rid)") {
++            try await service.send(del)
++        }
++        if !r.tags.isEmpty {
++            let rows = r.tags.map { TagRow(reminder_id: rid, tag: $0) }
++            if let ins = await service.request("POST", "reminder_tags", body: try encoder.encode(rows), prefer: "return=minimal") {
++                try await service.send(ins)
++            }
++        }
++        if let del = await service.request("DELETE", "reminder_subtasks", query: "reminder_id=eq.\(rid)") {
++            try await service.send(del)
++        }
++        if !r.subtasks.isEmpty {
++            let rows = r.subtasks.enumerated().map { idx, s in
++                SubtaskRow(id: s.id.uuidString.lowercased(), reminder_id: rid, title: s.title, done: s.done, position: idx)
++            }
++            if let ins = await service.request("POST", "reminder_subtasks", body: try encoder.encode(rows), prefer: "return=minimal") {
++                try await service.send(ins)
++            }
++        }
++    }
++
++    func delete(id: UUID) async throws {
++        guard let req = await service.request("DELETE", "reminders", query: "id=eq.\(id.uuidString.lowercased())") else { return }
++        try await service.send(req)
++    }
++
++    private func upsertRow(from r: Reminder) -> ReminderUpsert {
++        ReminderUpsert(
++            id: r.id.uuidString.lowercased(),
++            title: r.title, notes: r.notes, url: r.url,
++            image_path: nil,                                   // cloud image upload deferred to 1.0.1
++            due_date: r.dueDate.map { PG.date.string(from: $0) },
++            due_time: r.dueTime.map { PG.time.string(from: $0) },
++            urgent: r.urgent,
++            repeat_rule: r.repeatRule.rawValue,
++            early_reminder: r.earlyReminder.rawValue,
++            list_name: r.listName,
++            flag: r.flag,
++            priority: r.priority.rawValue,
++            location_name: r.locationName,
++            when_messaging_person: r.whenMessagingPerson,
++            seeded_from_template_id: r.seededFromTemplateID,
++            status: r.status.rawValue,
++            completed_at: r.completedAt.map { ISO8601DateFormatter().string(from: $0) }
++        )
++    }
++
++    private func reminder(from row: ReminderRow, tags: [String], subtasks: [Subtask]) -> Reminder {
++        var r = Reminder()
++        r.id = UUID(uuidString: row.id) ?? UUID()
++        r.title = row.title
++        r.notes = row.notes
++        r.url = row.url
++        r.imageLocalPath = nil
++        r.dueDate = row.due_date.flatMap { PG.date.date(from: $0) }
++        r.dueTime = row.due_time.flatMap { PG.time.date(from: $0) }
++        r.urgent = row.urgent
++        r.repeatRule = RepeatRule(rawValue: row.repeat_rule) ?? .none
++        r.earlyReminder = EarlyReminder(rawValue: row.early_reminder) ?? .none
++        r.listName = row.list_name
++        r.flag = row.flag
++        r.priority = Priority(rawValue: row.priority) ?? .none
++        r.locationName = row.location_name
++        r.whenMessagingPerson = row.when_messaging_person
++        r.seededFromTemplateID = row.seeded_from_template_id
++        r.status = ReminderStatus(rawValue: row.status) ?? .active
++        r.tags = tags
++        r.subtasks = subtasks
++        r.completedAt = row.completed_at.flatMap { PG.parseTimestamp($0) }
++        r.createdAt = row.created_at.flatMap { PG.parseTimestamp($0) } ?? Date()
++        r.updatedAt = row.updated_at.flatMap { PG.parseTimestamp($0) } ?? Date()
++        r.needsSync = false
++        return r
++    }
++}
+diff --git a/ios/ReCall/App/ReminderStore.swift b/ios/ReCall/App/ReminderStore.swift
+new file mode 100644
+index 0000000..d8bae8e
+--- /dev/null
++++ b/ios/ReCall/App/ReminderStore.swift
+@@ -0,0 +1,158 @@
++import Foundation
++import SwiftUI
++
++/// Local-first source of truth: every change writes to the on-device cache immediately (so a
++/// reminder is never lost), then syncs to Supabase. Unsynced rows are retried on launch.
++@MainActor
++final class ReminderStore: ObservableObject {
++    @Published private(set) var reminders: [Reminder] = []
++    @Published var lastSyncFailed = false
++
++    private let repo: ReminderRepository
++    private let cacheURL: URL
++
++    init(repo: ReminderRepository = SupabaseReminderRepository()) {
++        self.repo = repo
++        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
++        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
++        cacheURL = dir.appendingPathComponent("reminders.json")
++        loadCache()
++    }
++
++    var active: [Reminder] {
++        reminders.filter { $0.status == .active }
++            .sorted { sortKey($0) < sortKey($1) }
++    }
++    var completed: [Reminder] {
++        reminders.filter { $0.status == .completed }
++            .sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
++    }
++    private func sortKey(_ r: Reminder) -> Date { r.fireDate ?? r.createdAt }
++
++    func bootstrap() async {
++        guard await repo.ensureReady() else { return }
++        await pushPending()
++        await refresh()
++    }
++
++    func refresh() async {
++        do {
++            let remote = try await repo.fetchAll()
++            let merged = mergeRemote(remote, withLocal: reminders)
++            reminders = merged
++            saveCache()
++            reminders.forEach(NotificationScheduler.schedule)
++        } catch {
++            // Stay on the local cache; no intrusive error.
++        }
++    }
++
++    func save(_ reminder: Reminder) {
++        var r = reminder
++        r.updatedAt = Date()
++        r.needsSync = true
++        upsertLocal(r)
++        NotificationScheduler.schedule(r)
++        Task { await sync(r) }
++    }
++
++    func complete(_ reminder: Reminder) {
++        var r = reminder
++        r.status = .completed
++        r.completedAt = Date()
++        NotificationScheduler.cancel(r)
++        save(r)
++    }
++
++    func uncomplete(_ reminder: Reminder) {
++        var r = reminder
++        r.status = .active
++        r.completedAt = nil
++        save(r)
++    }
++
++    func delete(_ reminder: Reminder) {
++        var r = reminder
++        r.status = .deleted
++        r.updatedAt = Date()
++        r.needsSync = true
++        upsertLocal(r)
++        NotificationScheduler.cancel(reminder)
++        Task { await sync(r) }
++    }
++
++    // MARK: - sync
++
++    private func sync(_ r: Reminder) async {
++        guard await repo.ensureReady() else { lastSyncFailed = true; return }
++        do {
++            if r.status == .deleted {
++                try await repo.delete(id: r.id)
++                removeSyncedDelete(r.id, updatedAt: r.updatedAt)
++            } else {
++                try await repo.upsert(r)
++                markSynced(r.id, updatedAt: r.updatedAt)
++            }
++            lastSyncFailed = false
++        } catch {
++            lastSyncFailed = true
++        }
++    }
++
++    private func pushPending() async {
++        for r in reminders where r.needsSync { await sync(r) }
++    }
++
++    private func upsertLocal(_ r: Reminder) {
++        if let idx = reminders.firstIndex(where: { $0.id == r.id }) { reminders[idx] = r }
++        else { reminders.append(r) }
++        saveCache()
++    }
++
++    private func markSynced(_ id: UUID, updatedAt: Date) {
++        if let idx = reminders.firstIndex(where: { $0.id == id }) {
++            guard reminders[idx].updatedAt == updatedAt else { return }
++            reminders[idx].needsSync = false
++            saveCache()
++        }
++    }
++
++    private func removeSyncedDelete(_ id: UUID, updatedAt: Date) {
++        guard let idx = reminders.firstIndex(where: { $0.id == id }),
++              reminders[idx].updatedAt == updatedAt,
++              reminders[idx].status == .deleted else { return }
++        reminders.remove(at: idx)
++        saveCache()
++    }
++
++    private func mergeRemote(_ remote: [Reminder], withLocal local: [Reminder]) -> [Reminder] {
++        var merged = remote.map { incoming -> Reminder in
++            guard let localCopy = local.first(where: { $0.id == incoming.id }) else { return incoming }
++            var r = incoming
++            if r.imageLocalPath == nil { r.imageLocalPath = localCopy.imageLocalPath }
++            return r
++        }
++
++        // Keep local rows that haven't synced yet; they win over the remote copy.
++        for u in local where u.needsSync {
++            if let idx = merged.firstIndex(where: { $0.id == u.id }) { merged[idx] = u }
++            else { merged.append(u) }
++        }
++
++        return merged
++    }
++
++    // MARK: - cache
++
++    private func loadCache() {
++        guard let data = try? Data(contentsOf: cacheURL),
++              let decoded = try? JSONDecoder.recall.decode([Reminder].self, from: data) else { return }
++        reminders = decoded
++    }
++
++    private func saveCache() {
++        if let data = try? JSONEncoder.recall.encode(reminders) {
++            try? data.write(to: cacheURL, options: .atomic)
++        }
++    }
++}
+diff --git a/ios/ReCall/App/Supabase.swift b/ios/ReCall/App/Supabase.swift
+new file mode 100644
+index 0000000..a7075cb
+--- /dev/null
++++ b/ios/ReCall/App/Supabase.swift
+@@ -0,0 +1,87 @@
++import Foundation
++
++enum SupabaseConfig {
++    static let url = "https://vzaceoipwimphdvdxcpa.supabase.co"
++    // Public anon key — safe to ship in a client bundle; per-row access is enforced by RLS.
++    static let anonKey =
++        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6YWNlb2lwd2ltcGhkdmR4Y3BhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MTUzNTksImV4cCI6MjA5NTQ5MTM1OX0.PpbSvOTzBbJGz4Qp4Qarj1RPs9vofFxJYI9NfFqFLh8"
++    static let schema = "recall"
++}
++
++/// Minimal Supabase client over URLSession — NO external packages, so the app ships zero dynamic
++/// frameworks and launches reliably on a physical device. Anonymous sign-in gives a stable user
++/// id; the refresh token is persisted so the SAME anonymous user (and their rows) survives relaunch.
++actor SupabaseService {
++    static let shared = SupabaseService()
++
++    private var accessToken: String?
++    private let refreshKey = "recall.supabase.refreshToken"
++    private let session = URLSession(configuration: .default)
++
++    private init() {}
++
++    /// Guarantee a valid session: reuse the in-memory token, else refresh the stored session,
++    /// else create a fresh anonymous user.
++    func ensureSession() async -> Bool {
++        if accessToken != nil { return true }
++        if let rt = UserDefaults.standard.string(forKey: refreshKey), await auth("token?grant_type=refresh_token", ["refresh_token": rt]) {
++            return true
++        }
++        return await auth("signup", [:])
++    }
++
++    private func auth(_ path: String, _ payload: [String: String]) async -> Bool {
++        guard let u = URL(string: "\(SupabaseConfig.url)/auth/v1/\(path)") else { return false }
++        var req = URLRequest(url: u)
++        req.httpMethod = "POST"
++        req.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
++        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
++        req.httpBody = (try? JSONSerialization.data(withJSONObject: payload)) ?? Data("{}".utf8)
++        do {
++            let (data, resp) = try await session.data(for: req)
++            guard let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else { return false }
++            let a = try JSONDecoder().decode(AuthResponse.self, from: data)
++            guard let token = a.access_token else { return false }
++            accessToken = token
++            if let rt = a.refresh_token { UserDefaults.standard.set(rt, forKey: refreshKey) }
++            return true
++        } catch {
++            return false
++        }
++    }
++
++    /// Build an authed PostgREST request against the `recall` schema. Returns nil if not signed in.
++    func request(_ method: String, _ path: String, query: String? = nil, body: Data? = nil, prefer: String? = nil) async -> URLRequest? {
++        guard await ensureSession(), let token = accessToken else { return nil }
++        var str = "\(SupabaseConfig.url)/rest/v1/\(path)"
++        if let query { str += "?\(query)" }
++        guard let u = URL(string: str) else { return nil }
++        var req = URLRequest(url: u)
++        req.httpMethod = method
++        req.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
++        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
++        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
++        req.setValue(SupabaseConfig.schema, forHTTPHeaderField: "Accept-Profile")
++        req.setValue(SupabaseConfig.schema, forHTTPHeaderField: "Content-Profile")
++        if let prefer { req.setValue(prefer, forHTTPHeaderField: "Prefer") }
++        req.httpBody = body
++        return req
++    }
++
++    /// Send a request, validating the HTTP status. Returns the response body.
++    @discardableResult
++    func send(_ req: URLRequest) async throws -> Data {
++        let (data, resp) = try await session.data(for: req)
++        guard let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
++            let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
++            let msg = String(data: data, encoding: .utf8) ?? "request failed"
++            throw NSError(domain: "Supabase", code: code, userInfo: [NSLocalizedDescriptionKey: msg])
++        }
++        return data
++    }
++
++    private struct AuthResponse: Decodable {
++        let access_token: String?
++        let refresh_token: String?
++    }
++}
+diff --git a/ios/ReCall/App/Theme.swift b/ios/ReCall/App/Theme.swift
+new file mode 100644
+index 0000000..c7875f0
+--- /dev/null
++++ b/ios/ReCall/App/Theme.swift
+@@ -0,0 +1,15 @@
++import SwiftUI
++
++/// Notorious Recall palette + type. Page surfaces are black; entry forms are white.
++enum Brand {
++    static let crimson = Color(red: 0xDC / 255, green: 0x14 / 255, blue: 0x3C / 255)
++    static let page    = Color.black                       // list / page background
++    static let card    = Color.white                       // entry-form background
++    static let ink     = Color.black
++    static let dim     = Color(white: 0.6)
++
++    /// Bodoni for editorial titles, with a graceful serif fallback if the face is absent.
++    static func serif(_ size: CGFloat, weight: Font.Weight = .bold) -> Font {
++        Font.custom("Bodoni 72", size: size).weight(weight)
++    }
++}
+diff --git a/ios/ReCall/App/WebView.swift b/ios/ReCall/App/WebView.swift
+deleted file mode 100644
+index 4c65639..0000000
+--- a/ios/ReCall/App/WebView.swift
++++ /dev/null
+@@ -1,207 +0,0 @@
+-import SwiftUI
+-import UserNotifications
+-import WebKit
+-
+-/// Hosts the bundled Re_Call prototype full-screen, edge-to-edge, with no Safari
+-/// chrome. The HTML and its relative `covers/*.png` assets ship inside the app
+-/// bundle (folder reference `Web/`) and load entirely offline.
+-struct WebView: UIViewRepresentable {
+-    func makeCoordinator() -> Coordinator {
+-        Coordinator()
+-    }
+-
+-    func makeUIView(context: Context) -> WKWebView {
+-        let config = WKWebViewConfiguration()
+-        // Allow the prototype's inline media to play without forcing fullscreen.
+-        config.allowsInlineMediaPlayback = true
+-        config.mediaTypesRequiringUserActionForPlayback = []
+-        config.userContentController.add(context.coordinator, name: "recallReminders")
+-
+-        let webView = WKWebView(frame: .zero, configuration: config)
+-        webView.isOpaque = false
+-        webView.backgroundColor = .clear
+-        webView.scrollView.backgroundColor = .clear
+-        // The prototype is a single mobile screen; kill the rubber-band bounce so
+-        // it reads like a native app rather than a scrollable web page.
+-        webView.scrollView.bounces = false
+-        webView.scrollView.alwaysBounceVertical = false
+-        webView.scrollView.contentInsetAdjustmentBehavior = .never
+-        context.coordinator.webView = webView
+-
+-        loadBundledPrototype(into: webView)
+-        return webView
+-    }
+-
+-    func updateUIView(_ uiView: WKWebView, context: Context) {
+-        context.coordinator.webView = uiView
+-    }
+-
+-    private func loadBundledPrototype(into webView: WKWebView) {
+-        // `Web` is bundled as a folder reference, so index.html and covers/ keep
+-        // their relative layout. Read access is granted to the whole Web dir so
+-        // the relative cover images resolve.
+-        guard let webDir = Bundle.main.url(forResource: "Web", withExtension: nil) else {
+-            assertionFailure("Bundled Web/ directory missing from app target")
+-            return
+-        }
+-        let indexURL = webDir.appendingPathComponent("index.html")
+-        webView.loadFileURL(indexURL, allowingReadAccessTo: webDir)
+-    }
+-
+-    final class Coordinator: NSObject, WKScriptMessageHandler {
+-        private let savedReminderScheduleKey = "recall.savedReminderSchedule"
+-        weak var webView: WKWebView?
+-
+-        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+-            guard message.name == "recallReminders",
+-                  let payload = message.body as? [String: Any],
+-                  let action = payload["action"] as? String else { return }
+-
+-            if action == "list" {
+-                sendPendingReminders()
+-                return
+-            }
+-
+-            guard action == "schedule",
+-                  let title = payload["title"] as? String,
+-                  let body = payload["body"] as? String,
+-                  let times = payload["times"] as? [String] else { return }
+-
+-            scheduleTodayReminders(title: title, body: body, times: times)
+-        }
+-
+-        private func scheduleTodayReminders(title: String, body: String, times: [String]) {
+-            let center = UNUserNotificationCenter.current()
+-            center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+-                guard granted, error == nil else {
+-                    self.sendReminderResult(success: false, count: 0)
+-                    return
+-                }
+-
+-                center.removePendingNotificationRequests(withIdentifiers: times.map { "recall.awake.\($0)" })
+-                if self.isStaleDefaultReminder(title: title, body: body) {
+-                    self.clearSavedReminderSchedule()
+-                    self.sendReminderResult(success: true, count: 0)
+-                    return
+-                }
+-
+-                self.saveReminderSchedule(title: title, body: body, times: times)
+-
+-                let calendar = Calendar.current
+-                let now = Date()
+-                var scheduled = 0
+-
+-                for time in times {
+-                    let parts = time.split(separator: ":").compactMap { Int($0) }
+-                    guard parts.count == 2,
+-                          let fireDate = calendar.date(bySettingHour: parts[0], minute: parts[1], second: 0, of: now),
+-                          fireDate > now else { continue }
+-
+-                    let content = UNMutableNotificationContent()
+-                    content.title = title
+-                    content.body = body
+-                    content.sound = .default
+-
+-                    let dateComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
+-                    let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+-                    let request = UNNotificationRequest(identifier: "recall.awake.\(time)", content: content, trigger: trigger)
+-
+-                    center.add(request)
+-                    scheduled += 1
+-                }
+-
+-                self.sendReminderResult(success: true, count: scheduled)
+-            }
+-        }
+-
+-        private func sendReminderResult(success: Bool, count: Int) {
+-            DispatchQueue.main.async {
+-                let script = "window.recallReminderNativeResult && window.recallReminderNativeResult({ success: \(success), count: \(count) });"
+-                self.webView?.evaluateJavaScript(script)
+-            }
+-        }
+-
+-        private func sendPendingReminders() {
+-            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+-                let recallRequests = requests.filter { $0.identifier.hasPrefix("recall.awake.") }
+-                let staleRequestIds = recallRequests
+-                    .filter { self.isStaleDefaultReminder(title: $0.content.title, body: $0.content.body) }
+-                    .map(\.identifier)
+-
+-                if !staleRequestIds.isEmpty {
+-                    UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: staleRequestIds)
+-                }
+-
+-                var pending = recallRequests
+-                    .filter { !self.isStaleDefaultReminder(title: $0.content.title, body: $0.content.body) }
+-                    .compactMap { request -> [String: String]? in
+-                        guard let trigger = request.trigger as? UNCalendarNotificationTrigger,
+-                              let hour = trigger.dateComponents.hour,
+-                              let minute = trigger.dateComponents.minute else { return nil }
+-
+-                        return [
+-                            "time": String(format: "%02d:%02d", hour, minute),
+-                            "title": request.content.title,
+-                            "body": request.content.body
+-                        ]
+-                    }
+-                    .sorted { ($0["time"] ?? "") < ($1["time"] ?? "") }
+-
+-                if pending.isEmpty {
+-                    pending = self.savedReminderSchedule()
+-                }
+-
+-                guard let data = try? JSONSerialization.data(withJSONObject: pending),
+-                      let json = String(data: data, encoding: .utf8) else { return }
+-
+-                DispatchQueue.main.async {
+-                    let script = "window.recallReminderNativeResult && window.recallReminderNativeResult({ success: true, pending: \(json) });"
+-                    self.webView?.evaluateJavaScript(script)
+-                }
+-            }
+-        }
+-
+-        private func saveReminderSchedule(title: String, body: String, times: [String]) {
+-            guard !isStaleDefaultReminder(title: title, body: body) else {
+-                clearSavedReminderSchedule()
+-                return
+-            }
+-
+-            let payload = times.map { time in
+-                [
+-                    "time": time,
+-                    "title": title,
+-                    "body": body
+-                ]
+-            }
+-            UserDefaults.standard.set(payload, forKey: savedReminderScheduleKey)
+-        }
+-
+-        private func savedReminderSchedule() -> [[String: String]] {
+-            let saved = UserDefaults.standard.array(forKey: savedReminderScheduleKey) as? [[String: String]] ?? []
+-            let filtered = saved.filter {
+-                !isStaleDefaultReminder(title: $0["title"] ?? "", body: $0["body"] ?? "")
+-            }
+-            if filtered.count != saved.count {
+-                UserDefaults.standard.set(filtered, forKey: savedReminderScheduleKey)
+-            }
+-            return filtered
+-        }
+-
+-        private func clearSavedReminderSchedule() {
+-            UserDefaults.standard.removeObject(forKey: savedReminderScheduleKey)
+-        }
+-
+-        private func isStaleDefaultReminder(title: String, body: String) -> Bool {
+-            let normalizedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+-            let normalizedBody = body.lowercased()
+-
+-            return normalizedTitle == "re_call"
+-                || normalizedBody.contains("50 grams of protein")
+-                || normalizedBody.contains("50 g")
+-                || normalizedBody.contains("every 4 hours")
+-                || normalizedBody.contains("every four hours")
+-                || normalizedBody.contains("pause, check what is still alive")
+-        }
+-    }
+-}
+diff --git a/ios/ReCall/Web/index.html b/ios/ReCall/Web/index.html
+index 5382b2f..ec29eb1 100644
+--- a/ios/ReCall/Web/index.html
++++ b/ios/ReCall/Web/index.html
+@@ -234,16 +234,80 @@
+   .sug .copy strong { white-space: normal; }
+   .sug-add { border: 0; background: transparent; color: var(--crimson); font-size: 30px; font-weight: 600; line-height: 1; padding: 4px 10px; min-width: 44px; min-height: 44px; }
+ 
+-  /* composer sheet — new reminder / task / event */
+-  .sheet-back { position: absolute; inset: 0; background: rgba(0,0,0,.32); z-index: 20; }
+-  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 21; background: var(--card); border-radius: 16px 16px 0 0; padding: 18px 16px calc(24px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0,0,0,.18); }
+-  .sheet h3 { margin: 0 0 12px; font-size: 19px; font-weight: 800; }
+-  .sheet input { display: block; width: 100%; border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 12px 2px; font: inherit; font-size: 17px; color: var(--ink); outline: none; }
+-  .sheet input::placeholder { color: var(--dim); }
+-  .sheet-acts { display: flex; justify-content: space-between; margin-top: 18px; }
+-  .sheet-acts button { border: 0; background: transparent; font-size: 17px; font-weight: 700; padding: 10px 6px; min-height: 44px; }
+-  .sheet-acts [data-cancel] { color: var(--muted); }
+-  .sheet-acts [data-add] { color: var(--crimson); font-weight: 800; }
++  /* ===== full-page entry form (composer) =====
++     Every "part" the user can attach to a reminder lives here, grouped exactly
++     like the Figma parts board. The point is data ownership: each control writes
++     a field onto the item, which is persisted in localStorage (see createItem).  */
++  .form-page {
++    position: absolute; inset: 0; z-index: 40;
++    background: var(--shell); color: var(--ink);
++    display: flex; flex-direction: column;
++  }
++  .form-bar {
++    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px;
++    padding: calc(env(safe-area-inset-top) + 14px) 14px 12px;
++    background: var(--sand); border-bottom: 2px solid var(--crimson);
++  }
++  .form-bar h3 { margin: 0; text-align: center; font-family: "Bodoni 72 Smallcaps", "Bodoni Moda", Georgia, serif; font-size: 23px; font-weight: 700; color: #fff; white-space: nowrap; }
++  .form-bar button { border: 0; background: transparent; font-size: 17px; font-weight: 800; padding: 8px 2px; min-height: 44px; }
++  .form-bar [data-cancel] { color: rgba(255,255,255,.72); justify-self: start; }
++  .form-bar [data-add] { color: var(--crimson); justify-self: end; }
++  .form-scroll { flex: 1; overflow-y: auto; padding: 16px 16px calc(32px + env(safe-area-inset-bottom)); }
++  .form-scroll::-webkit-scrollbar { width: 0; }
++
++  .fgroup { margin: 0 0 18px; }
++  .fgroup > h4 { margin: 0 0 8px 4px; font-size: 12px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: var(--dim); }
++  .fcard { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
++  .frow { display: flex; align-items: center; gap: 12px; padding: 11px 14px; min-height: 52px; border-top: 1px solid var(--line); }
++  .fcard > .frow:first-child { border-top: 0; }
++  .frow.col { flex-direction: column; align-items: stretch; gap: 9px; }
++  .frow .ficon { width: 22px; height: 22px; flex: none; color: var(--muted); display: grid; place-items: center; }
++  .frow .ficon svg { width: 20px; height: 20px; }
++  .frow .flab { flex: none; font-size: 16px; font-weight: 700; color: var(--ink); }
++  .frow .fctl { flex: 1; min-width: 0; display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
++  .frow .frow-head { display: flex; align-items: center; gap: 12px; width: 100%; }
++
++  .finput, .ftext, .fselect { border: 0; background: transparent; font: inherit; color: var(--ink); outline: none; padding: 0; }
++  .finput { width: 100%; font-size: 17px; }
++  .frow:not(.col) .fctl .finput, .fctl .fselect { text-align: right; }
++  .ftext { width: 100%; font-size: 16px; resize: none; min-height: 22px; line-height: 1.35; overflow: hidden; }
++  .finput::placeholder, .ftext::placeholder { color: var(--dim); }
++  .fselect { font-size: 16px; font-weight: 600; color: var(--ink); -webkit-appearance: none; appearance: none; }
++  .fhint { font-size: 12.5px; color: var(--dim); padding: 8px 4px 0; margin: 0; }
++
++  /* toggle switch */
++  .switch { position: relative; width: 50px; height: 30px; flex: none; }
++  .switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
++  .switch .track { position: absolute; inset: 0; background: #d6d9de; border-radius: 999px; transition: background .18s; pointer-events: none; }
++  .switch .knob { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; background: #fff; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .18s; pointer-events: none; }
++  .switch input:checked ~ .track { background: var(--crimson); }
++  .switch input:checked ~ .knob { transform: translateX(20px); }
++
++  /* tags */
++  .chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
++  .chips:empty { display: none; }
++  .chip { display: inline-flex; align-items: center; gap: 6px; background: var(--panel-2); color: var(--ink); border-radius: 999px; padding: 5px 6px 5px 11px; font-size: 13px; font-weight: 700; }
++  .chip button { border: 0; background: transparent; color: var(--muted); font-size: 15px; line-height: 1; padding: 0 4px; min-width: 20px; }
++
++  /* subtasks */
++  .sublist { width: 100%; display: flex; flex-direction: column; gap: 8px; }
++  .sublist:empty { display: none; }
++  .subrow { display: flex; align-items: center; gap: 10px; }
++  .subrow .sbox { width: 20px; height: 20px; border-radius: 10px; border: 2px solid var(--dim); flex: none; }
++  .subrow input { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 15px; color: var(--ink); outline: none; }
++  .subrow [data-subdel] { border: 0; background: transparent; color: var(--dim); font-size: 16px; padding: 4px 6px; min-width: 30px; }
++  .subadd { align-self: flex-start; border: 0; background: transparent; color: var(--crimson); font-size: 15px; font-weight: 800; padding: 4px 0; }
++
++  /* image */
++  .fimg-wrap { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: space-between; }
++  .fimg-thumb { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; border: 1px solid var(--line); }
++  .fimg-btn { border: 0; background: transparent; color: var(--crimson); font-size: 16px; font-weight: 700; padding: 4px 0; }
++
++  /* richer user reminder rows */
++  .row-thumb { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; display: block; }
++  .row-right { display: flex; align-items: center; gap: 6px; }
++  .row-right .meta { display: inline-flex; align-items: center; gap: 5px; }
++  .rm-flag, .rm-prio { color: var(--crimson); font-weight: 800; }
+ 
+   /* sidebar drawer */
+   .drawer-back { position: absolute; inset: 0; background: rgba(0,0,0,.32); z-index: 30; }
+@@ -420,12 +484,122 @@
+     <button class="tab" data-go="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>Calendar</button>
+   </nav>
+ 
+-  <div class="sheet-back" id="sheet-back" hidden></div>
+-  <form class="sheet" id="composer" hidden>
+-    <h3 id="composer-title">New Reminder</h3>
+-    <input id="composer-name" placeholder="Title" autocomplete="off" />
+-    <input id="composer-notes" placeholder="Notes" autocomplete="off" />
+-    <div class="sheet-acts"><button type="button" data-cancel>Cancel</button><button type="submit" data-add>Add</button></div>
++  <form class="form-page" id="composer" hidden>
++    <div class="form-bar">
++      <button type="button" data-cancel>Cancel</button>
++      <h3 id="composer-title">New Reminder</h3>
++      <button type="submit" data-add>Add</button>
++    </div>
++    <div class="form-scroll">
++
++      <!-- Core -->
++      <div class="fgroup">
++        <h4>Core</h4>
++        <div class="fcard">
++          <div class="frow col"><input id="composer-name" class="finput" placeholder="Title" autocomplete="off" /></div>
++          <div class="frow col"><textarea id="composer-notes" class="ftext" rows="1" placeholder="Notes" autocomplete="off"></textarea></div>
++          <div class="frow">
++            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span>
++            <input id="f-url" class="finput" type="url" inputmode="url" placeholder="URL" autocomplete="off" />
++          </div>
++          <div class="frow">
++            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
++            <div class="fimg-wrap">
++              <img id="f-image-thumb" class="fimg-thumb" alt="" hidden />
++              <button type="button" class="fimg-btn" id="f-image-btn">Add Image…</button>
++              <input id="f-image" type="file" accept="image/*" hidden />
++            </div>
++          </div>
++        </div>
++      </div>
++
++      <!-- Date & Time -->
++      <div class="fgroup">
++        <h4>Date &amp; Time</h4>
++        <div class="fcard">
++          <div class="frow">
++            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></span>
++            <label class="flab" for="f-date">Date</label>
++            <div class="fctl"><input id="f-date" class="finput" type="date" /></div>
++          </div>
++          <div class="frow">
++            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
++            <label class="flab" for="f-time">Time</label>
++            <div class="fctl"><input id="f-time" class="finput" type="time" /></div>
++          </div>
++          <div class="frow">
++            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M5 3 2.5 5.5M19 3l2.5 2.5"/></svg></span>
++            <label class="flab" for="f-urgent">Urgent</label>
++            <div class="fctl"><span class="switch"><input id="f-urgent" type="checkbox" /><span class="track"></span><span class="knob"></span></span></div>
++          </div>
++          <div class="frow">
++            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
++            <label class="flab" for="f-repeat">Repeat</label>
++            <div class="fctl"><select id="f-repeat" class="fselect"><option value="none">Never</option><option value="daily">Daily</option><option value="weekdays">Weekdays</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div>
++          </div>
++          <div class="frow">
++            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
++            <label class="flab" for="f-early">Early Reminder</label>
++            <div class="fctl"><select id="f-early" class="fselect"><option value="none">None</option><option value="5m">5 minutes before</option><option value="10m">10 minutes before</option><option value="30m">30 minutes before</option><option value="1h">1 hour before</option><option value="1d">1 day before</option></select></div>
++          </div>
++        </div>
++        <p class="fhint">Mark a reminder urgent to set an alarm.</p>
++      </div>
++
++      <!-- Organization -->
++      <div class="fgroup">
++        <h4>Organization</h4>
++        <div class="fcard">
++          <div class="frow">
++            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
++            <label class="flab" for="f-list">List</label>
++            <div class="fctl"><select id="f-list" class="fselect"><option>Reminders</option><option>Work</option><option>Personal</option><option>Shopping</option><option>Health</option></select></div>
++          </div>
++          <div class="frow col">
++            <div class="frow-head">
++              <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 12 22l-9-9V3h10z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg></span>
++              <input id="f-tag-input" class="finput" placeholder="Add a tag, press Enter" autocomplete="off" />
++            </div>
++            <div class="chips" id="f-tags"></div>
++          </div>
++          <div class="frow col">
++            <div class="frow-head">
++              <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
++              <span class="flab">Subtasks</span>
++            </div>
++            <div class="sublist" id="f-subtasks"></div>
++            <button type="button" class="subadd" id="f-subadd">+ Add Subtask</button>
++          </div>
++          <div class="frow">
++            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V4h13l-2 4 2 4H4"/></svg></span>
++            <label class="flab" for="f-flag">Flag</label>
++            <div class="fctl"><span class="switch"><input id="f-flag" type="checkbox" /><span class="track"></span><span class="knob"></span></span></div>
++          </div>
++          <div class="frow">
++            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v18M12 8v13M18 13v8"/></svg></span>
++            <label class="flab" for="f-priority">Priority</label>
++            <div class="fctl"><select id="f-priority" class="fselect"><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
++          </div>
++        </div>
++      </div>
++
++      <!-- Places & People -->
++      <div class="fgroup">
++        <h4>Places &amp; People</h4>
++        <div class="fcard">
++          <div class="frow">
++            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11z"/><circle cx="12" cy="10" r="2"/></svg></span>
++            <input id="f-location" class="finput" placeholder="Location" autocomplete="off" />
++          </div>
++          <div class="frow">
++            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg></span>
++            <input id="f-messaging" class="finput" placeholder="When messaging a person" autocomplete="off" />
++          </div>
++        </div>
++        <p class="fhint">When Messaging surfaces this reminder while you chat with that person.</p>
++      </div>
++
++    </div>
+   </form>
+ 
+   <div class="drawer-back" id="drawer-back" hidden></div>
+@@ -541,44 +715,151 @@
+     }
+   }));
+ 
+-  // ---- FAB opens the composer for the active screen ----
++  // ---- FAB opens the full-page entry form for the active screen ----
++  // The form captures every "part" and writes it onto the item, so the user's
++  // data lives in their own store (localStorage), not a third-party app.
+   const composer = document.getElementById("composer");
+-  const sheetBack = document.getElementById("sheet-back");
+   const composerTitle = document.getElementById("composer-title");
+   const composerName = document.getElementById("composer-name");
+   const composerNotes = document.getElementById("composer-notes");
++  const F = {
++    url: document.getElementById("f-url"),
++    image: document.getElementById("f-image"),
++    imageThumb: document.getElementById("f-image-thumb"),
++    imageBtn: document.getElementById("f-image-btn"),
++    date: document.getElementById("f-date"),
++    time: document.getElementById("f-time"),
++    urgent: document.getElementById("f-urgent"),
++    repeat: document.getElementById("f-repeat"),
++    early: document.getElementById("f-early"),
++    list: document.getElementById("f-list"),
++    tagInput: document.getElementById("f-tag-input"),
++    tags: document.getElementById("f-tags"),
++    subtasks: document.getElementById("f-subtasks"),
++    flag: document.getElementById("f-flag"),
++    priority: document.getElementById("f-priority"),
++    location: document.getElementById("f-location"),
++    messaging: document.getElementById("f-messaging"),
++  };
+   let composerKind = "reminder";
+   let composerSeed = null;
++  let currentTags = [];
++  let imageData = "";
+   const KIND_LABEL = { reminder: "New Reminder", task: "New Task", event: "New Event" };
+ 
++  // Tags — chips added on Enter / comma, removable
++  function renderTags() {
++    F.tags.innerHTML = currentTags.map((t, i) =>
++      `<span class="chip">${esc(t)}<button type="button" data-tagdel="${i}" aria-label="Remove tag">×</button></span>`).join("");
++    F.tags.querySelectorAll("[data-tagdel]").forEach(b => b.addEventListener("click", () => {
++      currentTags.splice(+b.dataset.tagdel, 1); renderTags();
++    }));
++  }
++  function addTag(v) {
++    const t = (v || "").trim().replace(/^#+/, "").trim();
++    if (t && !currentTags.includes(t)) { currentTags.push(t); renderTags(); }
++  }
++  F.tagInput.addEventListener("keydown", (e) => {
++    if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(F.tagInput.value); F.tagInput.value = ""; }
++  });
++
++  // Subtasks — add/remove editable rows
++  function addSubtaskRow(title) {
++    const row = document.createElement("div");
++    row.className = "subrow";
++    row.innerHTML = `<span class="sbox"></span><input placeholder="Subtask" autocomplete="off" /><button type="button" data-subdel aria-label="Remove subtask">×</button>`;
++    row.querySelector("input").value = title || "";
++    row.querySelector("[data-subdel]").addEventListener("click", () => row.remove());
++    F.subtasks.appendChild(row);
++    return row;
++  }
++  document.getElementById("f-subadd").addEventListener("click", () => addSubtaskRow().querySelector("input").focus());
++
++  // Image — read into a data URL so the bytes live on-device with the item
++  F.imageBtn.addEventListener("click", () => F.image.click());
++  F.image.addEventListener("change", () => {
++    const file = F.image.files && F.image.files[0];
++    if (!file) return;
++    const reader = new FileReader();
++    reader.onload = () => {
++      imageData = reader.result;
++      F.imageThumb.src = imageData; F.imageThumb.hidden = false;
++      F.imageBtn.textContent = "Change Image…";
++    };
++    reader.readAsDataURL(file);
++  });
++
++  // Notes auto-grow
++  composerNotes.addEventListener("input", () => {
++    composerNotes.style.height = "auto";
++    composerNotes.style.height = composerNotes.scrollHeight + "px";
++  });
++
++  function resetForm() {
++    composerNotes.value = ""; composerNotes.style.height = "auto";
++    F.url.value = ""; F.date.value = ""; F.time.value = "";
++    F.urgent.checked = false; F.repeat.value = "none"; F.early.value = "none";
++    F.list.value = "Reminders"; F.flag.checked = false; F.priority.value = "none";
++    F.location.value = ""; F.messaging.value = "";
++    currentTags = []; renderTags();
++    F.subtasks.innerHTML = "";
++    F.tagInput.value = "";
++    imageData = ""; F.image.value = "";
++    F.imageThumb.removeAttribute("src"); F.imageThumb.hidden = true; F.imageBtn.textContent = "Add Image…";
++  }
++
+   function openComposer(kind, seed) {
+     composerKind = kind;
+     composerSeed = seed || null;
++    resetForm();
+     composerTitle.textContent = seed ? seed.label : KIND_LABEL[kind];
+     composerName.value = seed ? seed.text : "";
+-    composerNotes.value = "";
+-    composer.hidden = false; sheetBack.hidden = false;
++    composer.hidden = false;
++    composer.querySelector(".form-scroll").scrollTop = 0;
+     composerName.focus();
+   }
+-  function closeComposer() { composer.hidden = true; sheetBack.hidden = true; composerSeed = null; }
++  function closeComposer() { composer.hidden = true; composerSeed = null; }
++
++  function collectParts() {
++    const subtasks = [...F.subtasks.querySelectorAll(".subrow input")]
++      .map(i => i.value.trim()).filter(Boolean).map(t => ({ title: t, done: false }));
++    return {
++      url: F.url.value.trim(),
++      image: imageData,
++      date: F.date.value,
++      time: F.time.value,
++      urgent: F.urgent.checked,
++      repeat: F.repeat.value,
++      earlyReminder: F.early.value,
++      list: F.list.value,
++      tags: currentTags.slice(),
++      subtasks,
++      flag: F.flag.checked,
++      priority: F.priority.value,
++      location: F.location.value.trim(),
++      whenMessaging: F.messaging.value.trim(),
++    };
++  }
+ 
+   document.querySelectorAll(".fab").forEach(fab => fab.addEventListener("click", (e) => {
+     e.stopPropagation();
+     const active = document.querySelector(".scroll.active").dataset.screen;
+     openComposer(active === "tasks" ? "task" : active === "calendar" ? "event" : "reminder");
+   }));
+-  sheetBack.addEventListener("click", closeComposer);
+   composer.querySelector("[data-cancel]").addEventListener("click", closeComposer);
+   composer.addEventListener("submit", (e) => {
+     e.preventDefault();
++    addTag(F.tagInput.value); F.tagInput.value = "";  // commit any half-typed tag
+     const title = composerName.value.trim() || KIND_LABEL[composerKind];
++    const notes = composerNotes.value.trim();
++    const parts = collectParts();
+     if (composerSeed) {
+       // edit = owned (+0.30, the strongest signal); untouched = accept (+0.10)
+       const sig = title === composerSeed.text ? "accept" : "edit";
+-      createItem(composerKind, title, composerNotes.value.trim(), "seed:" + composerSeed.id, composerSeed.revealsStrengths, sig);
++      createItem({ type: composerKind, title, notes, recId: "seed:" + composerSeed.id, strengths: composerSeed.revealsStrengths, signalType: sig, ...parts });
+       flash(sig === "edit" ? "Owned — deeper unlocked" : "Shipped");
+     } else {
+-      createItem(composerKind, title, composerNotes.value.trim());
++      createItem({ type: composerKind, title, notes, ...parts });
+       flash(KIND_LABEL[composerKind].replace("New ", "") + " added");
+     }
+     closeComposer();
+@@ -674,17 +955,45 @@
+         e.stopPropagation();
+         const c = allCards().find(x => x.id === row.dataset.rec);
+         if (!c) return;
+-        createItem(c.type, c.title, "", c.id, c.deepensStrengths);
++        createItem({ type: c.type, title: c.title, recId: c.id, strengths: c.deepensStrengths });
+         flash("Added");
+       });
+     });
+   }
+ 
+-  function createItem(type, title, sub, recId, strengths, signalType) {
++  // Accepts an options object so every captured part is persisted onto the item.
++  function createItem(opts) {
++    const o = opts || {};
+     const now = new Date();
+     const hh = ((now.getHours() + 11) % 12) + 1, mm = String(now.getMinutes()).padStart(2, "0");
+-    items.push({ id: uid(), type, title, sub, meta: type === "event" ? hh + ":" + mm : "now", status: "active", createdAt: now.toISOString(), recId: recId || null });
+-    if (recId) recordSignal(recId, signalType || "accept", strengths);
++    const notes = o.notes || "";
++    const item = {
++      id: uid(),
++      type: o.type || "reminder",
++      title: o.title || "",
++      notes,
++      sub: notes,                       // back-compat: task/event rows read .sub
++      url: o.url || "",
++      image: o.image || "",
++      date: o.date || "",
++      time: o.time || "",
++      urgent: !!o.urgent,
++      repeat: o.repeat || "none",
++      earlyReminder: o.earlyReminder || "none",
++      list: o.list || "Reminders",
++      tags: o.tags || [],
++      subtasks: o.subtasks || [],
++      flag: !!o.flag,
++      priority: o.priority || "none",
++      location: o.location || "",
++      whenMessaging: o.whenMessaging || "",
++      meta: o.type === "event" ? hh + ":" + mm : "now",
++      status: "active",
++      createdAt: now.toISOString(),
++      recId: o.recId || null,
++    };
++    items.push(item);
++    if (item.recId) recordSignal(item.recId, o.signalType || "accept", o.strengths);
+     persist(); renderAll();
+   }
+ 
+@@ -699,6 +1008,24 @@
+     return b;
+   }
+ 
++  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
++  const PRIO_MARK = { low: "!", medium: "!!", high: "!!!" };
++  function shortDate(d) {
++    const p = (d || "").split("-").map(Number);
++    return p.length === 3 ? MONTHS[(p[1] || 1) - 1] + " " + p[2] : d;
++  }
++  function fmt12(t) {
++    const [h, m] = (t || "").split(":").map(Number);
++    if (Number.isNaN(h)) return t;
++    return (((h + 11) % 12) + 1) + ":" + String(m).padStart(2, "0") + (h < 12 ? " AM" : " PM");
++  }
++  function fmtWhen(it) {
++    if (it.date && it.time) return shortDate(it.date) + " " + fmt12(it.time);
++    if (it.date) return shortDate(it.date);
++    if (it.time) return fmt12(it.time);
++    return "";
++  }
++
+   function renderUserItems() {
+     document.querySelectorAll("[data-user]").forEach(n => n.remove());
+     for (const it of items.filter(i => i.status === "active")) {
+@@ -712,8 +1039,25 @@
+       } else if (it.type === "reminder") {
+         const a = document.createElement("article");
+         a.className = "item"; a.setAttribute("data-user", "");
+-        a.innerHTML = `<div class="glyph">◷</div><div class="copy"><strong>${esc(it.title)}</strong>${it.sub ? `<span>${esc(it.sub)}</span>` : ""}</div>`;
+-        a.appendChild(delBtn(it.id));
++        const note = it.notes || it.sub || "";
++        const extras = [
++          it.list && it.list !== "Reminders" ? it.list : "",
++          it.location || "",
++          (it.tags || []).map(t => "#" + t).join(" "),
++        ].filter(Boolean).join(" · ");
++        const subText = note || extras;
++        const glyph = it.image
++          ? `<img class="row-thumb" src="${esc(it.image)}" alt="" />`
++          : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`;
++        const when = fmtWhen(it);
++        const bits = [];
++        if (it.flag) bits.push('<span class="rm-flag" data-flag>&#9873;</span>');
++        if (it.priority && it.priority !== "none") bits.push(`<span class="rm-prio" data-prio="${esc(it.priority)}">${PRIO_MARK[it.priority]}</span>`);
++        if (when) bits.push(`<span data-when>${esc(when)}</span>`);
++        a.innerHTML = `<div class="glyph">${glyph}</div>`
++          + `<div class="copy"><strong>${esc(it.title)}</strong>${subText ? `<span>${esc(subText)}</span>` : ""}</div>`
++          + `<div class="row-right">${bits.length ? `<span class="meta">${bits.join(" ")}</span>` : ""}</div>`;
++        a.querySelector(".row-right").appendChild(delBtn(it.id));
+         document.getElementById("latest-list").prepend(a);
+       } else {
+         const a = document.createElement("article");
+diff --git a/ios/ReCallUITests/SmokeTests.swift b/ios/ReCallUITests/SmokeTests.swift
+index 1702c69..7dc65b6 100644
+--- a/ios/ReCallUITests/SmokeTests.swift
++++ b/ios/ReCallUITests/SmokeTests.swift
+@@ -1,40 +1,50 @@
+ import XCTest
+ 
+-/// QC Layer 3 — device smoke. Deliberately thin: deep behavior is covered by
+-/// the Playwright suite (tests/web). This only proves the native shell boots
+-/// and actually renders the bundled web prototype.
++/// QC Layer 3 — device smoke. Deliberately thin: it proves the native app boots, the full-page
++/// entry form opens with its part groups, and a created reminder shows up in the list.
+ final class SmokeTests: XCTestCase {
+ 
+-    func testAppLaunchesAndRendersWebUI() {
++    /// The notification permission prompt belongs to SpringBoard and would block taps; dismiss it.
++    private func dismissNotificationPrompt() {
++        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
++        let allow = springboard.buttons["Allow"]
++        if allow.waitForExistence(timeout: 5) { allow.tap() }
++    }
++
++    func testAppLaunchesToNativeReminders() {
+         let app = XCUIApplication()
+         app.launch()
+-
+-        // The WKWebView must come up.
+-        let web = app.webViews.firstMatch
+-        XCTAssertTrue(web.waitForExistence(timeout: 20), "WKWebView never appeared")
+-
+-        // The web content must expose the brand header — proves index.html
+-        // loaded from the bundle, not a blank or error page.
+-        let brand = web.staticTexts["Notorious"]
+-        XCTAssertTrue(brand.waitForExistence(timeout: 20), "Web UI did not render (brand title missing)")
++        dismissNotificationPrompt()
++        XCTAssertTrue(app.staticTexts["Notorious"].waitForExistence(timeout: 20),
++                      "Native Reminders did not render (brand title missing)")
++        XCTAssertTrue(app.buttons["New reminder"].waitForExistence(timeout: 10),
++                      "FAB missing")
+     }
+ 
+-    /// Real touch, real device-class input: tap the Tasks tab with the iOS
+-    /// touch pipeline (not a desktop click) and assert the screen actually
+-    /// switches. This is the layer Playwright cannot see.
+-    func testButtonsRespondToRealTouch() {
++    func testFABOpensFullPageForm() {
+         let app = XCUIApplication()
+         app.launch()
++        dismissNotificationPrompt()
++        let fab = app.buttons["New reminder"]
++        XCTAssertTrue(fab.waitForExistence(timeout: 20))
++        fab.tap()
++        XCTAssertTrue(app.navigationBars["New Reminder"].waitForExistence(timeout: 10),
++                      "Entry form did not open")
++        XCTAssertTrue(app.staticTexts["Core"].waitForExistence(timeout: 5), "Core group missing")
++        XCTAssertTrue(app.textFields["Title"].exists, "Title field missing")
++    }
+ 
+-        let web = app.webViews.firstMatch
+-        XCTAssertTrue(web.waitForExistence(timeout: 20), "WKWebView never appeared")
+-
+-        let tasksTab = web.descendants(matching: .any)["Tasks"].firstMatch
+-        XCTAssertTrue(tasksTab.waitForExistence(timeout: 20), "Tasks tab not found")
+-        tasksTab.tap()
+-
+-        // "Upcoming" exists only on the Tasks screen (segment + section head)
+-        let upcoming = web.descendants(matching: .any)["Upcoming"].firstMatch
+-        XCTAssertTrue(upcoming.waitForExistence(timeout: 10), "Tap did not switch screens — touch input is broken")
++    func testCreatingAReminderShowsItInTheList() {
++        let app = XCUIApplication()
++        app.launch()
++        dismissNotificationPrompt()
++        app.buttons["New reminder"].tap()
++        let title = app.textFields["Title"]
++        XCTAssertTrue(title.waitForExistence(timeout: 10))
++        title.tap()
++        title.typeText("Smoke test reminder")
++        app.navigationBars.buttons["Add"].tap()
++        XCTAssertTrue(app.staticTexts["Smoke test reminder"].waitForExistence(timeout: 10),
++                      "Created reminder did not appear in the list")
+     }
+ }
+diff --git a/ios/project.yml b/ios/project.yml
+index a1e4b29..d0ef739 100644
+--- a/ios/project.yml
++++ b/ios/project.yml
+@@ -19,15 +19,10 @@ targets:
+     sources:
+       - path: ReCall/App
+       - path: ReCall/Resources
+-      # Folder reference: the entire Web/ tree (index.html + covers/*.png) is
+-      # copied into the bundle preserving its relative layout so the prototype
+-      # loads offline.
+-      - path: ReCall/Web
+-        type: folder
+-        buildPhase: resources
+     settings:
+       base:
+         PRODUCT_BUNDLE_IDENTIFIER: app.understood.recall
++        ENABLE_DEBUG_DYLIB: NO
+         GENERATE_INFOPLIST_FILE: YES
+         TARGETED_DEVICE_FAMILY: "1,2"
+         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+@@ -37,6 +32,8 @@ targets:
+         INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleLightContent
+         INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
++        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Re_Call uses your location to tag a reminder with where it matters."
++        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "Re_Call attaches photos you choose to your reminders."
+   ReCallUITests:
+     type: bundle.ui-testing
+     platform: iOS
+diff --git a/supabase/migrations/20260615120000_add_reminders_tables.sql b/supabase/migrations/20260615120000_add_reminders_tables.sql
+new file mode 100644
+index 0000000..59642f6
+--- /dev/null
++++ b/supabase/migrations/20260615120000_add_reminders_tables.sql
+@@ -0,0 +1,106 @@
++-- supabase/migrations/20260615120000_add_reminders_tables.sql
++-- The user's reminders, captured natively in the iOS app and synced here. The 16 "parts"
++-- from the entry form map to columns + two child tables:
++--   * scalar parts (title, notes, url, image, date, time, urgent, repeat, early reminder,
++--     list, flag, priority, location, when-messaging) are columns on recall.reminders
++--   * relational parts (tags, subtasks) are child tables so they project cleanly to
++--     RDF/Neo4j edges later (matching the rdf_terms/rdf_triples + neo4j projection design).
++-- seeded_from_template_id links a reminder back into the existing recommendation graph
++-- (recall.reminder_templates), closing the "deeper, not broader" loop.
++-- Completed reminders are RETAINED (status='completed'), never deleted.
++create table if not exists recall.reminders (
++  id                      uuid primary key default gen_random_uuid(),
++  user_id                 uuid not null default auth.uid(),
++  -- Core
++  title                   text not null default '',
++  notes                   text not null default '',
++  url                     text not null default '',
++  image_path              text,                              -- Supabase Storage path (1.0.1); null for now
++  -- Date & Time
++  due_date                date,
++  due_time                time,
++  urgent                  boolean not null default false,
++  repeat_rule             text not null default 'none',
++  early_reminder          text not null default 'none',
++  -- Organization
++  list_name               text not null default 'Reminders',
++  flag                    boolean not null default false,
++  priority                text not null default 'none',
++  -- Places & People
++  location_name           text not null default '',
++  when_messaging_person   text not null default '',
++  -- Graph link + lifecycle
++  seeded_from_template_id text references recall.reminder_templates(id),
++  status                  text not null default 'active',
++  completed_at            timestamptz,
++  created_at              timestamptz not null default now(),
++  updated_at              timestamptz not null default now(),
++  constraint reminders_status_check   check (status in ('active','completed','deleted')),
++  constraint reminders_priority_check check (priority in ('none','low','medium','high')),
++  constraint reminders_repeat_check   check (repeat_rule in ('none','daily','weekdays','weekly','monthly','yearly')),
++  constraint reminders_early_check    check (early_reminder in ('none','5m','10m','30m','1h','1d'))
++);
++
++create index if not exists reminders_user_status_idx on recall.reminders (user_id, status, created_at desc);
++create index if not exists reminders_template_idx     on recall.reminders (seeded_from_template_id);
++
++-- keep updated_at fresh
++create or replace function recall.set_updated_at() returns trigger as $$
++begin
++  new.updated_at = now();
++  return new;
++end;
++$$ language plpgsql;
++
++drop trigger if exists reminders_set_updated_at on recall.reminders;
++create trigger reminders_set_updated_at
++  before update on recall.reminders
++  for each row execute function recall.set_updated_at();
++
++-- Tags edge: (:Reminder)-[:TAGGED]->(:Tag)
++create table if not exists recall.reminder_tags (
++  reminder_id uuid not null references recall.reminders(id) on delete cascade,
++  tag         text not null,
++  primary key (reminder_id, tag)
++);
++create index if not exists reminder_tags_tag_idx on recall.reminder_tags (tag);
++
++-- Subtasks edge: (:Reminder)-[:HAS_SUBTASK]->(:Subtask)
++create table if not exists recall.reminder_subtasks (
++  id          uuid primary key default gen_random_uuid(),
++  reminder_id uuid not null references recall.reminders(id) on delete cascade,
++  title       text not null default '',
++  done        boolean not null default false,
++  position    integer not null default 0
++);
++create index if not exists reminder_subtasks_reminder_idx on recall.reminder_subtasks (reminder_id, position);
++
++-- RLS: own-rows only for authenticated clients (anonymous sign-in carries the authenticated
++-- role). initPlan-optimized (select auth.uid()), matching the personalization-table convention.
++alter table recall.reminders         enable row level security;
++alter table recall.reminder_tags     enable row level security;
++alter table recall.reminder_subtasks enable row level security;
++
++drop policy if exists reminders_select_own on recall.reminders;
++create policy reminders_select_own on recall.reminders for select to authenticated using (user_id = (select auth.uid()));
++drop policy if exists reminders_insert_own on recall.reminders;
++create policy reminders_insert_own on recall.reminders for insert to authenticated with check (user_id = (select auth.uid()));
++drop policy if exists reminders_update_own on recall.reminders;
++create policy reminders_update_own on recall.reminders for update to authenticated using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
++drop policy if exists reminders_delete_own on recall.reminders;
++create policy reminders_delete_own on recall.reminders for delete to authenticated using (user_id = (select auth.uid()));
++
++drop policy if exists reminder_tags_all_own on recall.reminder_tags;
++create policy reminder_tags_all_own on recall.reminder_tags for all to authenticated
++  using (exists (select 1 from recall.reminders r where r.id = reminder_id and r.user_id = (select auth.uid())))
++  with check (exists (select 1 from recall.reminders r where r.id = reminder_id and r.user_id = (select auth.uid())));
++
++drop policy if exists reminder_subtasks_all_own on recall.reminder_subtasks;
++create policy reminder_subtasks_all_own on recall.reminder_subtasks for all to authenticated
++  using (exists (select 1 from recall.reminders r where r.id = reminder_id and r.user_id = (select auth.uid())))
++  with check (exists (select 1 from recall.reminders r where r.id = reminder_id and r.user_id = (select auth.uid())));
++
++-- Grants: custom schemas don't inherit role grants; RLS still gates rows.
++grant usage on schema recall to authenticated;
++grant select, insert, update, delete on recall.reminders, recall.reminder_tags, recall.reminder_subtasks to authenticated;
++grant select, insert, update, delete on recall.reminders, recall.reminder_tags, recall.reminder_subtasks to service_role;
+diff --git a/supabase/migrations/20260615120001_harden_set_updated_at_search_path.sql b/supabase/migrations/20260615120001_harden_set_updated_at_search_path.sql
+new file mode 100644
+index 0000000..8f91d78
+--- /dev/null
++++ b/supabase/migrations/20260615120001_harden_set_updated_at_search_path.sql
+@@ -0,0 +1,4 @@
++-- supabase/migrations/20260615120001_harden_set_updated_at_search_path.sql
++-- Pin the trigger function's search_path (clears the function_search_path_mutable security
++-- advisor). now() resolves from pg_catalog, which is always implicitly first, so '' is safe.
++alter function recall.set_updated_at() set search_path = '';
+diff --git a/supabase/migrations/README.md b/supabase/migrations/README.md
+index 2a15a7e..580d53c 100644
+--- a/supabase/migrations/README.md
++++ b/supabase/migrations/README.md
+@@ -11,6 +11,8 @@ Remote migrations applied to project `vzaceoipwimphdvdxcpa`:
+ - `20260528215109_optimize_personalization_rls_initplan` — rewrites the policies above to use `(select auth.uid())` instead of `auth.uid()` so it is evaluated once per query (initPlan) rather than per row. Clears the `auth_rls_initplan` performance advisor; policy semantics are unchanged.
+ - `20260530204343_grant_personalization_schema_access` — grants the base table/schema privileges on `recall.*` to `authenticated` + `service_role` (custom schemas don't inherit them; without this even the service role hit "permission denied for schema recall"). RLS still gates rows; `anon` is intentionally not granted.
+ - `20260530204434_expose_recall_schema_to_api` — adds `recall` to the PostgREST exposed schemas (`pgrst.db_schemas`) so `supabase-js` `.schema("recall")` works. Also mirror `recall` in the dashboard (Settings → API → Exposed schemas) so the setting is durable.
++- `20260615120000_add_reminders_tables` — the user's reminders, captured in the native iOS entry form and synced here. `recall.reminders` holds the 16 scalar/relational "parts" (relational parts — tags, subtasks — live in `recall.reminder_tags` / `recall.reminder_subtasks` so they project to RDF/Neo4j edges). `seeded_from_template_id` links a reminder back into `recall.reminder_templates`. Completed reminders are **retained** (`status='completed'`). RLS: own-rows only `to authenticated` via `(select auth.uid())` (anonymous sign-in carries the `authenticated` role), with base grants to `authenticated` + `service_role`.
++- `20260615120001_harden_set_updated_at_search_path` — pins `recall.set_updated_at()`'s `search_path` to clear the `function_search_path_mutable` security advisor.
+ 
+ The local Supabase CLI is not installed in this workspace, so these migrations were applied through the Supabase app connector and verified with SQL queries.
+ 
+diff --git a/tests/web/reminders.spec.js b/tests/web/reminders.spec.js
+index 9bd3485..92e940c 100644
+--- a/tests/web/reminders.spec.js
++++ b/tests/web/reminders.spec.js
+@@ -46,6 +46,123 @@ test("build fingerprint element is present", async ({ page }) => {
+   expect(md5).toBeTruthy();
+ });
+ 
++test("FAB opens the full-page entry form with all four part groups and every control", async ({ page }) => {
++  await page.click(".fab");
++  await expect(page.locator("#composer.form-page")).toBeVisible();
++  await expect(page.locator(".fgroup > h4")).toHaveText([
++    "Core", "Date & Time", "Organization", "Places & People",
++  ]);
++  // every "part" control is present
++  for (const id of [
++    "composer-name", "composer-notes", "f-url", "f-image",
++    "f-date", "f-time", "f-urgent", "f-repeat", "f-early",
++    "f-list", "f-tag-input", "f-subadd", "f-flag", "f-priority",
++    "f-location", "f-messaging",
++  ]) {
++    await expect(page.locator(`#${id}`)).toHaveCount(1);
++  }
++});
++
++test("entry form captures every part and persists it onto the user's own item", async ({ page }) => {
++  await page.click(".fab");
++  await page.fill("#composer-name", "Renew passport");
++  await page.fill("#composer-notes", "Bring 2x2 photos");
++  await page.fill("#f-url", "https://travel.state.gov");
++  await page.fill("#f-date", "2026-07-20");
++  await page.fill("#f-time", "09:30");
++  await page.locator("#f-urgent").check();
++  await page.selectOption("#f-repeat", "yearly");
++  await page.selectOption("#f-early", "1d");
++  await page.selectOption("#f-list", "Personal");
++  await page.selectOption("#f-priority", "high");
++  await page.locator("#f-flag").check();
++  await page.fill("#f-location", "Post Office");
++  await page.fill("#f-messaging", "Stephanie");
++  // tag
++  await page.fill("#f-tag-input", "travel");
++  await page.press("#f-tag-input", "Enter");
++  await expect(page.locator("#f-tags .chip")).toHaveCount(1);
++  // subtask
++  await page.click("#f-subadd");
++  await page.fill("#f-subtasks .subrow input", "Find old passport");
++
++  await page.click("#composer [data-add]");
++
++  // the new row reflects the key parts
++  const row = page.locator("#latest-list .item").first();
++  await expect(row.locator("strong")).toHaveText("Renew passport");
++  await expect(row.locator("[data-flag]")).toHaveCount(1);
++  await expect(row.locator("[data-prio]")).toHaveText("!!!");
++  await expect(row.locator("[data-when]")).toContainText("Jul 20");
++
++  // the data lives in the user's own store
++  const it = await page.evaluate(() => {
++    const all = JSON.parse(localStorage.getItem("recall.items"));
++    return all[all.length - 1];
++  });
++  expect(it).toMatchObject({
++    type: "reminder",
++    title: "Renew passport",
++    notes: "Bring 2x2 photos",
++    url: "https://travel.state.gov",
++    date: "2026-07-20",
++    time: "09:30",
++    urgent: true,
++    repeat: "yearly",
++    earlyReminder: "1d",
++    list: "Personal",
++    priority: "high",
++    flag: true,
++    location: "Post Office",
++    whenMessaging: "Stephanie",
++  });
++  expect(it.tags).toEqual(["travel"]);
++  expect(it.subtasks).toEqual([{ title: "Find old passport", done: false }]);
++});
++
++test("tags add and remove inside the form", async ({ page }) => {
++  await page.click(".fab");
++  await page.fill("#f-tag-input", "home");
++  await page.press("#f-tag-input", "Enter");
++  await page.fill("#f-tag-input", "urgent");
++  await page.press("#f-tag-input", "Enter");
++  await expect(page.locator("#f-tags .chip")).toHaveCount(2);
++  await page.locator("#f-tags .chip [data-tagdel]").first().click();
++  await expect(page.locator("#f-tags .chip")).toHaveCount(1);
++  await expect(page.locator("#f-tags .chip")).toContainText("urgent");
++});
++
++test("attaching an image stores it on the item as a data URL and shows a thumbnail", async ({ page }) => {
++  await page.click(".fab");
++  await page.fill("#composer-name", "Receipt to file");
++  const png = Buffer.from(
++    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAen63NgAAAAASUVORK5CYII=",
++    "base64",
++  );
++  await page.setInputFiles("#f-image", { name: "receipt.png", mimeType: "image/png", buffer: png });
++  await expect(page.locator("#f-image-thumb")).toBeVisible();
++  await page.click("#composer [data-add]");
++  await expect(page.locator("#latest-list .item").first().locator("img.row-thumb")).toHaveCount(1);
++  const image = await page.evaluate(() => {
++    const all = JSON.parse(localStorage.getItem("recall.items"));
++    return all[all.length - 1].image;
++  });
++  expect(image).toMatch(/^data:image\/png;base64,/);
++});
++
++test("cancelling the full-page form discards everything", async ({ page }) => {
++  await page.click(".fab");
++  await page.fill("#composer-name", "Should not be saved");
++  await page.fill("#f-location", "Nowhere");
++  await page.click("#composer [data-cancel]");
++  await expect(page.locator("#composer")).toBeHidden();
++  await expect(page.locator("#latest-list .item")).toHaveCount(2);
++  // reopening starts clean
++  await page.click(".fab");
++  await expect(page.locator("#composer-name")).toHaveValue("");
++  await expect(page.locator("#f-location")).toHaveValue("");
++});
++
+ test("template tile → composer prefilled → edit → reminder created + deeper card surfaces", async ({ page }) => {
+   await page.locator('.tile[data-template="HabitStackGymReminder"]').click();
+   await expect(page.locator("#composer-title")).toHaveText("Habit stack at the gym");

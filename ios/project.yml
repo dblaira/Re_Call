@@ -19,15 +19,10 @@ targets:
     sources:
       - path: ReCall/App
       - path: ReCall/Resources
-      # Folder reference: the entire Web/ tree (index.html + covers/*.png) is
-      # copied into the bundle preserving its relative layout so the prototype
-      # loads offline.
-      - path: ReCall/Web
-        type: folder
-        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.understood.recall
+        ENABLE_DEBUG_DYLIB: NO
         GENERATE_INFOPLIST_FILE: YES
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -38,6 +33,8 @@ targets:
         INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleLightContent
         INFOPLIST_KEY_UIUserInterfaceStyle: Dark
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Re_Call uses your location to tag a reminder with where it matters."
+        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "Re_Call attaches photos you choose to your reminders."
   ReCallUITests:
     type: bundle.ui-testing
     platform: iOS

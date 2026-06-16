@@ -20,7 +20,7 @@ struct MainTabView: View {
         .overlay(alignment: .bottomTrailing) { fab }
         .preferredColorScheme(.dark)
         .sheet(isPresented: $showingForm, onDismiss: { editing = nil }) {
-            ReminderFormView(initialKind: editing?.kind ?? defaultKind, existing: editing) { store.save($0) }
+            ReminderFormView(initialKind: editing?.kind ?? defaultKind, existing: editing, existingTags: knownTags) { store.save($0) }
         }
     }
 
@@ -99,6 +99,12 @@ struct MainTabView: View {
     }
 
     // MARK: - Actions
+
+    /// Tags the user has used before, most-used first — offered as quick picks in the entry form.
+    private var knownTags: [String] {
+        let counts = Dictionary(store.reminders.flatMap { $0.tags }.map { ($0, 1) }, uniquingKeysWith: +)
+        return counts.sorted { $0.value != $1.value ? $0.value > $1.value : $0.key < $1.key }.map(\.key)
+    }
 
     private var defaultKind: ReminderKind {
         switch tab {

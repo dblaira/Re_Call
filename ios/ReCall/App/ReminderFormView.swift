@@ -10,6 +10,7 @@ struct ReminderFormView: View {
     @StateObject private var location = LocationProvider()
 
     let existing: Reminder?
+    let existingTags: [String]
     var onSave: (Reminder) -> Void
 
     @State private var r: Reminder
@@ -29,10 +30,10 @@ struct ReminderFormView: View {
     @State private var showSaved = false
 
     private let listChoices = ["Learning", "Leverage", "Delegation", "Inspiration", "Risk", "Health"]
-    private let optionColumns = [GridItem(.adaptive(minimum: 96), spacing: 8)]
 
-    init(initialKind: ReminderKind = .reminder, existing: Reminder?, onSave: @escaping (Reminder) -> Void) {
+    init(initialKind: ReminderKind = .reminder, existing: Reminder?, existingTags: [String] = [], onSave: @escaping (Reminder) -> Void) {
         self.existing = existing
+        self.existingTags = existingTags
         self.onSave = onSave
         var base = existing ?? Reminder()
         if existing == nil { base.kind = initialKind }
@@ -122,9 +123,10 @@ struct ReminderFormView: View {
             TextField("Notes", text: $r.notes, axis: .vertical).lineLimit(1...5)
             urlField("URL")
             imageRow
-            patternGroup
         } header: { sectionHeader("Details") }
         .listRowBackground(Brand.card)
+
+        patternSection
 
         Section {
             dateGroup("Date", icon: "calendar", isOn: $hasDate, date: $date)
@@ -164,11 +166,12 @@ struct ReminderFormView: View {
         } header: { sectionHeader("Do") }
         .listRowBackground(Brand.card)
 
+        patternSection
+
         Section {
             priorityGroup
             effortGroup
             energyGroup
-            patternGroup
         } header: { sectionHeader("Choose") }
         .listRowBackground(Brand.card)
 
@@ -211,9 +214,10 @@ struct ReminderFormView: View {
             TextField("Title", text: $r.title)
             TextField("Notes", text: $r.notes, axis: .vertical).lineLimit(1...4)
             locationRow
-            patternGroup
         } header: { sectionHeader("Event") }
         .listRowBackground(Brand.card)
+
+        patternSection
 
         Section {
             dateGroup("Date", icon: "calendar", isOn: $hasDate, date: $date)
@@ -286,43 +290,50 @@ struct ReminderFormView: View {
         }
     }
 
-    private func grid<T: Identifiable & Equatable>(_ title: String, icon: String, _ items: [T], selected: T, label: @escaping (T) -> String, pick: @escaping (T) -> Void) -> some View {
-        optionGroup(title, systemImage: icon) {
-            LazyVGrid(columns: optionColumns, spacing: 8) {
-                ForEach(items) { item in
-                    optionButton(label(item), isSelected: item == selected) { pick(item) }
-                }
-            }
+    /// A single clean dropdown row for a CaseIterable enum selector.
+    private func enumMenu<T: CaseIterable & Identifiable & Hashable>(
+        _ title: String, icon: String, selection: Binding<T>, label: @escaping (T) -> String
+    ) -> some View where T.AllCases: RandomAccessCollection {
+        Picker(selection: selection) {
+            ForEach(T.allCases) { Text(label($0)).tag($0) }
+        } label: {
+            Label(title, systemImage: icon)
         }
+        .pickerStyle(.menu)
+        .tint(Brand.crimson)
     }
 
     private var repeatGroup: some View {
-        grid("Repeat", icon: "repeat", RepeatRule.allCases, selected: r.repeatRule, label: { $0.label }) { r.repeatRule = $0 }
+        enumMenu("Repeat", icon: "repeat", selection: $r.repeatRule) { $0.label }
     }
     private var earlyReminderGroup: some View {
-        grid("Early Reminder", icon: "bell", EarlyReminder.allCases, selected: r.earlyReminder, label: { $0.label }) { r.earlyReminder = $0 }
+        enumMenu("Early Reminder", icon: "bell", selection: $r.earlyReminder) { $0.label }
     }
     private var priorityGroup: some View {
-        grid("Priority", icon: "exclamationmark.3", Priority.allCases, selected: r.priority, label: { $0.label }) { r.priority = $0 }
+        enumMenu("Priority", icon: "exclamationmark.3", selection: $r.priority) { $0.label }
     }
     private var effortGroup: some View {
-        grid("Effort", icon: "timer", Effort.allCases, selected: r.effort, label: { $0.label }) { r.effort = $0 }
+        enumMenu("Effort", icon: "timer", selection: $r.effort) { $0.label }
     }
     private var energyGroup: some View {
-        grid("Energy", icon: "bolt", Energy.allCases, selected: r.energy, label: { $0.label }) { r.energy = $0 }
+        enumMenu("Energy", icon: "bolt", selection: $r.energy) { $0.label }
     }
-    /// Adam's 8-step success architecture — shown on every entry type for constant review.
-    private var patternGroup: some View {
-        grid("Pattern", icon: "list.number", SuccessStep.allCases, selected: r.context, label: { $0.label }) { r.context = $0 }
+    /// Adam's 8-step success architecture — its own cream section, a clean dropdown.
+    private var patternSection: some View {
+        Section {
+            enumMenu("Pattern", icon: "list.number", selection: $r.context) { $0.label }
+        } header: { sectionHeader("Pattern") }
+        .listRowBackground(Brand.card)
     }
     private var listGroup: some View {
-        optionGroup("Lift", systemImage: "sparkles") {
-            LazyVGrid(columns: optionColumns, spacing: 8) {
-                ForEach(listChoices, id: \.self) { name in
-                    optionButton(name, isSelected: r.listName == name) { r.listName = name }
-                }
-            }
+        Picker(selection: $r.listName) {
+            Text("None").tag("")
+            ForEach(listChoices, id: \.self) { Text($0).tag($0) }
+        } label: {
+            Label("Lift", systemImage: "sparkles")
         }
+        .pickerStyle(.menu)
+        .tint(Brand.crimson)
     }
 
     private var tagsEditor: some View {
@@ -335,6 +346,21 @@ struct ReminderFormView: View {
                 Button("Add", action: addTag)
                     .foregroundStyle(Brand.crimson)
                     .disabled(tagDraft.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            if !suggestedTags.isEmpty {
+                Menu {
+                    ForEach(suggestedTags, id: \.self) { tag in
+                        Button(tag) { addExistingTag(tag) }
+                    }
+                } label: {
+                    HStack {
+                        Label("Add a recent tag", systemImage: "clock.arrow.circlepath")
+                        Spacer()
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.system(size: 12)).foregroundStyle(.secondary)
+                    }
+                }
+                .tint(Brand.crimson)
             }
             if !r.tags.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -373,28 +399,6 @@ struct ReminderFormView: View {
         }
     }
 
-    private func optionButton(_ title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 16, weight: .semibold))
-                .lineLimit(2)
-                .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity, minHeight: 36)
-                .padding(.horizontal, 10)
-                .background(isSelected ? Brand.crimson : Color(white: 0.92))
-                .foregroundStyle(isSelected ? .white : .black)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func optionGroup<Content: View>(_ title: String, systemImage: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label(title, systemImage: systemImage)
-            content()
-        }
-    }
-
     // MARK: - Actions
 
     private func addTag() {
@@ -404,6 +408,13 @@ struct ReminderFormView: View {
             .replacingOccurrences(of: "#", with: "")
         if !t.isEmpty && !r.tags.contains(t) { r.tags.append(t) }
         tagDraft = ""
+    }
+
+    /// Previously-used tags not already on this item (most-used first, supplied by the caller).
+    private var suggestedTags: [String] { existingTags.filter { !r.tags.contains($0) } }
+
+    private func addExistingTag(_ tag: String) {
+        if !r.tags.contains(tag) { r.tags.append(tag) }
     }
 
     private func loadPhoto(_ item: PhotosPickerItem?) {

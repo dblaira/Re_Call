@@ -122,6 +122,7 @@ struct ReminderFormView: View {
             TextField("Notes", text: $r.notes, axis: .vertical).lineLimit(1...5)
             urlField("URL")
             imageRow
+            patternGroup
         } header: { sectionHeader("Details") }
         .listRowBackground(Brand.card)
 
@@ -167,7 +168,7 @@ struct ReminderFormView: View {
             priorityGroup
             effortGroup
             energyGroup
-            contextGroup
+            patternGroup
         } header: { sectionHeader("Choose") }
         .listRowBackground(Brand.card)
 
@@ -210,6 +211,7 @@ struct ReminderFormView: View {
             TextField("Title", text: $r.title)
             TextField("Notes", text: $r.notes, axis: .vertical).lineLimit(1...4)
             locationRow
+            patternGroup
         } header: { sectionHeader("Event") }
         .listRowBackground(Brand.card)
 
@@ -309,8 +311,9 @@ struct ReminderFormView: View {
     private var energyGroup: some View {
         grid("Energy", icon: "bolt", Energy.allCases, selected: r.energy, label: { $0.label }) { r.energy = $0 }
     }
-    private var contextGroup: some View {
-        grid("Context", icon: "mappin.circle", ActionContext.allCases, selected: r.context, label: { $0.label }) { r.context = $0 }
+    /// Adam's 8-step success architecture — shown on every entry type for constant review.
+    private var patternGroup: some View {
+        grid("Pattern", icon: "list.number", SuccessStep.allCases, selected: r.context, label: { $0.label }) { r.context = $0 }
     }
     private var listGroup: some View {
         optionGroup("Lift", systemImage: "sparkles") {
@@ -375,7 +378,7 @@ struct ReminderFormView: View {
             Text(title)
                 .font(.system(size: 16, weight: .semibold))
                 .lineLimit(2)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(0.7)
                 .frame(maxWidth: .infinity, minHeight: 36)
                 .padding(.horizontal, 10)
                 .background(isSelected ? Brand.crimson : Color(white: 0.92))

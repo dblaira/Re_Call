@@ -238,7 +238,7 @@ final class SupabaseReminderRepository: ReminderRepository {
         r.outcome = row.outcome
         r.effort = Effort(rawValue: row.effort) ?? .none
         r.energy = Energy(rawValue: row.energy) ?? .none
-        r.context = ActionContext(rawValue: row.context) ?? .none
+        r.context = SuccessStep(rawValue: row.context) ?? .none
         r.deferDate = row.defer_date.flatMap { PG.date.date(from: $0) }
         r.waitingOn = row.waiting_on
         r.pinned = row.pinned

@@ -112,18 +112,23 @@ enum Energy: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-/// Where/how an action gets done (GTD-style context).
-enum ActionContext: String, Codable, CaseIterable, Identifiable {
-    case none, home, work, errands, calls, computer
+/// Adam's 8-step success architecture (the "Adam Pattern") — a reverse-engineered list of the
+/// elements that must happen for him to succeed. Tag any item with the step it advances; the same
+/// list is shown on every entry form for constant review. Clean labels (no @/#) feed the rec system.
+enum SuccessStep: String, Codable, CaseIterable, Identifiable {
+    case none, context, circle, closeGap, chooseSuccess, codePattern, killSwitch, clearSign, compound
     var id: String { rawValue }
     var label: String {
         switch self {
         case .none: return "None"
-        case .home: return "@Home"
-        case .work: return "@Work"
-        case .errands: return "@Errands"
-        case .calls: return "@Calls"
-        case .computer: return "@Computer"
+        case .context: return "Context"
+        case .circle: return "Circle"
+        case .closeGap: return "Close the Gap"
+        case .chooseSuccess: return "Choose Success"
+        case .codePattern: return "Code the Pattern"
+        case .killSwitch: return "Create Kill Switch"
+        case .clearSign: return "Clear Sign of Success"
+        case .compound: return "Compound"
         }
     }
 }
@@ -159,7 +164,7 @@ struct Reminder: Identifiable, Codable, Equatable {
     var outcome: String = ""
     var effort: Effort = .none
     var energy: Energy = .none
-    var context: ActionContext = .none
+    var context: SuccessStep = .none      // the Adam Pattern step this item advances (DB column: context)
     var deferDate: Date? = nil
     var waitingOn: String = ""
     // Places & People

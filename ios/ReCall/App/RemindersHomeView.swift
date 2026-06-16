@@ -35,7 +35,6 @@ struct RemindersHomeView: View {
                 Rectangle().fill(Brand.crimson).frame(height: 2)
                 band
                 shapes
-                mine
             }
         }
         .background(Color.white)
@@ -53,13 +52,9 @@ struct RemindersHomeView: View {
             .background(Brand.nearBlack)
     }
 
-    /// The next few upcoming reminders, shown as the colored cards.
-    private var upcoming: [Reminder] {
-        Array(store.active
-            .filter { $0.kind == .reminder }
-            .sorted { ($0.fireDate ?? $0.createdAt) < ($1.fireDate ?? $1.createdAt) }
-            .prefix(4))
-    }
+    /// The "what matters now" feed — reminders, actions, and events together, pinned first then
+    /// soonest. The top two render larger (and richer) as an importance signal.
+    private var feed: [Reminder] { store.active }
 
     private func cardActions(_ r: Reminder) -> [SwipeAction] {
         [
@@ -77,15 +72,17 @@ struct RemindersHomeView: View {
                     .foregroundStyle(Brand.recallBlue)
                 Spacer()
             }
-            if upcoming.isEmpty {
-                BandCard(spec: .init(title: "Nothing scheduled yet — tap + to add a reminder.",
-                                     bg: .white, fg: Brand.nearBlack, accent: Brand.tan))
+            if feed.isEmpty {
+                Text("Nothing yet — tap + to add your first.")
+                    .font(.system(size: 15)).foregroundStyle(Brand.nearBlack.opacity(0.5))
+                    .padding(.vertical, 6)
             } else {
-                ForEach(Array(upcoming.enumerated()), id: \.element.id) { idx, rem in
+                ForEach(Array(feed.enumerated()), id: \.element.id) { idx, rem in
                     let c = palette[idx % palette.count]
+                    // Importance shows through DETAIL, not size — the top two reveal more.
+                    let detail: CardDetail = idx == 0 ? .full : (idx == 1 ? .medium : .minimal)
                     SwipeRow(actions: cardActions(rem), onTap: { onOpen(rem) }, cornerRadius: 8) {
-                        BandCard(spec: .init(title: rem.title.isEmpty ? "Untitled" : rem.title,
-                                             bg: c.bg, fg: c.fg, accent: c.accent, subtitle: rem.whenLabel))
+                        BandCard(reminder: rem, bg: c.bg, fg: c.fg, accent: c.accent, detail: detail)
                     }
                 }
             }
@@ -115,20 +112,6 @@ struct RemindersHomeView: View {
         }
         .padding(.top, 18)
         .padding(.horizontal, 16)
-        .padding(.bottom, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white)
-    }
-
-    private var mine: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Your reminders")
-                .font(.system(size: 22, weight: .heavy))
-                .foregroundStyle(.black)
-            ItemListView(kind: .reminder, onOpen: onOpen)
-        }
-        .padding(.top, 18)
-        .padding(.horizontal, 16)
         .padding(.bottom, 150)   // clearance for the FAB + tab bar
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white)
@@ -145,36 +128,77 @@ struct RemindersHomeView: View {
     }
 }
 
-// MARK: - Story card
+// MARK: - Feed card
 
-struct BandCardSpec: Identifiable {
-    let id = UUID()
-    let title: String
+/// How much a card reveals — bigger / more important cards show more. Driven by feed position.
+enum CardDetail { case minimal, medium, full }
+
+struct BandCard: View {
+    let reminder: Reminder
     let bg: Color
     let fg: Color
     let accent: Color
-    var subtitle: String? = nil
-}
+    var detail: CardDetail = .minimal
 
-struct BandCard: View {
-    let spec: BandCardSpec
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text(spec.title)
-                .font(Brand.serif(27, weight: .regular))
-                .foregroundStyle(spec.fg)
+        VStack(alignment: .leading, spacing: 6) {
+            // Type kicker — the marker that tells reminder from action from event.
+            HStack(spacing: 6) {
+                Image(systemName: kindIcon).font(.system(size: 11, weight: .bold))
+                Text(reminder.kind.label.uppercased())
+                    .font(.system(size: 11, weight: .heavy)).tracking(1.5)
+            }
+            .foregroundStyle(fg.opacity(0.7))
+
+            Text(reminder.title.isEmpty ? "Untitled" : reminder.title)
+                .font(Brand.serif(26, weight: .regular))
+                .foregroundStyle(fg)
                 .fixedSize(horizontal: false, vertical: true)
-            Rectangle().fill(spec.accent).frame(width: 36, height: 2)
-            if let sub = spec.subtitle {
-                Text(sub).font(.system(size: 13, weight: .bold)).foregroundStyle(spec.fg.opacity(0.65))
+
+            Rectangle().fill(accent).frame(width: 36, height: 2)
+
+            if let when = reminder.whenLabel {
+                Text(when).font(.system(size: 13, weight: .bold)).foregroundStyle(fg.opacity(0.7))
+            }
+            // medium + full reveal the notes/outcome; full also shows the meta row.
+            if detail != .minimal, let note = detailLine {
+                Text(note)
+                    .font(.system(size: 14))
+                    .foregroundStyle(fg.opacity(0.78))
+                    .lineLimit(detail == .full ? 3 : 1)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if detail == .full, !metaText.isEmpty {
+                Text(metaText).font(.system(size: 12, weight: .bold)).foregroundStyle(fg.opacity(0.6))
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 11)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(spec.bg)
+        .background(bg)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.08)))
+    }
+
+    private var kindIcon: String {
+        switch reminder.kind {
+        case .reminder: return "clock"
+        case .action:   return "bolt"
+        case .event:    return "calendar"
+        }
+    }
+    private var detailLine: String? {
+        if !reminder.notes.isEmpty { return reminder.notes }
+        if !reminder.outcome.isEmpty { return reminder.outcome }
+        return nil
+    }
+    private var metaText: String {
+        var parts: [String] = []
+        if !reminder.listName.isEmpty { parts.append(reminder.listName) }       // Lift
+        if reminder.context != .none { parts.append(reminder.context.label) }    // Adam Pattern step
+        if reminder.priority != .none { parts.append(reminder.priority.marks) }
+        if !reminder.locationName.isEmpty { parts.append(reminder.locationName) }
+        return parts.joined(separator: "   ·   ")
     }
 }
 

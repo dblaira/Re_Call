@@ -12,13 +12,13 @@ struct RemindersHomeView: View {
     @EnvironmentObject private var store: ReminderStore
 
     private let leftTiles: [ShapeTileSpec] = [
-        .init(title: "Add one movement",       bg: Brand.tileBlue, fg: .white, tags: ["PHOTO", "TIME", "URL"], height: 190, dark: true),
-        .init(title: "Pay before due",         bg: .white,         fg: .black, tags: ["DATE"],                 height: 135, dark: false),
-        .init(title: "Bring this when I leave", bg: Brand.tileGray, fg: .black, tags: ["PLACE", "PHOTO"],       height: 150, dark: false),
+        .init(title: "Add one movement",        bg: Brand.primaryBlue,   fg: .white, tags: ["PHOTO", "TIME", "URL"], height: 190, dark: true),
+        .init(title: "Pay before due",          bg: Brand.primaryYellow, fg: .black, tags: ["DATE"],                 height: 135, dark: false),
+        .init(title: "Bring this when I leave", bg: Brand.primaryGreen,  fg: .white, tags: ["PLACE", "PHOTO"],       height: 150, dark: true),
     ]
     private let rightTiles: [ShapeTileSpec] = [
-        .init(title: "Text them back",        bg: Brand.darkRed, fg: .white, tags: ["PERSON"],     height: 190, dark: true),
-        .init(title: "Do this after workout", bg: Brand.tileDark, fg: .white, tags: ["TIME", "CUE"], height: 190, dark: true),
+        .init(title: "Text them back",        bg: Brand.crimson,   fg: .white, tags: ["PERSON"],       height: 190, dark: true),
+        .init(title: "Do this after workout", bg: Brand.nearBlack, fg: .white, tags: ["TIME", "CUE"], height: 190, dark: true),
     ]
 
     var body: some View {

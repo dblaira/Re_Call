@@ -91,7 +91,7 @@ const depth = [];
 for (const templateId of Object.values(ReminderTemplate)) {
   const result = getReminderRecommendations(
     { templateId, rating: ReminderFeedback.Positive },
-    { store: recStore, limit: 4 }
+    { store: recStore, limit: templateId === ReminderTemplate.PostRunBodyDiscovery ? 20 : 4 }
   );
   for (const rec of result.recommendations ?? []) {
     depth.push({

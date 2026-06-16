@@ -89,6 +89,10 @@ test("story-driven recommendations produce non-echo feedback hooks", () => {
     {
       templateId: ReminderTemplate.NameMeaningfulSource,
       expected: [/protect the hour after it/i, /spark-to-output chain/i, /timing fingerprint/i, /turn the source into an appointment/i]
+    },
+    {
+      templateId: ReminderTemplate.PostRunBodyDiscovery,
+      expected: [/map the low-to-high line/i, /before\/after body signal/i, /repeatable support ritual/i, /scan twenty movement hypotheses/i]
     }
   ];
 
@@ -103,6 +107,30 @@ test("story-driven recommendations produce non-echo feedback hooks", () => {
       assert.match(text, pattern, `${templateId} should include ${pattern}`);
     }
   }
+});
+
+test("post-run body discovery exposes a scan field instead of one narrow suggestion", () => {
+  const result = getReminderRecommendations(
+    {
+      templateId: ReminderTemplate.PostRunBodyDiscovery,
+      rating: ReminderFeedback.Positive,
+      text: "After a run and shower, my right hip felt off. A low-to-high reverse twist with a resistance band made the right hip and shoulder feel stronger, then worked on the left side too."
+    },
+    { limit: 20 }
+  );
+
+  assert.equal(result.sourceTemplate.id, "PostRunBodyDiscoveryReminder");
+  assert.equal(result.generationFrame.id, "FeltDiscoveryScanFrame");
+  assert.match(result.reason, /discovery converts maintenance into pull/i);
+  assert.equal(result.recommendations.length, 20);
+  assert.deepEqual(result.revealedStrengths.map((strength) => strength.id), [
+    "EmbodiedExperimentation",
+    "FeltDiscovery"
+  ]);
+  assert.ok(result.generationFrame.mustInclude.includes("a body signal before and after the experiment"));
+  assert.ok(result.generationFrame.mustAvoid.includes("generic stretching advice"));
+  assert.ok(result.recommendations.every((recommendation) => recommendation.id !== "GenericFitnessReminder"));
+  assert.ok(result.recommendations.some((recommendation) => /mystery|curiosity|felt/i.test(recommendation.text)));
 });
 
 test("story-driven recommendations avoid polite echo patterns", () => {

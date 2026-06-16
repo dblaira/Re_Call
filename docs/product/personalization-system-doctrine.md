@@ -6,6 +6,14 @@ This doctrine pairs with two constraint docs that every build references: the [D
 
 Re_Call is a personalization system for picking up where a person left off with themselves.
 
+## Latest Strategy: User Zero First
+
+June 13, 2026.
+
+This app is being built for Adam. Adam is the first user but hopefully not the last. Anything that does not resonate with Adam is useless or worse -- destructive. Adam's taste and natural reaction to any wording, component, functionality, API call, font size, color scheme, recommendation engine, ontology, knowledge graph, and any other detail are the bar of success.
+
+Anything Adam does not understand when communicating with an agent is potentially harmful to the project. If Adam wants to add something because it is a good idea and useful for others, that is fine too. But always: the app is designed solely for Adam first.
+
 The reminder is the delivery surface. The deeper product is:
 
 ```text

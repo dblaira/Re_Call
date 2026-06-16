@@ -26,7 +26,8 @@ export const ReminderTemplate = Object.freeze({
   HabitStackGym: "HabitStackGymReminder",
   TranslateAIWeek: "TranslateAIWeekReminder",
   CaptureMacBookUnlocks: "CaptureMacBookUnlocksReminder",
-  NameMeaningfulSource: "NameMeaningfulSourceReminder"
+  NameMeaningfulSource: "NameMeaningfulSourceReminder",
+  PostRunBodyDiscovery: "PostRunBodyDiscoveryReminder"
 });
 
 export function getReminderRecommendations(input, options = {}) {

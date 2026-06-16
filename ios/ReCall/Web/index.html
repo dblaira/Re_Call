@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,600;6..96,700&display=swap" rel="stylesheet" />
+<script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
 <style>
   :root {
     --shell: #FFFFFF;      /* body canvas — white */
@@ -222,6 +223,10 @@
     background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 999px; font-size: 13px; font-weight: 800; white-space: nowrap;
   }
   .toast[data-show="true"] { opacity: 1; transform: translate(-50%, 0); }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
 
   .build-info {
     position: absolute; right: 10px;
@@ -234,80 +239,25 @@
   .sug .copy strong { white-space: normal; }
   .sug-add { border: 0; background: transparent; color: var(--crimson); font-size: 30px; font-weight: 600; line-height: 1; padding: 4px 10px; min-width: 44px; min-height: 44px; }
 
-  /* ===== full-page entry form (composer) =====
-     Every "part" the user can attach to a reminder lives here, grouped exactly
-     like the Figma parts board. The point is data ownership: each control writes
-     a field onto the item, which is persisted in localStorage (see createItem).  */
-  .form-page {
-    position: absolute; inset: 0; z-index: 40;
-    background: var(--shell); color: var(--ink);
-    display: flex; flex-direction: column;
-  }
-  .form-bar {
-    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px;
-    padding: calc(env(safe-area-inset-top) + 14px) 14px 12px;
-    background: var(--sand); border-bottom: 2px solid var(--crimson);
-  }
-  .form-bar h3 { margin: 0; text-align: center; font-family: "Bodoni 72 Smallcaps", "Bodoni Moda", Georgia, serif; font-size: 23px; font-weight: 700; color: #fff; white-space: nowrap; }
-  .form-bar button { border: 0; background: transparent; font-size: 17px; font-weight: 800; padding: 8px 2px; min-height: 44px; }
-  .form-bar [data-cancel] { color: rgba(255,255,255,.72); justify-self: start; }
-  .form-bar [data-add] { color: var(--crimson); justify-self: end; }
-  .form-scroll { flex: 1; overflow-y: auto; padding: 16px 16px calc(32px + env(safe-area-inset-bottom)); }
-  .form-scroll::-webkit-scrollbar { width: 0; }
-
-  .fgroup { margin: 0 0 18px; }
-  .fgroup > h4 { margin: 0 0 8px 4px; font-size: 12px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: var(--dim); }
-  .fcard { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
-  .frow { display: flex; align-items: center; gap: 12px; padding: 11px 14px; min-height: 52px; border-top: 1px solid var(--line); }
-  .fcard > .frow:first-child { border-top: 0; }
-  .frow.col { flex-direction: column; align-items: stretch; gap: 9px; }
-  .frow .ficon { width: 22px; height: 22px; flex: none; color: var(--muted); display: grid; place-items: center; }
-  .frow .ficon svg { width: 20px; height: 20px; }
-  .frow .flab { flex: none; font-size: 16px; font-weight: 700; color: var(--ink); }
-  .frow .fctl { flex: 1; min-width: 0; display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
-  .frow .frow-head { display: flex; align-items: center; gap: 12px; width: 100%; }
-
-  .finput, .ftext, .fselect { border: 0; background: transparent; font: inherit; color: var(--ink); outline: none; padding: 0; }
-  .finput { width: 100%; font-size: 17px; }
-  .frow:not(.col) .fctl .finput, .fctl .fselect { text-align: right; }
-  .ftext { width: 100%; font-size: 16px; resize: none; min-height: 22px; line-height: 1.35; overflow: hidden; }
-  .finput::placeholder, .ftext::placeholder { color: var(--dim); }
-  .fselect { font-size: 16px; font-weight: 600; color: var(--ink); -webkit-appearance: none; appearance: none; }
-  .fhint { font-size: 12.5px; color: var(--dim); padding: 8px 4px 0; margin: 0; }
-
-  /* toggle switch */
-  .switch { position: relative; width: 50px; height: 30px; flex: none; }
-  .switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
-  .switch .track { position: absolute; inset: 0; background: #d6d9de; border-radius: 999px; transition: background .18s; pointer-events: none; }
-  .switch .knob { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; background: #fff; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .18s; pointer-events: none; }
-  .switch input:checked ~ .track { background: var(--crimson); }
-  .switch input:checked ~ .knob { transform: translateX(20px); }
-
-  /* tags */
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
-  .chips:empty { display: none; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; background: var(--panel-2); color: var(--ink); border-radius: 999px; padding: 5px 6px 5px 11px; font-size: 13px; font-weight: 700; }
-  .chip button { border: 0; background: transparent; color: var(--muted); font-size: 15px; line-height: 1; padding: 0 4px; min-width: 20px; }
-
-  /* subtasks */
-  .sublist { width: 100%; display: flex; flex-direction: column; gap: 8px; }
-  .sublist:empty { display: none; }
-  .subrow { display: flex; align-items: center; gap: 10px; }
-  .subrow .sbox { width: 20px; height: 20px; border-radius: 10px; border: 2px solid var(--dim); flex: none; }
-  .subrow input { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 15px; color: var(--ink); outline: none; }
-  .subrow [data-subdel] { border: 0; background: transparent; color: var(--dim); font-size: 16px; padding: 4px 6px; min-width: 30px; }
-  .subadd { align-self: flex-start; border: 0; background: transparent; color: var(--crimson); font-size: 15px; font-weight: 800; padding: 4px 0; }
-
-  /* image */
-  .fimg-wrap { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: space-between; }
-  .fimg-thumb { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; border: 1px solid var(--line); }
-  .fimg-btn { border: 0; background: transparent; color: var(--crimson); font-size: 16px; font-weight: 700; padding: 4px 0; }
-
-  /* richer user reminder rows */
-  .row-thumb { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; display: block; }
-  .row-right { display: flex; align-items: center; gap: 6px; }
-  .row-right .meta { display: inline-flex; align-items: center; gap: 5px; }
-  .rm-flag, .rm-prio { color: var(--crimson); font-weight: 800; }
+  /* composer sheet — new reminder / task / event */
+  .sheet-back { position: absolute; inset: 0; background: rgba(0,0,0,.32); z-index: 20; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 21; background: var(--card); border-radius: 16px 16px 0 0; padding: 18px 16px calc(24px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0,0,0,.18); max-height: calc(100vh - 18px); overflow: auto; }
+  .sheet h3 { margin: 0 0 12px; font-size: 19px; font-weight: 800; }
+  .sheet input { display: block; width: 100%; border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 12px 2px; font: inherit; font-size: 17px; color: var(--ink); outline: none; }
+  .sheet input::placeholder { color: var(--dim); }
+  .capture-tools { margin-top: 14px; border: 1px solid var(--line); border-radius: 14px; padding: 14px 12px; background: var(--panel-2); display: grid; gap: 12px; }
+  .capture-tools strong { display: block; font-size: 14px; font-weight: 800; letter-spacing: .2px; }
+  .capture-tools p { margin: 4px 0 0; color: var(--muted); font-size: 14px; line-height: 1.35; }
+  .capture-toggle { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: 14px; font-weight: 650; }
+  .capture-toggle input { width: 18px; height: 18px; accent-color: var(--crimson); margin: 0; }
+  .capture-actions { display: grid; gap: 8px; }
+  .capture-actions button { border: 0; border-radius: 12px; background: var(--ink); color: #fff; font: inherit; font-size: 15px; font-weight: 800; padding: 12px 14px; min-height: 44px; text-align: left; }
+  .capture-actions button[data-state="recording"] { background: var(--crimson); }
+  .capture-status { min-height: 18px; color: var(--muted); font-size: 14px; line-height: 1.35; }
+  .sheet-acts { display: flex; justify-content: space-between; margin-top: 18px; }
+  .sheet-acts button { border: 0; background: transparent; font-size: 17px; font-weight: 700; padding: 10px 6px; min-height: 44px; }
+  .sheet-acts [data-cancel] { color: var(--muted); }
+  .sheet-acts [data-add] { color: var(--crimson); font-weight: 800; }
 
   /* sidebar drawer */
   .drawer-back { position: absolute; inset: 0; background: rgba(0,0,0,.32); z-index: 30; }
@@ -410,6 +360,11 @@
             <div class="name pad-mid">Name the electrifying source</div>
             <div class="slots"><span class="slot">source</span><span class="slot">when</span></div>
           </article>
+          <article class="tile dark" data-title="Post-run body discovery" data-template="PostRunBodyDiscoveryReminder" style="--fill:#23372F;--fg:#B7FF8A">
+            <div class="handle"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="name pad-mid">Post-run body discovery</div>
+            <div class="slots"><span class="slot">signal</span><span class="slot">test</span></div>
+          </article>
         </div>
       </section>
     </div>
@@ -484,122 +439,26 @@
     <button class="tab" data-go="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>Calendar</button>
   </nav>
 
-  <form class="form-page" id="composer" hidden>
-    <div class="form-bar">
-      <button type="button" data-cancel>Cancel</button>
-      <h3 id="composer-title">New Reminder</h3>
-      <button type="submit" data-add>Add</button>
-    </div>
-    <div class="form-scroll">
-
-      <!-- Core -->
-      <div class="fgroup">
-        <h4>Core</h4>
-        <div class="fcard">
-          <div class="frow col"><input id="composer-name" class="finput" placeholder="Title" autocomplete="off" /></div>
-          <div class="frow col"><textarea id="composer-notes" class="ftext" rows="1" placeholder="Notes" autocomplete="off"></textarea></div>
-          <div class="frow">
-            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span>
-            <input id="f-url" class="finput" type="url" inputmode="url" placeholder="URL" autocomplete="off" />
-          </div>
-          <div class="frow">
-            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
-            <div class="fimg-wrap">
-              <img id="f-image-thumb" class="fimg-thumb" alt="" hidden />
-              <button type="button" class="fimg-btn" id="f-image-btn">Add Image…</button>
-              <input id="f-image" type="file" accept="image/*" hidden />
-            </div>
-          </div>
-        </div>
+  <div class="sheet-back" id="sheet-back" hidden></div>
+  <form class="sheet" id="composer" hidden>
+    <h3 id="composer-title">New Reminder</h3>
+    <input id="composer-name" placeholder="Title" autocomplete="off" />
+    <input id="composer-notes" placeholder="Notes" autocomplete="off" />
+    <section class="capture-tools" id="capture-tools" hidden>
+      <div>
+        <strong>Capture cadence</strong>
+        <p id="capture-cadence">4x/day for 4 days. Catch the unlock while it still feels live.</p>
       </div>
-
-      <!-- Date & Time -->
-      <div class="fgroup">
-        <h4>Date &amp; Time</h4>
-        <div class="fcard">
-          <div class="frow">
-            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></span>
-            <label class="flab" for="f-date">Date</label>
-            <div class="fctl"><input id="f-date" class="finput" type="date" /></div>
-          </div>
-          <div class="frow">
-            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
-            <label class="flab" for="f-time">Time</label>
-            <div class="fctl"><input id="f-time" class="finput" type="time" /></div>
-          </div>
-          <div class="frow">
-            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M5 3 2.5 5.5M19 3l2.5 2.5"/></svg></span>
-            <label class="flab" for="f-urgent">Urgent</label>
-            <div class="fctl"><span class="switch"><input id="f-urgent" type="checkbox" /><span class="track"></span><span class="knob"></span></span></div>
-          </div>
-          <div class="frow">
-            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
-            <label class="flab" for="f-repeat">Repeat</label>
-            <div class="fctl"><select id="f-repeat" class="fselect"><option value="none">Never</option><option value="daily">Daily</option><option value="weekdays">Weekdays</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div>
-          </div>
-          <div class="frow">
-            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
-            <label class="flab" for="f-early">Early Reminder</label>
-            <div class="fctl"><select id="f-early" class="fselect"><option value="none">None</option><option value="5m">5 minutes before</option><option value="10m">10 minutes before</option><option value="30m">30 minutes before</option><option value="1h">1 hour before</option><option value="1d">1 day before</option></select></div>
-          </div>
-        </div>
-        <p class="fhint">Mark a reminder urgent to set an alarm.</p>
+      <label class="capture-toggle">
+        <input type="checkbox" id="capture-schedule-enabled" checked />
+        <span>Set the native cadence</span>
+      </label>
+      <div class="capture-actions">
+        <button type="button" id="voice-capture-toggle" data-state="idle">Record voice memo</button>
+        <div class="capture-status" id="voice-capture-status">No voice memo yet.</div>
       </div>
-
-      <!-- Organization -->
-      <div class="fgroup">
-        <h4>Organization</h4>
-        <div class="fcard">
-          <div class="frow">
-            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
-            <label class="flab" for="f-list">List</label>
-            <div class="fctl"><select id="f-list" class="fselect"><option>Reminders</option><option>Work</option><option>Personal</option><option>Shopping</option><option>Health</option></select></div>
-          </div>
-          <div class="frow col">
-            <div class="frow-head">
-              <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 12 22l-9-9V3h10z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg></span>
-              <input id="f-tag-input" class="finput" placeholder="Add a tag, press Enter" autocomplete="off" />
-            </div>
-            <div class="chips" id="f-tags"></div>
-          </div>
-          <div class="frow col">
-            <div class="frow-head">
-              <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
-              <span class="flab">Subtasks</span>
-            </div>
-            <div class="sublist" id="f-subtasks"></div>
-            <button type="button" class="subadd" id="f-subadd">+ Add Subtask</button>
-          </div>
-          <div class="frow">
-            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V4h13l-2 4 2 4H4"/></svg></span>
-            <label class="flab" for="f-flag">Flag</label>
-            <div class="fctl"><span class="switch"><input id="f-flag" type="checkbox" /><span class="track"></span><span class="knob"></span></span></div>
-          </div>
-          <div class="frow">
-            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v18M12 8v13M18 13v8"/></svg></span>
-            <label class="flab" for="f-priority">Priority</label>
-            <div class="fctl"><select id="f-priority" class="fselect"><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Places & People -->
-      <div class="fgroup">
-        <h4>Places &amp; People</h4>
-        <div class="fcard">
-          <div class="frow">
-            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11z"/><circle cx="12" cy="10" r="2"/></svg></span>
-            <input id="f-location" class="finput" placeholder="Location" autocomplete="off" />
-          </div>
-          <div class="frow">
-            <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg></span>
-            <input id="f-messaging" class="finput" placeholder="When messaging a person" autocomplete="off" />
-          </div>
-        </div>
-        <p class="fhint">When Messaging surfaces this reminder while you chat with that person.</p>
-      </div>
-
-    </div>
+    </section>
+    <div class="sheet-acts"><button type="button" data-cancel>Cancel</button><button type="button" data-add>Add</button></div>
   </form>
 
   <div class="drawer-back" id="drawer-back" hidden></div>
@@ -614,6 +473,7 @@
   </aside>
 
   <div class="toast" id="toast">Template selected</div>
+  <div class="sr-only" id="qa-status" role="status" aria-live="polite"></div>
   <div class="build-info" id="build-info" data-testid="build-info" data-src-md5="__SRC_MD5__">__BUILD_SHA__</div>
 </main>
 
@@ -622,12 +482,16 @@
 (() => {
   const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>';
   const toast = document.querySelector("#toast");
+  const qaStatus = document.getElementById("qa-status");
   let toastTimer;
   const flash = (msg) => {
     toast.textContent = msg;
     toast.dataset.show = "true";
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { toast.dataset.show = "false"; }, 1100);
+  };
+  const setQAStatus = (msg) => {
+    qaStatus.textContent = msg || "";
   };
 
   // ---- June 2026 calendar grid ----
@@ -669,6 +533,13 @@
     document.querySelectorAll(".tile").forEach(t => t.dataset.selected = "false");
     tile.dataset.selected = "true";
     const seed = ((window.RECALL_RECS || {}).seeds || {})[tile.dataset.template];
+    if (seed && seed.id === "CaptureMacBookUnlocksReminder") {
+      const nativeUI = nativeBridge("recallNativeUI");
+      if (nativeUI) {
+        nativeUI.postMessage({ action: "openMacBookCapture", seedTitle: seed.text });
+        return;
+      }
+    }
     if (seed) { openComposer("reminder", seed); return; }
     flash(tile.dataset.title || "Template selected");
   }));
@@ -715,155 +586,298 @@
     }
   }));
 
-  // ---- FAB opens the full-page entry form for the active screen ----
-  // The form captures every "part" and writes it onto the item, so the user's
-  // data lives in their own store (localStorage), not a third-party app.
+  // ---- FAB opens the composer for the active screen ----
   const composer = document.getElementById("composer");
+  const sheetBack = document.getElementById("sheet-back");
   const composerTitle = document.getElementById("composer-title");
   const composerName = document.getElementById("composer-name");
   const composerNotes = document.getElementById("composer-notes");
-  const F = {
-    url: document.getElementById("f-url"),
-    image: document.getElementById("f-image"),
-    imageThumb: document.getElementById("f-image-thumb"),
-    imageBtn: document.getElementById("f-image-btn"),
-    date: document.getElementById("f-date"),
-    time: document.getElementById("f-time"),
-    urgent: document.getElementById("f-urgent"),
-    repeat: document.getElementById("f-repeat"),
-    early: document.getElementById("f-early"),
-    list: document.getElementById("f-list"),
-    tagInput: document.getElementById("f-tag-input"),
-    tags: document.getElementById("f-tags"),
-    subtasks: document.getElementById("f-subtasks"),
-    flag: document.getElementById("f-flag"),
-    priority: document.getElementById("f-priority"),
-    location: document.getElementById("f-location"),
-    messaging: document.getElementById("f-messaging"),
-  };
+  const captureTools = document.getElementById("capture-tools");
+  const captureScheduleEnabled = document.getElementById("capture-schedule-enabled");
+  const voiceCaptureToggle = document.getElementById("voice-capture-toggle");
+  const voiceCaptureStatus = document.getElementById("voice-capture-status");
+  const composerAddButton = composer.querySelector("[data-add]");
   let composerKind = "reminder";
   let composerSeed = null;
-  let currentTags = [];
-  let imageData = "";
+  let composerEditingItemId = null;
+  let composerEditingElement = null;
+  let composerVoiceMemo = null;
+  let voiceCaptureState = "idle";
   const KIND_LABEL = { reminder: "New Reminder", task: "New Task", event: "New Event" };
+  const MACBOOK_CAPTURE_TEMPLATE = "CaptureMacBookUnlocksReminder";
+  const MACBOOK_CAPTURE_TIMES = ["09:00", "12:30", "16:00", "19:30"];
+  let pendingNativeCaptureSchedule = null;
+  let composerSubmitInFlight = false;
 
-  // Tags — chips added on Enter / comma, removable
-  function renderTags() {
-    F.tags.innerHTML = currentTags.map((t, i) =>
-      `<span class="chip">${esc(t)}<button type="button" data-tagdel="${i}" aria-label="Remove tag">×</button></span>`).join("");
-    F.tags.querySelectorAll("[data-tagdel]").forEach(b => b.addEventListener("click", () => {
-      currentTags.splice(+b.dataset.tagdel, 1); renderTags();
-    }));
-  }
-  function addTag(v) {
-    const t = (v || "").trim().replace(/^#+/, "").trim();
-    if (t && !currentTags.includes(t)) { currentTags.push(t); renderTags(); }
-  }
-  F.tagInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(F.tagInput.value); F.tagInput.value = ""; }
-  });
+  const isoLocalDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+  const nativeBridge = (name) => window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers[name];
+  const debugBridge = (event, extra) => {
+    const bridge = nativeBridge("recallDebug");
+    if (!bridge) return;
+    bridge.postMessage({ event, ...(extra || {}) });
+  };
 
-  // Subtasks — add/remove editable rows
-  function addSubtaskRow(title) {
-    const row = document.createElement("div");
-    row.className = "subrow";
-    row.innerHTML = `<span class="sbox"></span><input placeholder="Subtask" autocomplete="off" /><button type="button" data-subdel aria-label="Remove subtask">×</button>`;
-    row.querySelector("input").value = title || "";
-    row.querySelector("[data-subdel]").addEventListener("click", () => row.remove());
-    F.subtasks.appendChild(row);
-    return row;
-  }
-  document.getElementById("f-subadd").addEventListener("click", () => addSubtaskRow().querySelector("input").focus());
-
-  // Image — read into a data URL so the bytes live on-device with the item
-  F.imageBtn.addEventListener("click", () => F.image.click());
-  F.image.addEventListener("change", () => {
-    const file = F.image.files && F.image.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      imageData = reader.result;
-      F.imageThumb.src = imageData; F.imageThumb.hidden = false;
-      F.imageBtn.textContent = "Change Image…";
-    };
-    reader.readAsDataURL(file);
-  });
-
-  // Notes auto-grow
-  composerNotes.addEventListener("input", () => {
-    composerNotes.style.height = "auto";
-    composerNotes.style.height = composerNotes.scrollHeight + "px";
-  });
-
-  function resetForm() {
-    composerNotes.value = ""; composerNotes.style.height = "auto";
-    F.url.value = ""; F.date.value = ""; F.time.value = "";
-    F.urgent.checked = false; F.repeat.value = "none"; F.early.value = "none";
-    F.list.value = "Reminders"; F.flag.checked = false; F.priority.value = "none";
-    F.location.value = ""; F.messaging.value = "";
-    currentTags = []; renderTags();
-    F.subtasks.innerHTML = "";
-    F.tagInput.value = "";
-    imageData = ""; F.image.value = "";
-    F.imageThumb.removeAttribute("src"); F.imageThumb.hidden = true; F.imageBtn.textContent = "Add Image…";
+  function setVoiceCaptureState(state, memo) {
+    voiceCaptureState = state;
+    composerVoiceMemo = memo || (state === "recorded" ? composerVoiceMemo : null);
+    if (state === "recording") {
+      voiceCaptureToggle.dataset.state = "recording";
+      voiceCaptureToggle.textContent = "Stop recording";
+      voiceCaptureStatus.textContent = "Recording now… speak the unlock, friction, or surprise.";
+      return;
+    }
+    voiceCaptureToggle.dataset.state = "idle";
+    voiceCaptureToggle.textContent = "Record voice memo";
+    if (state === "recorded" && composerVoiceMemo) {
+      voiceCaptureStatus.textContent = `Voice memo captured · ${composerVoiceMemo.durationSeconds}s`;
+      return;
+    }
+    voiceCaptureStatus.textContent = "No voice memo yet.";
   }
 
-  function openComposer(kind, seed) {
+  function resetCaptureComposerState() {
+    captureScheduleEnabled.checked = true;
+    setVoiceCaptureState("idle", null);
+  }
+
+  function syncComposerViewport() {
+    const viewport = window.visualViewport;
+    const keyboardInset = viewport
+      ? Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop))
+      : 0;
+    composer.style.bottom = `${keyboardInset}px`;
+    composer.style.maxHeight = `calc(100vh - ${Math.max(18, keyboardInset + 18)}px)`;
+  }
+
+  function buildMacbookCaptureEntries(now = new Date()) {
+    const entries = [];
+    const start = new Date(now);
+    start.setSeconds(0, 0);
+    for (let dayOffset = 0; entries.length < 16; dayOffset += 1) {
+      const day = new Date(start);
+      day.setDate(start.getDate() + dayOffset);
+      const date = isoLocalDate(day);
+      for (const time of MACBOOK_CAPTURE_TIMES) {
+        const [hour, minute] = time.split(":").map(Number);
+        const fireAt = new Date(day);
+        fireAt.setHours(hour, minute, 0, 0);
+        if (fireAt <= now) continue;
+        entries.push({ date, time });
+        if (entries.length === 16) break;
+      }
+    }
+    return entries;
+  }
+
+  function requestNativeCaptureSchedule(title) {
+    const bridge = nativeBridge("recallReminders");
+    if (!bridge || !captureScheduleEnabled.checked) return false;
+
+    const entries = buildMacbookCaptureEntries();
+    pendingNativeCaptureSchedule = entries.length;
+    debugBridge("requestNativeCaptureSchedule", { title, count: entries.length });
+    bridge.postMessage({
+      action: "scheduleSeries",
+      title: "MacBook unlock capture",
+      body: title,
+      entries
+    });
+    return true;
+  }
+
+  function requestVoiceCapture(action) {
+    const bridge = nativeBridge("recallVoice");
+    if (!bridge) {
+      flash("Voice capture works in the iPhone build");
+      return;
+    }
+    debugBridge("requestVoiceCapture", { action });
+    bridge.postMessage({ action });
+  }
+
+  window.recallReminderNativeResult = (result) => {
+    if (!result || result.success !== true) {
+      if (pendingNativeCaptureSchedule !== null) {
+        flash("Capture cadence needs notification access");
+        setQAStatus("Capture cadence unavailable");
+      }
+      pendingNativeCaptureSchedule = null;
+      return;
+    }
+
+    if (pendingNativeCaptureSchedule !== null && typeof result.count === "number") {
+      flash(`${result.count} capture pings set`);
+      setQAStatus(`Capture cadence set: ${result.count} pings`);
+      pendingNativeCaptureSchedule = null;
+    }
+  };
+
+  window.recallVoiceNativeResult = (result) => {
+    if (!result || result.success !== true) {
+      flash("Voice capture needs microphone access");
+      setVoiceCaptureState("idle", composerVoiceMemo);
+      return;
+    }
+
+    if (result.state === "recording") {
+      setVoiceCaptureState("recording", composerVoiceMemo);
+      return;
+    }
+
+    if (result.state === "recorded" && result.memo) {
+      setVoiceCaptureState("recorded", result.memo);
+    }
+  };
+
+  window.recallNativeCaptureSaved = (payload) => {
+    if (!payload || !payload.title) return;
+    createItem(
+      "reminder",
+      payload.title,
+      "",
+      "seed:" + MACBOOK_CAPTURE_TEMPLATE,
+      ["ToolIntegrationTiming"],
+      "edit",
+      payload.voiceMemo || null
+    );
+    setQAStatus(`Capture saved: ${payload.title}`);
+    if (typeof payload.scheduledCount === "number") {
+      flash(`${payload.scheduledCount} capture pings set`);
+    } else {
+      flash("Owned — deeper unlocked");
+    }
+  };
+
+  function openComposer(kind, seed, existingItem) {
     composerKind = kind;
     composerSeed = seed || null;
-    resetForm();
-    composerTitle.textContent = seed ? seed.label : KIND_LABEL[kind];
-    composerName.value = seed ? seed.text : "";
-    composer.hidden = false;
-    composer.querySelector(".form-scroll").scrollTop = 0;
+    composerEditingItemId = existingItem ? existingItem.id || null : null;
+    composerEditingElement = existingItem ? existingItem.element || null : null;
+    composerTitle.textContent = existingItem ? `Edit ${KIND_LABEL[kind].replace("New ", "")}` : (seed ? seed.label : KIND_LABEL[kind]);
+    composerName.value = existingItem ? (existingItem.title || "") : (seed ? seed.text : "");
+    composerNotes.value = existingItem ? (existingItem.sub || "") : "";
+    captureTools.hidden = !(seed && seed.id === MACBOOK_CAPTURE_TEMPLATE);
+    composerAddButton.textContent = existingItem || (seed && seed.id === MACBOOK_CAPTURE_TEMPLATE) ? "Save capture" : "Add";
+    resetCaptureComposerState();
+    if (existingItem && existingItem.voiceMemo) {
+      setVoiceCaptureState("recorded", existingItem.voiceMemo);
+    }
+    setQAStatus("");
+    syncComposerViewport();
+    composer.hidden = false; sheetBack.hidden = false;
     composerName.focus();
   }
-  function closeComposer() { composer.hidden = true; composerSeed = null; }
-
-  function collectParts() {
-    const subtasks = [...F.subtasks.querySelectorAll(".subrow input")]
-      .map(i => i.value.trim()).filter(Boolean).map(t => ({ title: t, done: false }));
-    return {
-      url: F.url.value.trim(),
-      image: imageData,
-      date: F.date.value,
-      time: F.time.value,
-      urgent: F.urgent.checked,
-      repeat: F.repeat.value,
-      earlyReminder: F.early.value,
-      list: F.list.value,
-      tags: currentTags.slice(),
-      subtasks,
-      flag: F.flag.checked,
-      priority: F.priority.value,
-      location: F.location.value.trim(),
-      whenMessaging: F.messaging.value.trim(),
-    };
+  function closeComposer() {
+    if (voiceCaptureState === "recording") requestVoiceCapture("stop");
+    if (document.activeElement && typeof document.activeElement.blur === "function") {
+      document.activeElement.blur();
+    }
+    composer.hidden = true; sheetBack.hidden = true; composerSeed = null;
+    composerEditingItemId = null;
+    composerEditingElement = null;
+    composer.style.bottom = "0px";
+    composer.style.maxHeight = "";
+    resetCaptureComposerState();
   }
+
+  voiceCaptureToggle.addEventListener("click", () => {
+    requestVoiceCapture(voiceCaptureState === "recording" ? "stop" : "start");
+  });
 
   document.querySelectorAll(".fab").forEach(fab => fab.addEventListener("click", (e) => {
     e.stopPropagation();
     const active = document.querySelector(".scroll.active").dataset.screen;
     openComposer(active === "tasks" ? "task" : active === "calendar" ? "event" : "reminder");
   }));
+  sheetBack.addEventListener("click", closeComposer);
   composer.querySelector("[data-cancel]").addEventListener("click", closeComposer);
-  composer.addEventListener("submit", (e) => {
-    e.preventDefault();
-    addTag(F.tagInput.value); F.tagInput.value = "";  // commit any half-typed tag
+  function submitComposer() {
+    if (voiceCaptureState === "recording") {
+      flash("Stop the voice memo first");
+      debugBridge("submitComposerBlockedRecording");
+      return;
+    }
     const title = composerName.value.trim() || KIND_LABEL[composerKind];
-    const notes = composerNotes.value.trim();
-    const parts = collectParts();
-    if (composerSeed) {
+    const voiceMemo = composerVoiceMemo ? { ...composerVoiceMemo } : null;
+    debugBridge("submitComposer", {
+      kind: composerKind,
+      title,
+      seeded: Boolean(composerSeed),
+      hasVoiceMemo: Boolean(voiceMemo)
+    });
+    if (composerEditingItemId) {
+      const existing = items.find(item => item.id === composerEditingItemId);
+      if (existing) {
+        existing.title = title;
+        existing.sub = composerNotes.value.trim();
+        existing.voiceMemo = voiceMemo;
+        existing.updatedAt = new Date().toISOString();
+        persist(); renderAll();
+        setQAStatus(`Saved: ${title}`);
+        flash("Reminder updated");
+        if (existing.recId === "seed:" + MACBOOK_CAPTURE_TEMPLATE) requestNativeCaptureSchedule(title);
+      } else if (composerEditingElement) {
+        const strong = composerEditingElement.querySelector("strong");
+        const span = composerEditingElement.querySelector(".copy span");
+        if (strong) strong.textContent = title;
+        if (span) {
+          const subline = [composerNotes.value.trim(), voiceMemo && voiceMemo.durationSeconds ? `Voice memo ${voiceMemo.durationSeconds}s` : ""].filter(Boolean).join(" · ");
+          span.textContent = subline;
+        }
+        flash("Reminder updated");
+      }
+    } else if (composerSeed) {
       // edit = owned (+0.30, the strongest signal); untouched = accept (+0.10)
       const sig = title === composerSeed.text ? "accept" : "edit";
-      createItem({ type: composerKind, title, notes, recId: "seed:" + composerSeed.id, strengths: composerSeed.revealsStrengths, signalType: sig, ...parts });
+      createItem(
+        composerKind,
+        title,
+        composerNotes.value.trim(),
+        "seed:" + composerSeed.id,
+        composerSeed.revealsStrengths,
+        sig,
+        voiceMemo
+      );
+      setQAStatus(`Capture saved: ${title}`);
+      debugBridge("seededCaptureSaved", { title, sig });
       flash(sig === "edit" ? "Owned — deeper unlocked" : "Shipped");
+      if (composerSeed.id === MACBOOK_CAPTURE_TEMPLATE) requestNativeCaptureSchedule(title);
     } else {
-      createItem({ type: composerKind, title, notes, ...parts });
+      createItem(composerKind, title, composerNotes.value.trim(), null, null, null, voiceMemo);
+      setQAStatus(`Saved: ${title}`);
+      debugBridge("captureSaved", { title });
       flash(KIND_LABEL[composerKind].replace("New ", "") + " added");
     }
     closeComposer();
-  });
+  }
+  function queueComposerSubmit(event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (composerSubmitInFlight) return;
+    composerSubmitInFlight = true;
+    if (document.activeElement && typeof document.activeElement.blur === "function") {
+      document.activeElement.blur();
+    }
+    requestAnimationFrame(() => {
+      submitComposer();
+      setTimeout(() => { composerSubmitInFlight = false; }, 0);
+    });
+  }
+  composer.addEventListener("submit", queueComposerSubmit);
+  composerAddButton.addEventListener("click", queueComposerSubmit);
+  composerAddButton.addEventListener("touchend", queueComposerSubmit, { passive: false });
+  window.addEventListener("resize", syncComposerViewport);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", syncComposerViewport);
+    window.visualViewport.addEventListener("scroll", syncComposerViewport);
+  }
 
   // ---- hamburger menu + sidebar drawer ----
   const drawer = document.getElementById("drawer");
@@ -902,6 +916,12 @@
   const persist = () => { dbSet("recall.items", items); dbSet("recall.signals", signals); dbSet("recall.dismissed", [...dismissed]); };
   const uid = () => "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const itemSubline = (item) => {
+    const parts = [];
+    if (item.sub) parts.push(item.sub);
+    if (item.voiceMemo && item.voiceMemo.durationSeconds) parts.push(`Voice memo ${item.voiceMemo.durationSeconds}s`);
+    return parts.join(" · ");
+  };
 
   function recordSignal(recId, signalType, strengths) {
     signals.push({ recId, signalType, at: new Date().toISOString(), strengths: strengths || [] });
@@ -955,45 +975,27 @@
         e.stopPropagation();
         const c = allCards().find(x => x.id === row.dataset.rec);
         if (!c) return;
-        createItem({ type: c.type, title: c.title, recId: c.id, strengths: c.deepensStrengths });
+        createItem(c.type, c.title, "", c.id, c.deepensStrengths);
         flash("Added");
       });
     });
   }
 
-  // Accepts an options object so every captured part is persisted onto the item.
-  function createItem(opts) {
-    const o = opts || {};
+  function createItem(type, title, sub, recId, strengths, signalType, voiceMemo) {
     const now = new Date();
     const hh = ((now.getHours() + 11) % 12) + 1, mm = String(now.getMinutes()).padStart(2, "0");
-    const notes = o.notes || "";
-    const item = {
+    items.push({
       id: uid(),
-      type: o.type || "reminder",
-      title: o.title || "",
-      notes,
-      sub: notes,                       // back-compat: task/event rows read .sub
-      url: o.url || "",
-      image: o.image || "",
-      date: o.date || "",
-      time: o.time || "",
-      urgent: !!o.urgent,
-      repeat: o.repeat || "none",
-      earlyReminder: o.earlyReminder || "none",
-      list: o.list || "Reminders",
-      tags: o.tags || [],
-      subtasks: o.subtasks || [],
-      flag: !!o.flag,
-      priority: o.priority || "none",
-      location: o.location || "",
-      whenMessaging: o.whenMessaging || "",
-      meta: o.type === "event" ? hh + ":" + mm : "now",
+      type,
+      title,
+      sub,
+      voiceMemo: voiceMemo || null,
+      meta: type === "event" ? hh + ":" + mm : "now",
       status: "active",
       createdAt: now.toISOString(),
-      recId: o.recId || null,
-    };
-    items.push(item);
-    if (item.recId) recordSignal(item.recId, o.signalType || "accept", o.strengths);
+      recId: recId || null
+    });
+    if (recId) recordSignal(recId, signalType || "accept", strengths);
     persist(); renderAll();
   }
 
@@ -1008,23 +1010,37 @@
     return b;
   }
 
-  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const PRIO_MARK = { low: "!", medium: "!!", high: "!!!" };
-  function shortDate(d) {
-    const p = (d || "").split("-").map(Number);
-    return p.length === 3 ? MONTHS[(p[1] || 1) - 1] + " " + p[2] : d;
+  function openExistingReminder(item) {
+    if (!item) return;
+    if (item.recId === "seed:" + MACBOOK_CAPTURE_TEMPLATE) {
+      const nativeUI = nativeBridge("recallNativeUI");
+      if (nativeUI) {
+        nativeUI.postMessage({ action: "openMacBookCapture", seedTitle: item.title });
+        return;
+      }
+    }
+    openComposer("reminder", null, item);
   }
-  function fmt12(t) {
-    const [h, m] = (t || "").split(":").map(Number);
-    if (Number.isNaN(h)) return t;
-    return (((h + 11) % 12) + 1) + ":" + String(m).padStart(2, "0") + (h < 12 ? " AM" : " PM");
+
+  function wireReminderItem(element, item) {
+    element.addEventListener("click", (event) => {
+      if (event.target.closest("[data-del]")) return;
+      openExistingReminder(item);
+    });
   }
-  function fmtWhen(it) {
-    if (it.date && it.time) return shortDate(it.date) + " " + fmt12(it.time);
-    if (it.date) return shortDate(it.date);
-    if (it.time) return fmt12(it.time);
-    return "";
-  }
+
+  document.querySelectorAll("#latest-list > .item:not([data-user])").forEach((element) => {
+    const strong = element.querySelector("strong");
+    const span = element.querySelector(".copy span");
+    wireReminderItem(element, {
+      id: null,
+      title: strong ? strong.textContent.trim() : "Reminder",
+      sub: span ? span.textContent.trim() : "",
+      voiceMemo: null,
+      recId: null,
+      element
+    });
+  });
 
   function renderUserItems() {
     document.querySelectorAll("[data-user]").forEach(n => n.remove());
@@ -1038,32 +1054,18 @@
         wireTask(t);
       } else if (it.type === "reminder") {
         const a = document.createElement("article");
-        a.className = "item"; a.setAttribute("data-user", "");
-        const note = it.notes || it.sub || "";
-        const extras = [
-          it.list && it.list !== "Reminders" ? it.list : "",
-          it.location || "",
-          (it.tags || []).map(t => "#" + t).join(" "),
-        ].filter(Boolean).join(" · ");
-        const subText = note || extras;
-        const glyph = it.image
-          ? `<img class="row-thumb" src="${esc(it.image)}" alt="" />`
-          : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`;
-        const when = fmtWhen(it);
-        const bits = [];
-        if (it.flag) bits.push('<span class="rm-flag" data-flag>&#9873;</span>');
-        if (it.priority && it.priority !== "none") bits.push(`<span class="rm-prio" data-prio="${esc(it.priority)}">${PRIO_MARK[it.priority]}</span>`);
-        if (when) bits.push(`<span data-when>${esc(when)}</span>`);
-        a.innerHTML = `<div class="glyph">${glyph}</div>`
-          + `<div class="copy"><strong>${esc(it.title)}</strong>${subText ? `<span>${esc(subText)}</span>` : ""}</div>`
-          + `<div class="row-right">${bits.length ? `<span class="meta">${bits.join(" ")}</span>` : ""}</div>`;
-        a.querySelector(".row-right").appendChild(delBtn(it.id));
+        a.className = "item"; a.setAttribute("data-user", ""); a.dataset.userId = it.id;
+        const subline = itemSubline(it);
+        a.innerHTML = `<div class="glyph">◷</div><div class="copy"><strong>${esc(it.title)}</strong>${subline ? `<span>${esc(subline)}</span>` : ""}</div>`;
+        a.appendChild(delBtn(it.id));
         document.getElementById("latest-list").prepend(a);
+        wireReminderItem(a, it);
       } else {
         const a = document.createElement("article");
         a.className = "agenda"; a.setAttribute("data-user", "");
         a.style.gridTemplateColumns = "44px 8px 1fr auto";
-        a.innerHTML = `<span class="time">${esc(it.meta)}</span><span class="adot" style="background:var(--crimson)"></span><div class="copy"><strong>${esc(it.title)}</strong>${it.sub ? `<span>${esc(it.sub)}</span>` : ""}</div>`;
+        const subline = itemSubline(it);
+        a.innerHTML = `<span class="time">${esc(it.meta)}</span><span class="adot" style="background:var(--crimson)"></span><div class="copy"><strong>${esc(it.title)}</strong>${subline ? `<span>${esc(subline)}</span>` : ""}</div>`;
         a.appendChild(delBtn(it.id));
         document.getElementById("agenda-list").prepend(a);
       }

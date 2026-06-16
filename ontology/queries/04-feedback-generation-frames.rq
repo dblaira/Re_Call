@@ -19,6 +19,7 @@ WHERE {
     recall:TranslateAIWeekReminder
     recall:CaptureMacBookUnlocksReminder
     recall:NameMeaningfulSourceReminder
+    recall:PostRunBodyDiscoveryReminder
   }
 
   ?story

@@ -153,19 +153,23 @@ struct BandCard: View {
 
             Rectangle().fill(accent).frame(width: 36, height: 2)
 
-            if let when = reminder.whenLabel {
-                Text(when).font(.system(size: 13, weight: .bold)).foregroundStyle(fg.opacity(0.7))
+            // Prominent: the signals worth scanning for — Pattern step, priority, tags.
+            if !signalText.isEmpty {
+                Text(signalText)
+                    .font(.system(size: 13, weight: .bold)).foregroundStyle(fg.opacity(0.8))
+                    .lineLimit(2).fixedSize(horizontal: false, vertical: true)
             }
-            // medium + full reveal the notes/outcome; full also shows the meta row.
+            // Demoted but still present: date/time, Lift, location.
+            if !secondaryText.isEmpty {
+                Text(secondaryText).font(.system(size: 12, weight: .medium)).foregroundStyle(fg.opacity(0.5))
+            }
+            // Notes/outcome only on the larger cards.
             if detail != .minimal, let note = detailLine {
                 Text(note)
                     .font(.system(size: 14))
                     .foregroundStyle(fg.opacity(0.78))
                     .lineLimit(detail == .full ? 3 : 1)
                     .fixedSize(horizontal: false, vertical: true)
-            }
-            if detail == .full, !metaText.isEmpty {
-                Text(metaText).font(.system(size: 12, weight: .bold)).foregroundStyle(fg.opacity(0.6))
             }
         }
         .padding(.horizontal, 14)
@@ -188,11 +192,19 @@ struct BandCard: View {
         if !reminder.outcome.isEmpty { return reminder.outcome }
         return nil
     }
-    private var metaText: String {
+    /// Prominent signal line — what the user scans for.
+    private var signalText: String {
         var parts: [String] = []
-        if !reminder.listName.isEmpty { parts.append(reminder.listName) }       // Lift
         if reminder.context != .none { parts.append(reminder.context.label) }    // Adam Pattern step
         if reminder.priority != .none { parts.append(reminder.priority.marks) }
+        parts.append(contentsOf: reminder.tags.map { "#\($0)" })
+        return parts.joined(separator: "   ·   ")
+    }
+    /// Quiet secondary line — Lift and location. Date/time intentionally omitted from cards
+    /// (it lives in the entry form); the user doesn't scan for it here.
+    private var secondaryText: String {
+        var parts: [String] = []
+        if !reminder.listName.isEmpty { parts.append(reminder.listName) }        // Lift
         if !reminder.locationName.isEmpty { parts.append(reminder.locationName) }
         return parts.joined(separator: "   ·   ")
     }

@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import UIKit
 
 /// The entry form. One screen, three faces: the type selector at the top swaps the field set —
 /// Reminder (timed nudge), Action (broad GTD-style to-do), or Event (time block). White page,
@@ -25,6 +26,7 @@ struct ReminderFormView: View {
     @State private var pickedImage: UIImage?
     @State private var committed = false
     @State private var cancelled = false
+    @State private var showSaved = false
 
     private let listChoices = ["Learning", "Leverage", "Delegation", "Inspiration", "Risk", "Health"]
     private let optionColumns = [GridItem(.adaptive(minimum: 96), spacing: 8)]
@@ -66,15 +68,23 @@ struct ReminderFormView: View {
             .scrollContentBackground(.hidden)
             .background(Color.white.ignoresSafeArea())
             .tint(Brand.crimson)
-            .navigationTitle((existing == nil ? "New " : "Edit ") + r.kind.label)
+            // Header mirrors the Title as you type — the type name until the first character, then
+            // the live title at full size. Compact icon buttons leave it more room.
+            .navigationTitle(r.title.trimmingCharacters(in: .whitespaces).isEmpty ? r.kind.label : r.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { cancelled = true; dismiss() }.tint(.black)
+                    Button { cancelled = true; dismiss() } label: {
+                        Image(systemName: "xmark.circle").font(.system(size: 22))
+                    }
+                    .tint(.black)
+                    .accessibilityLabel("Cancel")
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { commit() }
-                        .fontWeight(.bold).tint(Brand.crimson)
+                    Button { commit() } label: {
+                        SaveDiskIcon(size: 24)
+                    }
+                    .accessibilityLabel("Save")
                 }
             }
             .toolbarBackground(Color.white, for: .navigationBar)
@@ -84,7 +94,24 @@ struct ReminderFormView: View {
             // Auto-save: if the form is swiped away (not via Cancel) and has content, keep it.
             .onDisappear { autosaveIfNeeded() }
         }
+        .overlay { if showSaved { savedToast } }
         .preferredColorScheme(.light)
+    }
+
+    /// Brief confirmation shown when the Save button is tapped (not on swipe-to-save).
+    private var savedToast: some View {
+        ZStack {
+            Color.black.opacity(0.12).ignoresSafeArea()
+            VStack(spacing: 12) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 46)).foregroundStyle(Brand.crimson)
+                Text("Locked In").font(Brand.serif(30)).foregroundStyle(.black)
+            }
+            .padding(.horizontal, 40).padding(.vertical, 30)
+            .background(Color.white, in: RoundedRectangle(cornerRadius: 22))
+            .shadow(color: .black.opacity(0.2), radius: 28, y: 12)
+        }
+        .transition(.opacity)
     }
 
     // MARK: - Reminder (timed nudge)
@@ -95,7 +122,7 @@ struct ReminderFormView: View {
             TextField("Notes", text: $r.notes, axis: .vertical).lineLimit(1...5)
             urlField("URL")
             imageRow
-        } header: { sectionHeader("Core") }
+        } header: { sectionHeader("Details") }
         .listRowBackground(Brand.card)
 
         Section {
@@ -388,7 +415,9 @@ struct ReminderFormView: View {
     private func commit() {
         committed = true
         persist()
-        dismiss()
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        withAnimation(.spring(response: 0.3)) { showSaved = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { dismiss() }
     }
 
     /// Save when the sheet is dismissed by swiping (not Cancel) and the user actually entered something.
@@ -419,5 +448,52 @@ struct ReminderFormView: View {
         r.subtasks.removeAll { $0.title.trimmingCharacters(in: .whitespaces).isEmpty }
         if r.title.trimmingCharacters(in: .whitespaces).isEmpty { r.title = "New \(r.kind.label)" }
         onSave(r)
+    }
+}
+
+// MARK: - Save (floppy disk) icon
+
+/// A classic floppy-disk "save" glyph drawn as line art — iOS has no built-in floppy symbol.
+/// Body with a beveled top-right corner, a shutter window up top, and a label at the bottom.
+struct FloppyDisk: Shape {
+    func path(in rect: CGRect) -> Path {
+        let s = min(rect.width, rect.height)
+        let ox = rect.midX - s / 2, oy = rect.midY - s / 2
+        func pt(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: ox + x / 24 * s, y: oy + y / 24 * s) }
+        var p = Path()
+        // Body outline (rounded corners, beveled top-right)
+        p.move(to: pt(3, 2))
+        p.addLine(to: pt(16, 2))
+        p.addLine(to: pt(22, 8))
+        p.addLine(to: pt(22, 21))
+        p.addQuadCurve(to: pt(21, 22), control: pt(22, 22))
+        p.addLine(to: pt(3, 22))
+        p.addQuadCurve(to: pt(2, 21), control: pt(2, 22))
+        p.addLine(to: pt(2, 3))
+        p.addQuadCurve(to: pt(3, 2), control: pt(2, 2))
+        p.closeSubpath()
+        // Shutter window (open at the top edge)
+        p.move(to: pt(8, 2))
+        p.addLine(to: pt(8, 9))
+        p.addLine(to: pt(15, 9))
+        p.addLine(to: pt(15, 2))
+        // Label (rounded top, open at the bottom edge)
+        p.move(to: pt(6, 22))
+        p.addLine(to: pt(6, 15))
+        p.addQuadCurve(to: pt(7, 14), control: pt(6, 14))
+        p.addLine(to: pt(17, 14))
+        p.addQuadCurve(to: pt(18, 15), control: pt(18, 14))
+        p.addLine(to: pt(18, 22))
+        return p
+    }
+}
+
+struct SaveDiskIcon: View {
+    var size: CGFloat = 24
+    var body: some View {
+        FloppyDisk()
+            .stroke(Color.black, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
     }
 }

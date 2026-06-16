@@ -15,15 +15,21 @@ actor SupabaseService {
     static let shared = SupabaseService()
 
     private var accessToken: String?
+    private var tokenExpiry: Date?
     private let refreshKey = "recall.supabase.refreshToken"
     private let session = URLSession(configuration: .default)
 
     private init() {}
 
-    /// Guarantee a valid session: reuse the in-memory token, else refresh the stored session,
-    /// else create a fresh anonymous user.
+    /// Guarantee a *valid* session: reuse the in-memory token only while it has headroom left,
+    /// else refresh the stored session, else create a fresh anonymous user. The expiry check is
+    /// what prevents 401s from a stale access token after ~1h of uptime.
     func ensureSession() async -> Bool {
-        if accessToken != nil { return true }
+        if accessToken != nil, let exp = tokenExpiry, exp.timeIntervalSinceNow > 120 {
+            return true
+        }
+        accessToken = nil
+        tokenExpiry = nil
         if let rt = UserDefaults.standard.string(forKey: refreshKey), await auth("token?grant_type=refresh_token", ["refresh_token": rt]) {
             return true
         }
@@ -43,6 +49,7 @@ actor SupabaseService {
             let a = try JSONDecoder().decode(AuthResponse.self, from: data)
             guard let token = a.access_token else { return false }
             accessToken = token
+            tokenExpiry = Date().addingTimeInterval(TimeInterval(a.expires_in ?? 3600))
             if let rt = a.refresh_token { UserDefaults.standard.set(rt, forKey: refreshKey) }
             return true
         } catch {
@@ -74,6 +81,7 @@ actor SupabaseService {
         let (data, resp) = try await session.data(for: req)
         guard let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+            if code == 401 { accessToken = nil; tokenExpiry = nil }   // self-heal: re-auth next time
             let msg = String(data: data, encoding: .utf8) ?? "request failed"
             throw NSError(domain: "Supabase", code: code, userInfo: [NSLocalizedDescriptionKey: msg])
         }
@@ -83,5 +91,6 @@ actor SupabaseService {
     private struct AuthResponse: Decodable {
         let access_token: String?
         let refresh_token: String?
+        let expires_in: Int?
     }
 }

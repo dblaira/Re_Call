@@ -11,13 +11,6 @@ struct RemindersHomeView: View {
 
     @EnvironmentObject private var store: ReminderStore
 
-    /// Colors cycled across the "Up next" cards, in the original story-card order.
-    private let palette: [(bg: Color, fg: Color, accent: Color)] = [
-        (.white, Brand.nearBlack, Brand.tan),
-        (Brand.darkRed, .white, Brand.crimson),
-        (Brand.nearBlack, .white, Brand.crimson),
-        (Brand.cyan, .white, Brand.crimson),
-    ]
     private let leftTiles: [ShapeTileSpec] = [
         .init(title: "Add one movement",       bg: Brand.tileBlue, fg: .white, tags: ["PHOTO", "TIME", "URL"], height: 190, dark: true),
         .init(title: "Pay before due",         bg: .white,         fg: .black, tags: ["DATE"],                 height: 135, dark: false),
@@ -78,8 +71,11 @@ struct RemindersHomeView: View {
                     .padding(.vertical, 6)
             } else {
                 ForEach(Array(feed.enumerated()), id: \.element.id) { idx, rem in
-                    let c = palette[idx % palette.count]
-                    // Importance shows through DETAIL, not size — the top two reveal more.
+                    // Color tiers importance: #1 white, #2 red, everything else black.
+                    let c: (bg: Color, fg: Color, accent: Color) =
+                        idx == 0 ? (.white, Brand.nearBlack, Brand.crimson)
+                        : idx == 1 ? (Brand.darkRed, .white, .white)
+                        : (Brand.nearBlack, .white, Brand.crimson)
                     let detail: CardDetail = idx == 0 ? .full : (idx == 1 ? .medium : .minimal)
                     SwipeRow(actions: cardActions(rem), onTap: { onOpen(rem) }, cornerRadius: 8) {
                         BandCard(reminder: rem, bg: c.bg, fg: c.fg, accent: c.accent, detail: detail)

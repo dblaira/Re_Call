@@ -214,6 +214,7 @@ struct ReminderFormView: View {
             TextField("Title", text: $r.title)
             TextField("Notes", text: $r.notes, axis: .vertical).lineLimit(1...4)
             locationRow
+            tagsEditor
         } header: { sectionHeader("Event") }
         .listRowBackground(Brand.card)
 

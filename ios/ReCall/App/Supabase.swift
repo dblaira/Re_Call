@@ -75,6 +75,49 @@ actor SupabaseService {
         return req
     }
 
+    /// The signed-in user's id, decoded from the access token's `sub` claim. Used as the Storage
+    /// folder so per-user RLS isolates each user's images.
+    func userID() async -> String? {
+        guard await ensureSession(), let token = accessToken else { return nil }
+        let parts = token.split(separator: ".")
+        guard parts.count >= 2 else { return nil }
+        var b64 = String(parts[1]).replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
+        while b64.count % 4 != 0 { b64 += "=" }
+        guard let data = Data(base64Encoded: b64),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let sub = json["sub"] as? String else { return nil }
+        return sub
+    }
+
+    private static let imageBucket = "reminder-images"
+
+    /// Upload JPEG bytes to Storage at `path` (e.g. "<uid>/<reminder-id>.jpg"), overwriting.
+    func uploadImage(_ data: Data, path: String) async -> Bool {
+        guard await ensureSession(), let token = accessToken,
+              let u = URL(string: "\(SupabaseConfig.url)/storage/v1/object/\(Self.imageBucket)/\(path)") else { return false }
+        var req = URLRequest(url: u)
+        req.httpMethod = "POST"
+        req.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        req.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
+        req.setValue("true", forHTTPHeaderField: "x-upsert")
+        guard let (_, resp) = try? await session.upload(for: req, from: data),
+              let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else { return false }
+        return true
+    }
+
+    /// Download JPEG bytes for a Storage `path` (private bucket, RLS-enforced).
+    func downloadImage(path: String) async -> Data? {
+        guard await ensureSession(), let token = accessToken,
+              let u = URL(string: "\(SupabaseConfig.url)/storage/v1/object/authenticated/\(Self.imageBucket)/\(path)") else { return nil }
+        var req = URLRequest(url: u)
+        req.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        guard let (data, resp) = try? await session.data(for: req),
+              let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else { return nil }
+        return data
+    }
+
     /// Send a request, validating the HTTP status. Returns the response body.
     @discardableResult
     func send(_ req: URLRequest) async throws -> Data {

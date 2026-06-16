@@ -121,12 +121,25 @@ final class SupabaseReminderRepository: ReminderRepository {
                     Subtask(id: UUID(uuidString: s.id) ?? UUID(), title: s.title, done: s.done))
             }
         }
-        return rows.map { reminder(from: $0, tags: tagMap[$0.id] ?? [], subtasks: subMap[$0.id] ?? []) }
+        var result = rows.map { reminder(from: $0, tags: tagMap[$0.id] ?? [], subtasks: subMap[$0.id] ?? []) }
+        // Pull down any cloud images not yet cached on this device.
+        for (i, row) in rows.enumerated() {
+            guard let path = row.image_path, !path.isEmpty else { continue }
+            let localName = "\(row.id).jpg"
+            if LocalImageStore.exists(localName) {
+                result[i].imageLocalPath = localName
+            } else if let data = await service.downloadImage(path: path) {
+                LocalImageStore.write(data, name: localName)
+                result[i].imageLocalPath = localName
+            }
+        }
+        return result
     }
 
     func upsert(_ r: Reminder) async throws {
         let rid = r.id.uuidString.lowercased()
-        let body = try encoder.encode([upsertRow(from: r)])
+        let imagePath = await uploadImageIfPresent(r)
+        let body = try encoder.encode([upsertRow(from: r, imagePath: imagePath)])
         guard let req = await service.request("POST", "reminders", query: "on_conflict=id", body: body,
                                               prefer: "resolution=merge-duplicates,return=minimal") else {
             throw NSError(domain: "Supabase", code: -1, userInfo: [NSLocalizedDescriptionKey: "not signed in"])
@@ -161,11 +174,23 @@ final class SupabaseReminderRepository: ReminderRepository {
         try await service.send(req)
     }
 
-    private func upsertRow(from r: Reminder) -> ReminderUpsert {
+    /// Best-effort upload of a reminder's local image to Storage. Returns the deterministic storage
+    /// path to record in `image_path` (so it survives even if this upload momentarily fails and
+    /// retries later), or nil when the reminder has no image.
+    private func uploadImageIfPresent(_ r: Reminder) async -> String? {
+        guard r.imageLocalPath != nil, let uid = await service.userID() else { return nil }
+        let path = "\(uid)/\(r.id.uuidString.lowercased()).jpg"
+        if let local = r.imageLocalPath, let data = LocalImageStore.data(local) {
+            _ = await service.uploadImage(data, path: path)
+        }
+        return path
+    }
+
+    private func upsertRow(from r: Reminder, imagePath: String?) -> ReminderUpsert {
         ReminderUpsert(
             id: r.id.uuidString.lowercased(),
             title: r.title, notes: r.notes, url: r.url,
-            image_path: nil,                                   // cloud image upload deferred to 1.0.1
+            image_path: imagePath,
             due_date: r.dueDate.map { PG.date.string(from: $0) },
             due_time: r.dueTime.map { PG.time.string(from: $0) },
             urgent: r.urgent,

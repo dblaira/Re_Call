@@ -21,4 +21,21 @@ enum LocalImageStore {
         guard let name else { return nil }
         return UIImage(contentsOfFile: dir.appendingPathComponent(name).path)
     }
+
+    /// Raw JPEG bytes for a stored image — used to upload to Supabase Storage.
+    static func data(_ name: String?) -> Data? {
+        guard let name else { return nil }
+        return try? Data(contentsOf: dir.appendingPathComponent(name))
+    }
+
+    /// Write downloaded bytes under an explicit name (deterministic cache for cloud images).
+    @discardableResult
+    static func write(_ data: Data, name: String) -> String? {
+        do { try data.write(to: dir.appendingPathComponent(name), options: .atomic); return name }
+        catch { return nil }
+    }
+
+    static func exists(_ name: String) -> Bool {
+        FileManager.default.fileExists(atPath: dir.appendingPathComponent(name).path)
+    }
 }

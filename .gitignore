@@ -9,4 +9,5 @@ coverage/
 .vercel
 test-results/
 playwright-report/
+ios/ReCall/Web/.bundle-stamp.json
 ios/build/

@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "test:web": "playwright test",
+    "test:all": "bash scripts/test-all.sh",
+    "test:web": "bash scripts/test-web.sh",
+    "test:web:webkit": "PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 playwright test --project=webkit-iphone",
+    "serve:web": "bash scripts/serve-web.sh",
+    "install:browsers": "bash scripts/install-playwright-browsers.sh",
     "qc": "./qc.sh"
   },
   "dependencies": {

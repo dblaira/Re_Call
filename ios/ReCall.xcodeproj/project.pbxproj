@@ -24,6 +24,7 @@
 		9187046D9BD8BF7CB92CA2A5 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54DDD25FE4FF705D153B2111 /* Theme.swift */; };
 		9C60A0460D2A3CBFF21DE867 /* LocationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3379E1EBD3E2B8311EB905DE /* LocationProvider.swift */; };
 		B64BB1CBF9389567CA3C2F49 /* ReminderFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 806A9FA6D6F37A46C8EAB527 /* ReminderFormView.swift */; };
+		BD3B9E9889326AD887C9759F /* UpNextScrollTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4545EA070657E131A806F1E8 /* UpNextScrollTests.swift */; };
 		DA8547B1B0922F41A8C55FD5 /* ReminderRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E3766D436B6955155E177E /* ReminderRepository.swift */; };
 		EBA6D7111CC8C0556CE4AD1D /* ReminderGenerationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */; };
 		ECE8863350AD504CF43308C3 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 931E5F894F39FD8F30990C78 /* Models.swift */; };
@@ -47,6 +48,7 @@
 		3D059ADF056549352B1B7CBD /* ReCallApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReCallApp.swift; sourceTree = "<group>"; };
 		3F52EB2DF290C8A44E2E39BA /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		4079AAC3EA2A59744AF1F729 /* ReCallUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReCallUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4545EA070657E131A806F1E8 /* UpNextScrollTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpNextScrollTests.swift; sourceTree = "<group>"; };
 		47341608127B4B40EEB397EE /* ReminderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderStore.swift; sourceTree = "<group>"; };
 		50E3766D436B6955155E177E /* ReminderRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderRepository.swift; sourceTree = "<group>"; };
 		52753B915A441BE6403234BC /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
@@ -98,6 +100,7 @@
 			isa = PBXGroup;
 			children = (
 				575C1741D3B349AB4757A98D /* SmokeTests.swift */,
+				4545EA070657E131A806F1E8 /* UpNextScrollTests.swift */,
 			);
 			path = ReCallUITests;
 			sourceTree = "<group>";
@@ -196,6 +199,7 @@
 				};
 			};
 			buildConfigurationList = D303FB154D031C1ADD11B475 /* Build configuration list for PBXProject "ReCall" */;
+			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -205,7 +209,6 @@
 			mainGroup = 61A368F3F418F44B2CFFFF23;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 0028E5CF458CBA5B4FB16400 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -258,6 +261,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				45BBBDEA593671D0262699AB /* SmokeTests.swift in Sources */,
+				BD3B9E9889326AD887C9759F /* UpNextScrollTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

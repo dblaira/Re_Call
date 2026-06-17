@@ -21,7 +21,6 @@ struct RemindersHomeView: View {
         .init(title: "Do this after workout", bg: Brand.nearBlack, fg: .white, tags: ["TIME", "CUE"], height: 190, dark: true),
     ]
 
-    @State private var upNextScrollLocked = false
 
     var body: some View {
         ScrollView {
@@ -32,7 +31,7 @@ struct RemindersHomeView: View {
                 shapes
             }
         }
-        .scrollDisabled(upNextScrollLocked)
+        .accessibilityIdentifier("homeScroll")
         .background(Brand.page)
         .ignoresSafeArea(edges: .top)
     }
@@ -84,11 +83,11 @@ struct RemindersHomeView: View {
                         actions: cardActions(rem),
                         onTap: { onOpen(rem) },
                         cornerRadius: 8,
-                        onMoveUp: { withAnimation(.snappy) { store.moveUpNext(rem, direction: .up) } },
-                        onMoveDown: { withAnimation(.snappy) { store.moveUpNext(rem, direction: .down) } },
-                        scrollLocked: $upNextScrollLocked
+                        onMoveUp: { store.moveUpNext(rem, direction: .up) },
+                        onMoveDown: { store.moveUpNext(rem, direction: .down) }
                     ) {
                         BandCard(reminder: rem, bg: c.bg, fg: c.fg, accent: c.accent, detail: detail)
+                            .accessibilityIdentifier(idx == 0 ? "upNextCard0" : "upNextCard")
                     }
                 }
             }
@@ -106,6 +105,7 @@ struct RemindersHomeView: View {
                 Text("Reminder shapes")
                     .font(.system(size: 22, weight: .heavy))
                     .foregroundStyle(.black)
+                    .accessibilityIdentifier("reminderShapes")
                 Spacer()
                 Text("Edit")
                     .font(.system(size: 15, weight: .heavy))

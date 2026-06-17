@@ -190,7 +190,6 @@ struct SwipeRow<Content: View>: View {
     var swipeEnabled: Bool = true
     var onMoveUp: (() -> Void)? = nil
     var onMoveDown: (() -> Void)? = nil
-    var scrollLocked: Binding<Bool> = .constant(false)
     @ViewBuilder var content: Content
 
     @State private var offset: CGFloat = 0
@@ -250,17 +249,25 @@ struct SwipeRow<Content: View>: View {
         .shadow(color: reordering ? Brand.crimson.opacity(0.55) : .clear, radius: 22, y: 0)
         .shadow(color: reordering ? Brand.crimson.opacity(0.3) : .clear, radius: 6, y: 2)
         .animation(.snappy, value: reordering)
-        .gesture(rowDragGesture)
         .onTapGesture {
             if offset != 0 { withAnimation(.snappy) { offset = 0 } }
             else { onTap() }
         }
 
         if supportsReorder {
-            row.simultaneousGesture(reorderArmGesture)
-        } else {
             row
+                .simultaneousGesture(swipeDragGesture)
+                .simultaneousGesture(reorderDragGesture)
+                .simultaneousGesture(reorderArmGesture)
+                .onDisappear { disarmReorder() }
+        } else {
+            row.gesture(swipeDragGesture)
         }
+    }
+
+    private func disarmReorder() {
+        guard reordering else { return }
+        withAnimation(.snappy) { reordering = false }
     }
 
     private var reorderArmGesture: some Gesture {
@@ -272,33 +279,37 @@ struct SwipeRow<Content: View>: View {
         withAnimation(.spring(response: 0.28, dampingFraction: 0.62)) {
             reordering = true
         }
-        scrollLocked.wrappedValue = true
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 
-    private var rowDragGesture: some Gesture {
-        DragGesture(minimumDistance: 8)
+    /// Horizontal swipe — simultaneous so vertical pans reach the ScrollView.
+    private var swipeDragGesture: some Gesture {
+        DragGesture(minimumDistance: 12)
             .onChanged { v in
                 guard !reordering else { return }
                 guard swipeEnabled else { return }
                 guard abs(v.translation.width) > abs(v.translation.height) else { return }
                 offset = min(max(v.translation.width, 0), actionsWidth)
             }
+            .onEnded { _ in
+                guard !reordering else { return }
+                guard swipeEnabled else { return }
+                withAnimation(.snappy) { offset = offset > actionsWidth / 2 ? actionsWidth : 0 }
+            }
+    }
+
+    /// Active only after long-press arms reorder; always disarms on finger up.
+    private var reorderDragGesture: some Gesture {
+        DragGesture(minimumDistance: 0)
             .onEnded { v in
-                if reordering {
-                    defer {
-                        withAnimation(.snappy) { reordering = false }
-                        scrollLocked.wrappedValue = false
-                    }
-                    let t = v.translation
-                    guard abs(t.height) > abs(t.width), abs(t.height) > 20 else { return }
+                guard reordering else { return }
+                defer { disarmReorder() }
+                let t = v.translation
+                if abs(t.height) > abs(t.width), abs(t.height) > 20 {
                     if t.height < 0 { onMoveUp?() }
                     else { onMoveDown?() }
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    return
                 }
-                guard swipeEnabled else { return }
-                withAnimation(.snappy) { offset = offset > actionsWidth / 2 ? actionsWidth : 0 }
             }
     }
 }

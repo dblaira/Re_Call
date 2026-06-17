@@ -128,12 +128,22 @@ final class ReminderStore: ObservableObject {
     }
 
     private func applyBlockOrder(_ ordered: [Reminder]) {
+        var touched: [Reminder] = []
         for (i, item) in ordered.enumerated() {
             guard let idx = reminders.firstIndex(where: { $0.id == item.id }) else { continue }
             guard reminders[idx].upNextOrder != i else { continue }
             var r = reminders[idx]
             r.upNextOrder = i
-            save(r)
+            r.updatedAt = Date()
+            r.needsSync = true
+            reminders[idx] = r
+            touched.append(r)
+        }
+        guard !touched.isEmpty else { return }
+        saveCache()
+        for r in touched {
+            NotificationScheduler.schedule(r)
+            Task { await sync(r) }
         }
     }
 

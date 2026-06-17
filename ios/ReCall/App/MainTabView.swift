@@ -57,8 +57,10 @@ struct MainTabView: View {
         .padding(.top, 10)
         .padding(.horizontal, 8)
         .frame(maxWidth: .infinity)
-        .background(Brand.page)
-        .background(Brand.page.ignoresSafeArea(edges: .bottom))
+        .background(Color.white)
+        .background(Color.white.ignoresSafeArea(edges: .bottom))
+        // Hairline to crisp the edge where the white bar meets the navy feed above it.
+        .overlay(alignment: .top) { Rectangle().fill(Color.black.opacity(0.08)).frame(height: 0.5) }
         .overlay(alignment: .top) {
             ZStack {
                 if fabMenuOpen {
@@ -78,7 +80,7 @@ struct MainTabView: View {
                 Image(systemName: icon).font(.system(size: 22, weight: .bold))
                 Text(label).font(.system(size: 13, weight: .heavy))
             }
-            .foregroundStyle(active ? Brand.tan : Brand.tan.opacity(0.45))
+            .foregroundStyle(active ? Brand.nearBlack : Brand.nearBlack.opacity(0.4))
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)

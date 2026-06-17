@@ -95,8 +95,8 @@ ios/
 
 - Supabase stays dependency-free on purpose. Do not add `supabase-swift` or any other SPM package
   for the current reminders runtime.
-- The old `ios/ReCall/Web/` prototype is not included in `project.yml` and should stay out of the
-  shipped iOS app.
+- The old `ios/ReCall/Web/` WebView prototype was **deleted 2026-06-17** (native-only). Do not
+  reintroduce a WebView or bundle web artifacts into the app.
 
 ## Regenerate the Xcode project
 

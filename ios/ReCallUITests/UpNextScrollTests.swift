@@ -9,6 +9,59 @@ final class UpNextScrollTests: XCTestCase {
         if allow.waitForExistence(timeout: 5) { allow.tap() }
     }
 
+    /// Creates a reminder via the real charge-FAB → form flow (drag FAB left = Reminder).
+    private func createReminder(_ app: XCUIApplication, title: String) {
+        let fab = app.buttons["chargeFab"].firstMatch
+        XCTAssertTrue(fab.waitForExistence(timeout: 20), "Charge FAB missing")
+        let center = fab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        center.press(forDuration: 0.2, thenDragTo: center.withOffset(CGVector(dx: -120, dy: 0)))
+        let field = app.textFields["Title"]
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "Entry form did not open")
+        field.tap()
+        field.typeText(title)
+        app.buttons["Save"].tap()
+        XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 10), "Created \(title) not in feed")
+    }
+
+    private func scrollUntilHittable(_ app: XCUIApplication, _ el: XCUIElement, maxSwipes: Int = 8) {
+        let scroll = app.scrollViews["homeScroll"]
+        for _ in 0..<maxSwipes {
+            if el.exists && el.isHittable { return }
+            scroll.swipeUp()
+        }
+    }
+
+    /// The actual feature: long-press a card to ARM it (crimson ring + chevrons), then TAP the up
+    /// chevron to move it one slot. Two fresh reminders are adjacent (Alpha above Beta); arming Beta
+    /// and tapping up must put Beta above Alpha. Tap-driven reorder — no drag — so scroll is safe.
+    func testReorderMovesCardWithinUpNext() {
+        let app = XCUIApplication()
+        app.launch()
+        dismissNotificationPrompt()
+
+        let alpha = "Reorder Alpha \(Int(Date().timeIntervalSince1970) % 100000)"
+        let beta = "Reorder Beta \(Int(Date().timeIntervalSince1970) % 100000)"
+        createReminder(app, title: alpha)
+        createReminder(app, title: beta)
+
+        let alphaText = app.staticTexts[alpha].firstMatch
+        let betaText = app.staticTexts[beta].firstMatch
+        scrollUntilHittable(app, betaText)
+        XCTAssertTrue(betaText.isHittable, "Beta card not on screen")
+        XCTAssertLessThan(alphaText.frame.minY, betaText.frame.minY,
+                          "precondition: Alpha should start above Beta")
+
+        // Long-press Beta (no drag) to arm; the up/down chevrons appear.
+        betaText.press(forDuration: 0.6)
+        let up = app.buttons["reorderUp"].firstMatch
+        XCTAssertTrue(up.waitForExistence(timeout: 5), "armed reorder chevrons did not appear")
+        up.tap()
+
+        // After tap-up, Beta must now sit above Alpha.
+        XCTAssertLessThan(betaText.frame.minY, alphaText.frame.minY,
+                          "tap-up did not move Beta above Alpha — the move never fired")
+    }
+
     private func scrollHomeUntilShapesVisible(_ app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
         let shapes = app.staticTexts["Reminder shapes"]
         let scroll = app.scrollViews["homeScroll"]

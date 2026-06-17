@@ -1,7 +1,11 @@
-// Compile the knowledge graph into the app's deterministic recommendation bundle.
+// Compile the knowledge graph into the deterministic recommendation bundle.
 //
 //   node scripts/build-recommendations.mjs
-//   → ios/ReCall/Web/recommendations.js   (window.RECALL_RECS = {...})
+//   → build/recommendations.js   (window.RECALL_RECS = {...})
+//
+// This is an ENGINE artifact (proves the KG → cards compile is deterministic). The old web UI
+// (ios/ReCall/Web) that consumed it was deleted 2026-06-17 when Re_Call went native-only; the
+// bundle is kept as a generated proof and will be re-consumed natively (Swift) when wired in.
 //
 // Two sources, zero LLM, zero network:
 //   1. Personal cards — walked straight out of ontology/recall-seed.ttl:
@@ -11,7 +15,8 @@
 //      candidates (depth doctrine), with strengths + adjacency included so
 //      the device can re-rank from locally recorded signals.
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import { Parser, Store, DataFactory } from "n3";
 import {
   getReminderRecommendations,
@@ -26,7 +31,7 @@ const RECALL = "http://recall.app/ontology#";
 const ADAM = "http://recall.app/data/adam#";
 const RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
 const SEED_PATH = new URL("../ontology/recall-seed.ttl", import.meta.url).pathname;
-const OUT_PATH = new URL("../ios/ReCall/Web/recommendations.js", import.meta.url).pathname;
+const OUT_PATH = new URL("../build/recommendations.js", import.meta.url).pathname;
 
 // ---------- load the seed KG ----------
 const store = new Store(new Parser().parse(readFileSync(SEED_PATH, "utf8")));
@@ -135,5 +140,6 @@ const bundle = {
   adjacency,
   signalDeltas: { edit: 0.3, positive: 0.15, accept: 0.1, dismiss: -0.1 },
 };
+mkdirSync(dirname(OUT_PATH), { recursive: true });
 writeFileSync(OUT_PATH, "window.RECALL_RECS = " + JSON.stringify(bundle, null, 1) + ";\n");
 console.log(`recommendations.js: ${personal.length} personal + ${depth.length} depth cards, ${strengths.length} strengths`);

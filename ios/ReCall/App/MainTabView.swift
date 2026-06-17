@@ -122,7 +122,10 @@ struct MainTabView: View {
                         highlighted = nil
                     }
             )
+            .accessibilityElement(children: .ignore)
             .accessibilityLabel(fabMenuOpen ? "Close menu" : "New entry")
+            .accessibilityIdentifier("chargeFab")
+            .accessibilityAddTraits(.isButton)
     }
 
     /// White SF Symbol with a thin black outline (black copy slightly larger, behind the white).

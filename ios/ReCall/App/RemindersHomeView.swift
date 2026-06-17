@@ -25,22 +25,6 @@ struct RemindersHomeView: View {
     @State private var armedReorderId: UUID?
 
     var body: some View {
-        homeScroll
-    }
-
-    @ViewBuilder private var homeScroll: some View {
-        Group {
-            if #available(iOS 18.0, *) {
-                scrollBody.onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y } action: { _, _ in
-                    armedReorderId = nil
-                }
-            } else {
-                scrollBody
-            }
-        }
-    }
-
-    private var scrollBody: some View {
         ScrollView {
             VStack(spacing: 0) {
                 hero
@@ -50,6 +34,8 @@ struct RemindersHomeView: View {
             }
         }
         .accessibilityIdentifier("homeScroll")
+        // Scrolling is NEVER programmatically disabled — reorder is tap-driven (long-press to arm,
+        // then chevrons), so it never competes with the scroll pan and can't freeze the page.
         .background(Brand.page)
         .ignoresSafeArea(edges: .top)
     }
@@ -97,11 +83,12 @@ struct RemindersHomeView: View {
                         : idx == 1 ? (Brand.darkRed, .white, .white)
                         : (Brand.tan, Brand.nearBlack, Brand.crimson)   // light brown, dark text
                     let detail: CardDetail = idx == 0 ? .full : (idx == 1 ? .medium : .minimal)
-                    UpNextCardRow(
-                        reminderId: rem.id,
-                        armedId: $armedReorderId,
+                    SwipeRow(
                         actions: cardActions(rem),
                         onTap: { onOpen(rem) },
+                        cornerRadius: 8,
+                        reminderId: rem.id,
+                        armedId: $armedReorderId,
                         onMoveUp: { store.moveUpNext(rem, direction: .up) },
                         onMoveDown: { store.moveUpNext(rem, direction: .down) }
                     ) {

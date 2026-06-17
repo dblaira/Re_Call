@@ -1,0 +1,36 @@
+---
+description: Re_Call agent contract — taste bar, QC gate, layer boundaries
+alwaysApply: true
+---
+
+# Re_Call
+
+Read `AGENTS.md` first. Adam's taste and understanding are the acceptance bar — not generic iOS or UX conventions.
+
+## Before you ship changes
+
+- `./qc.sh` must go green (trust contract). Use `./qc.sh --full` when iOS behavior changed.
+- Ontology edits: `ontology/validate.sh` must pass.
+- iOS gotchas: read `HANDOFF.md` before touching `ios/ReCall/App/`.
+
+## QC is native-only (web layer retired 2026-06-17)
+
+`./qc.sh` verifies three layers: **engine** (node unit tests + KG→`recommendations.js` compile),
+**native build**, and **native device smoke** (XCUITest). The old "Playwright web behavior" and
+"web bundle integrity (`data-src-md5`)" checks were **removed** — the app renders no WebView, so
+they were permanent false-red. `WebView.swift` and `ios/ReCall/Web/*` are legacy/reference only.
+Do not re-add web QC or try to "fix the stale bundle" unless a WebView becomes a runtime surface.
+
+## Layer boundaries (parallel work)
+
+- **Ontology / engine**: `ontology/`, `src/*-engine.js`, `src/recommender-stack.js`, `scripts/build-recommendations.mjs`
+- **iOS native**: `ios/ReCall/App/*.swift` only — no WebView restoration
+- **Supabase**: `supabase/migrations/`, `src/supabase-*.js`
+
+Do not cross layers in one pass unless the task explicitly requires it.
+
+## Agent behavior
+
+- Phase 1 (judgment): explain trade-offs in plain language before building.
+- Phase 2 (execution): plan → edit → run QC → fix failures.
+- Never force-unwrap Swift. Never delete completed reminders. Never bundle web artifacts into the iOS target.

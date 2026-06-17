@@ -11,9 +11,12 @@ build/crash loops.
 A **native SwiftUI** reminders app (replacing the old WebView-only shell), backed by
 **Supabase**, implementing all 16 "parts" from the Figma board.
 
-**Native-only rule:** Re_Call is an iOS-only native app. Web, CSS, HTML, and WebKit artifacts may
-remain in the repository only as legacy/reference material; they must not be bundled into the app,
-compiled into the app target, or restored as the runtime surface.
+**Native-only rule:** Re_Call is an iOS-only native app. The web prototype was **deleted
+2026-06-17** — `WebView.swift`, `ios/ReCall/Web/*` (index.html, recommendations.js, covers), the
+Playwright specs (`tests/web/`), and the web tooling (`stamp-web.mjs`, `serve-web.sh`,
+`web-bundle-md5.mjs`, `web-bundle.test.js`, `playwright.config.js`) are gone. Do not reintroduce a
+WebView or bundle web artifacts. The KG→cards compiler (`scripts/build-recommendations.mjs`) stays
+as an engine artifact; it now writes to `build/recommendations.js` (was the Web folder).
 
 - **List screen** (`ReminderListView`): black page, "Notorious" Bodoni title, crimson FAB,
   active + completed (retained) sections, tap-a-row-to-edit.
@@ -50,8 +53,8 @@ New native Swift (`ios/ReCall/App/`):
 Modified:
 - `ios/ReCall/App/ContentView.swift` — root is now `ReminderListView` + store bootstrap
 - `ios/project.yml` — native app target, Info.plist usage strings (location, photos). **No Swift package** (intentional — see Gotchas).
-- `ios/ReCallUITests/SmokeTests.swift` — native smoke tests (launch, form opens, create→list)
-- `ios/ReCall/Web/index.html`, `tests/web/reminders.spec.js` — earlier web full-page form work; legacy/reference only, not part of the iOS runtime
+- `ios/ReCallUITests/SmokeTests.swift` — native smoke tests (launch, charge-FAB opens form, create→list); rewritten 2026-06-17 for the charge-FAB UI
+- (deleted 2026-06-17) the web prototype — `ios/ReCall/Web/*`, `WebView.swift`, `tests/web/*` — was removed; the app is native-only
 - `supabase/migrations/README.md` — documents the two new migrations
 
 New Supabase migrations (applied to the live project):
@@ -95,9 +98,18 @@ xcrun simctl install <sim> <app> ; xcrun simctl launch <sim> app.understood.reca
 # Device: prefer Xcode ⌘R (devicectl over the network is slow/hangs — see Gotcha #4).
 # Bundle id: app.understood.recall ; device: Adam's iPhone 17 Pro Max (B03CFB03-AA65-5941-BD82-8CBC60092BD9)
 
-# Full QC (web behavior + native build + bundle stamp):
-./qc.sh
+# QC (native-only): Layer 1 engine tests + Layer 2 native build (+ Layer 3 native device smoke with --full)
+./qc.sh          # ~1 min
+./qc.sh --full   # ~3 min, adds the simulator XCUITest smoke
 ```
+
+> **QC is native-only (retired the web layer 2026-06-17).** The old `./qc.sh` had a
+> "Behavior (Playwright vs bundled HTML, WebKit)" check and a "Bundle integrity" check that
+> stamped/verified `ios/ReCall/Web/index.html`. The native app renders no WebView, so both gave
+> permanent false-red and confused agents into "fixing" a dead web bundle. They were removed; QC
+> now verifies only what ships: the engine unit tests, the native build, and a native device-smoke
+> XCUITest. `WebView.swift` and `ios/ReCall/Web/*` stay as legacy/reference — do **not** re-add web
+> QC unless a WebView becomes a real runtime surface again.
 
 ---
 
@@ -122,6 +134,20 @@ xcrun simctl install <sim> <app> ; xcrun simctl launch <sim> app.understood.reca
    Management). It's already trusted on Adam's device.
 
 ---
+
+## 5b. Up Next reorder + scroll (device-critical)
+
+Home scroll froze on launch when `SwipeRow` attached a touch-claiming `.gesture` drag (and a
+sequenced long-press→drag) to every card — on device that intercepts the ScrollView's vertical pan.
+**Rule: never attach a per-row drag gesture that can claim vertical pans inside the home ScrollView.**
+
+Current reorder interaction (in `ItemListView.swift` `SwipeRow`): **long-press a card to ARM it**
+(crimson ring + up/down chevrons appear), **then tap the chevrons** to move it one slot
+(`store.moveUpNext`). It's tap-driven, not drag — so it can't fight the scroll. Arming uses a
+`.highPriorityGesture(LongPressGesture)` (high-priority so the hold beats the tap-to-open, since a
+TapGesture has no max duration); a quick tap still opens the card; swipe-to-reveal stays a
+`.simultaneousGesture`. `.scrollDisabled` is NOT used anywhere. Simulator can't reproduce the device
+freeze, so device testing is the only proof.
 
 ## 6. Status + what's pending
 

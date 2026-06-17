@@ -21,10 +21,22 @@ final class ReminderStore: ObservableObject {
 
     var active: [Reminder] {
         reminders.filter { $0.status == .active }
-            .sorted { lhs, rhs in
-                if lhs.pinned != rhs.pinned { return lhs.pinned }   // pinned float to the top
-                return sortKey(lhs) < sortKey(rhs)
-            }
+            .sorted { compareUpNext($0, $1) }
+    }
+
+    /// Pinned block first; within each block, manual order then date fallback.
+    private func compareUpNext(_ lhs: Reminder, _ rhs: Reminder) -> Bool {
+        if lhs.pinned != rhs.pinned { return lhs.pinned }
+        return compareWithinBlock(lhs, rhs)
+    }
+
+    private func compareWithinBlock(_ lhs: Reminder, _ rhs: Reminder) -> Bool {
+        switch (lhs.upNextOrder, rhs.upNextOrder) {
+        case let (l?, r?): return l < r
+        case (nil, nil): return sortKey(lhs) < sortKey(rhs)
+        case (_?, nil): return true
+        case (nil, _?): return false
+        }
     }
     var completed: [Reminder] {
         reminders.filter { $0.status == .completed }
@@ -75,9 +87,54 @@ final class ReminderStore: ObservableObject {
     }
 
     func togglePin(_ reminder: Reminder) {
-        var r = reminder
+        guard let idx = reminders.firstIndex(where: { $0.id == reminder.id }) else { return }
+        var r = reminders[idx]
         r.pinned.toggle()
-        save(r)
+        reminders[idx] = r
+
+        if r.pinned {
+            applyBlockOrder(active.filter { !$0.pinned })
+            var pinned = active.filter { $0.pinned }
+            pinned.removeAll { $0.id == r.id }
+            pinned.insert(reminders[idx], at: 0)
+            applyBlockOrder(pinned)
+        } else {
+            applyBlockOrder(active.filter { $0.pinned })
+            var unpinned = active.filter { !$0.pinned }
+            unpinned.removeAll { $0.id == r.id }
+            unpinned.insert(reminders[idx], at: 0)
+            applyBlockOrder(unpinned)
+        }
+    }
+
+    enum UpNextMoveDirection { case up, down }
+
+    /// Move one step within the reminder's pinned/unpinned block.
+    func moveUpNext(_ reminder: Reminder, direction: UpNextMoveDirection) {
+        let feed = active
+        let blockPinned = reminder.pinned
+        var block = feed.filter { $0.pinned == blockPinned }
+        guard let blockIdx = block.firstIndex(where: { $0.id == reminder.id }) else { return }
+
+        let target: Int
+        switch direction {
+        case .up: target = blockIdx - 1
+        case .down: target = blockIdx + 1
+        }
+        guard block.indices.contains(target) else { return }
+
+        block.swapAt(blockIdx, target)
+        applyBlockOrder(block)
+    }
+
+    private func applyBlockOrder(_ ordered: [Reminder]) {
+        for (i, item) in ordered.enumerated() {
+            guard let idx = reminders.firstIndex(where: { $0.id == item.id }) else { continue }
+            guard reminders[idx].upNextOrder != i else { continue }
+            var r = reminders[idx]
+            r.upNextOrder = i
+            save(r)
+        }
     }
 
     func delete(_ reminder: Reminder) {
@@ -149,6 +206,7 @@ final class ReminderStore: ObservableObject {
             r.deferDate = localCopy.deferDate
             r.waitingOn = localCopy.waitingOn
             r.pinned = localCopy.pinned
+            r.upNextOrder = localCopy.upNextOrder
             return r
         }
 

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// A light-themed list of items of one kind: active rows on top, then completed greyed at the
 /// bottom. Each row swipes right to reveal Done/Reopen + Delete. Used by the Reminders and
@@ -179,14 +180,23 @@ struct SwipeAction: Identifiable {
 
 /// Wraps any row content and reveals leading action buttons on a right-swipe. Tap (when closed)
 /// fires `onTap`; tap (when open) closes. Works inside a ScrollView.
+///
+/// Optional reorder: long-press (~0.35s, finger still down), then drag vertically. Horizontal
+/// swipe and reorder share one drag handler so they don't block each other.
 struct SwipeRow<Content: View>: View {
     let actions: [SwipeAction]
     var onTap: () -> Void = {}
     var cornerRadius: CGFloat = 12
+    var swipeEnabled: Bool = true
+    var onMoveUp: (() -> Void)? = nil
+    var onMoveDown: (() -> Void)? = nil
+    var scrollLocked: Binding<Bool> = .constant(false)
     @ViewBuilder var content: Content
 
     @State private var offset: CGFloat = 0
+    @State private var reordering = false
     private var actionsWidth: CGFloat { CGFloat(actions.count) * 64 }
+    private var supportsReorder: Bool { onMoveUp != nil || onMoveDown != nil }
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -211,23 +221,95 @@ struct SwipeRow<Content: View>: View {
             .frame(width: actionsWidth)
             .frame(maxHeight: .infinity)
 
-            content
-                .offset(x: offset)
-                .gesture(
-                    DragGesture(minimumDistance: 16)
-                        .onChanged { v in
-                            guard abs(v.translation.width) > abs(v.translation.height) else { return }
-                            offset = min(max(v.translation.width, 0), actionsWidth)
-                        }
-                        .onEnded { _ in
-                            withAnimation(.snappy) { offset = offset > actionsWidth / 2 ? actionsWidth : 0 }
-                        }
-                )
-                .onTapGesture {
-                    if offset != 0 { withAnimation(.snappy) { offset = 0 } }
-                    else { onTap() }
-                }
+            interactiveContent
         }
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+    }
+
+    @ViewBuilder private var interactiveContent: some View {
+        let row = ZStack(alignment: .topTrailing) {
+            content
+            if reordering {
+                ReorderGrip()
+                    .padding(12)
+                    .transition(.scale(scale: 0.6).combined(with: .opacity))
+            }
+        }
+        .overlay {
+            if supportsReorder && reordering {
+                ZStack {
+                    RoundedRectangle(cornerRadius: cornerRadius + 3)
+                        .strokeBorder(Brand.crimson.opacity(0.45), lineWidth: 8)
+                        .padding(-4)
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .strokeBorder(Brand.crimson, lineWidth: 4)
+                }
+            }
+        }
+        .offset(x: offset)
+        .scaleEffect(reordering ? 1.04 : 1)
+        .shadow(color: reordering ? Brand.crimson.opacity(0.55) : .clear, radius: 22, y: 0)
+        .shadow(color: reordering ? Brand.crimson.opacity(0.3) : .clear, radius: 6, y: 2)
+        .animation(.snappy, value: reordering)
+        .gesture(rowDragGesture)
+        .onTapGesture {
+            if offset != 0 { withAnimation(.snappy) { offset = 0 } }
+            else { onTap() }
+        }
+
+        if supportsReorder {
+            row.simultaneousGesture(reorderArmGesture)
+        } else {
+            row
+        }
+    }
+
+    private var reorderArmGesture: some Gesture {
+        LongPressGesture(minimumDuration: 0.35)
+            .onEnded { _ in armReorder() }
+    }
+
+    private func armReorder() {
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.62)) {
+            reordering = true
+        }
+        scrollLocked.wrappedValue = true
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+    }
+
+    private var rowDragGesture: some Gesture {
+        DragGesture(minimumDistance: 8)
+            .onChanged { v in
+                guard !reordering else { return }
+                guard swipeEnabled else { return }
+                guard abs(v.translation.width) > abs(v.translation.height) else { return }
+                offset = min(max(v.translation.width, 0), actionsWidth)
+            }
+            .onEnded { v in
+                if reordering {
+                    defer {
+                        withAnimation(.snappy) { reordering = false }
+                        scrollLocked.wrappedValue = false
+                    }
+                    let t = v.translation
+                    guard abs(t.height) > abs(t.width), abs(t.height) > 20 else { return }
+                    if t.height < 0 { onMoveUp?() }
+                    else { onMoveDown?() }
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    return
+                }
+                guard swipeEnabled else { return }
+                withAnimation(.snappy) { offset = offset > actionsWidth / 2 ? actionsWidth : 0 }
+            }
+    }
+}
+
+/// Grip affordance — crimson so it reads on white, tan, and dark cards.
+private struct ReorderGrip: View {
+    var body: some View {
+        HStack(spacing: 3) {
+            RoundedRectangle(cornerRadius: 1).frame(width: 3, height: 15)
+            RoundedRectangle(cornerRadius: 1).frame(width: 3, height: 15)
+        }
+        .foregroundStyle(Brand.crimson)
     }
 }

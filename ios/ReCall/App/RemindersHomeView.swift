@@ -21,6 +21,8 @@ struct RemindersHomeView: View {
         .init(title: "Do this after workout", bg: Brand.nearBlack, fg: .white, tags: ["TIME", "CUE"], height: 190, dark: true),
     ]
 
+    @State private var upNextScrollLocked = false
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -30,6 +32,7 @@ struct RemindersHomeView: View {
                 shapes
             }
         }
+        .scrollDisabled(upNextScrollLocked)
         .background(Brand.page)
         .ignoresSafeArea(edges: .top)
     }
@@ -77,7 +80,14 @@ struct RemindersHomeView: View {
                         : idx == 1 ? (Brand.darkRed, .white, .white)
                         : (Brand.tan, Brand.nearBlack, Brand.crimson)   // light brown, dark text
                     let detail: CardDetail = idx == 0 ? .full : (idx == 1 ? .medium : .minimal)
-                    SwipeRow(actions: cardActions(rem), onTap: { onOpen(rem) }, cornerRadius: 8) {
+                    SwipeRow(
+                        actions: cardActions(rem),
+                        onTap: { onOpen(rem) },
+                        cornerRadius: 8,
+                        onMoveUp: { withAnimation(.snappy) { store.moveUpNext(rem, direction: .up) } },
+                        onMoveDown: { withAnimation(.snappy) { store.moveUpNext(rem, direction: .down) } },
+                        scrollLocked: $upNextScrollLocked
+                    ) {
                         BandCard(reminder: rem, bg: c.bg, fg: c.fg, accent: c.accent, detail: detail)
                     }
                 }

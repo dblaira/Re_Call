@@ -173,6 +173,7 @@ struct Reminder: Identifiable, Codable, Equatable {
     // Graph + lifecycle
     var seededFromTemplateID: String? = nil
     var pinned: Bool = false                    // sorts to the top of the list
+    var upNextOrder: Int? = nil                 // manual Up Next rank within pinned/unpinned block
     var tags: [String] = []
     var subtasks: [Subtask] = []
     var status: ReminderStatus = .active

@@ -36,6 +36,7 @@ private struct ReminderRow: Decodable {
     var defer_date: String?
     var waiting_on: String
     var pinned: Bool
+    var up_next_order: Int?
     var seeded_from_template_id: String?
     var status: String
     var completed_at: String?
@@ -70,6 +71,7 @@ private struct ReminderUpsert: Encodable {
     var defer_date: String?
     var waiting_on: String
     var pinned: Bool
+    var up_next_order: Int?
     var seeded_from_template_id: String?
     var status: String
     var completed_at: String?
@@ -210,6 +212,7 @@ final class SupabaseReminderRepository: ReminderRepository {
             defer_date: r.deferDate.map { PG.date.string(from: $0) },
             waiting_on: r.waitingOn,
             pinned: r.pinned,
+            up_next_order: r.upNextOrder,
             seeded_from_template_id: r.seededFromTemplateID,
             status: r.status.rawValue,
             completed_at: r.completedAt.map { ISO8601DateFormatter().string(from: $0) }
@@ -242,6 +245,7 @@ final class SupabaseReminderRepository: ReminderRepository {
         r.deferDate = row.defer_date.flatMap { PG.date.date(from: $0) }
         r.waitingOn = row.waiting_on
         r.pinned = row.pinned
+        r.upNextOrder = row.up_next_order
         r.seededFromTemplateID = row.seeded_from_template_id
         r.status = ReminderStatus(rawValue: row.status) ?? .active
         r.tags = tags

@@ -22,7 +22,25 @@ struct RemindersHomeView: View {
     ]
 
 
+    @State private var armedReorderId: UUID?
+
     var body: some View {
+        homeScroll
+    }
+
+    @ViewBuilder private var homeScroll: some View {
+        Group {
+            if #available(iOS 18.0, *) {
+                scrollBody.onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y } action: { _, _ in
+                    armedReorderId = nil
+                }
+            } else {
+                scrollBody
+            }
+        }
+    }
+
+    private var scrollBody: some View {
         ScrollView {
             VStack(spacing: 0) {
                 hero
@@ -79,10 +97,11 @@ struct RemindersHomeView: View {
                         : idx == 1 ? (Brand.darkRed, .white, .white)
                         : (Brand.tan, Brand.nearBlack, Brand.crimson)   // light brown, dark text
                     let detail: CardDetail = idx == 0 ? .full : (idx == 1 ? .medium : .minimal)
-                    SwipeRow(
+                    UpNextCardRow(
+                        reminderId: rem.id,
+                        armedId: $armedReorderId,
                         actions: cardActions(rem),
                         onTap: { onOpen(rem) },
-                        cornerRadius: 8,
                         onMoveUp: { store.moveUpNext(rem, direction: .up) },
                         onMoveDown: { store.moveUpNext(rem, direction: .down) }
                     ) {

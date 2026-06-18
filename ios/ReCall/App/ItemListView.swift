@@ -181,28 +181,17 @@ struct SwipeAction: Identifiable {
 /// Wraps any row content and reveals leading action buttons on a right-swipe. Tap (when closed)
 /// fires `onTap`; tap (when open) closes. Works inside a ScrollView.
 ///
-/// Optional reorder: long-press (~0.4s) arms the card (crimson ring + up/down chevrons), then tap
-/// the chevrons to move it one slot at a time via `onMoveUp`/`onMoveDown`. Reorder is tap-driven,
-/// NOT a drag, so nothing claims the ScrollView's vertical pan. Arming uses `.onLongPressGesture`
-/// (a long-press only fires after a still hold, so it never blocks a scroll pan). (A per-row
-/// touch-claiming `.gesture` drag froze home scroll on launch on device — see HANDOFF.) The swipe is
-/// a separate simultaneous, horizontal-only gesture.
+/// Home Up Next reorder lives in `UpNextCardRow` (UIKit gestures). Do not add per-row SwiftUI
+/// drag/long-press reorder here — it froze home scroll on device (HANDOFF §5b).
 struct SwipeRow<Content: View>: View {
     let actions: [SwipeAction]
     var onTap: () -> Void = {}
     var cornerRadius: CGFloat = 12
     var swipeEnabled: Bool = true
-    /// Identity used to coordinate the single armed card across the list.
-    var reminderId: UUID? = nil
-    var armedId: Binding<UUID?> = .constant(nil)
-    var onMoveUp: (() -> Void)? = nil
-    var onMoveDown: (() -> Void)? = nil
     @ViewBuilder var content: Content
 
     @State private var offset: CGFloat = 0
     private var actionsWidth: CGFloat { CGFloat(actions.count) * 64 }
-    private var supportsReorder: Bool { reminderId != nil && (onMoveUp != nil || onMoveDown != nil) }
-    private var isArmed: Bool { reminderId != nil && armedId.wrappedValue == reminderId }
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -232,100 +221,25 @@ struct SwipeRow<Content: View>: View {
     }
 
     @ViewBuilder private var interactiveContent: some View {
-        let row = ZStack(alignment: .topTrailing) {
-            content
-            if isArmed {
-                reorderControls
-                    .padding(8)
-                    .transition(.scale(scale: 0.6).combined(with: .opacity))
+        content
+            .offset(x: offset)
+            .onTapGesture {
+                if offset != 0 { withAnimation(.snappy) { offset = 0 } }
+                else { onTap() }
             }
-        }
-        .overlay {
-            if supportsReorder && isArmed {
-                ZStack {
-                    RoundedRectangle(cornerRadius: cornerRadius + 3)
-                        .strokeBorder(Brand.crimson.opacity(0.45), lineWidth: 8)
-                        .padding(-4)
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .strokeBorder(Brand.crimson, lineWidth: 4)
-                }
-            }
-        }
-        .offset(x: offset)
-        .scaleEffect(isArmed ? 1.04 : 1)
-        .shadow(color: isArmed ? Brand.crimson.opacity(0.55) : .clear, radius: 22, y: 0)
-        .shadow(color: isArmed ? Brand.crimson.opacity(0.3) : .clear, radius: 6, y: 2)
-        .animation(.snappy, value: isArmed)
-        .onTapGesture {
-            if isArmed { disarm() }
-            else if offset != 0 { withAnimation(.snappy) { offset = 0 } }
-            else { onTap() }
-        }
-
-        if supportsReorder {
-            row
-                .simultaneousGesture(swipeDragGesture)
-                // Keep this simultaneous with the row so the ScrollView keeps ownership of vertical
-                // pans. A high-priority long press can intermittently starve scrolling on device.
-                .simultaneousGesture(LongPressGesture(minimumDuration: 0.4).onEnded { _ in arm() })
-                .onDisappear { disarm() }
-        } else {
-            row.simultaneousGesture(swipeDragGesture)
-        }
+            .simultaneousGesture(swipeDragGesture)
     }
 
-    /// Up/down controls, shown only while armed. These are tap targets — not a drag — so they never
-    /// compete with the ScrollView. Each tap moves the card one slot and leaves it armed for more.
-    private var reorderControls: some View {
-        VStack(spacing: 2) {
-            reorderButton("chevron.up") { onMoveUp?() }
-            reorderButton("chevron.down") { onMoveDown?() }
-        }
-        .padding(.vertical, 4)
-        .padding(.horizontal, 2)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Brand.crimson.opacity(0.55)))
-    }
-
-    private func reorderButton(_ icon: String, _ action: @escaping () -> Void) -> some View {
-        Button {
-            action()
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        } label: {
-            Image(systemName: icon)
-                .font(.system(size: 17, weight: .heavy))
-                .foregroundStyle(Brand.crimson)
-                .frame(width: 40, height: 34)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(icon == "chevron.up" ? "reorderUp" : "reorderDown")
-    }
-
-    private func disarm() {
-        guard isArmed else { return }
-        withAnimation(.snappy) { armedId.wrappedValue = nil }
-    }
-
-    private func arm() {
-        guard let reminderId, armedId.wrappedValue != reminderId else { return }
-        withAnimation(.spring(response: 0.28, dampingFraction: 0.62)) {
-            armedId.wrappedValue = reminderId
-        }
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-    }
-
-    /// Horizontal swipe — simultaneous so vertical pans reach the ScrollView. Suppressed while
-    /// armed so taps land on the reorder chevrons instead of opening the swipe.
+    /// Horizontal swipe — simultaneous so vertical pans reach the ScrollView.
     private var swipeDragGesture: some Gesture {
         DragGesture(minimumDistance: 12)
             .onChanged { v in
-                guard !isArmed, swipeEnabled else { return }
+                guard swipeEnabled else { return }
                 guard abs(v.translation.width) > abs(v.translation.height) else { return }
                 offset = min(max(v.translation.width, 0), actionsWidth)
             }
             .onEnded { _ in
-                guard !isArmed, swipeEnabled else { return }
+                guard swipeEnabled else { return }
                 withAnimation(.snappy) { offset = offset > actionsWidth / 2 ? actionsWidth : 0 }
             }
     }

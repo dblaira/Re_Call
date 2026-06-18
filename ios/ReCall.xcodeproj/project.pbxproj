@@ -16,6 +16,7 @@
 		45BBBDEA593671D0262699AB /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 575C1741D3B349AB4757A98D /* SmokeTests.swift */; };
 		59B987F31C17F2B3DFDE783B /* NativeCaptureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F831CC628830EEFBD07CEA3E /* NativeCaptureSheet.swift */; };
 		600F616D8C113B298E6F5C93 /* ReminderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47341608127B4B40EEB397EE /* ReminderStore.swift */; };
+		72EEEEB4BFBE2AF116452E19 /* UpNextCardRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC6A6C831697C41FCC47C310 /* UpNextCardRow.swift */; };
 		74768025440D6C87D0DAE327 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F52EB2DF290C8A44E2E39BA /* CalendarView.swift */; };
 		87FDA24FD39C8D62F93AA38F /* ItemListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42D15EA148CAA8057D60280 /* ItemListView.swift */; };
 		880849CE3C77576F22182A3D /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76ECEE3848A4C169603E8391 /* NotificationScheduler.swift */; };
@@ -62,6 +63,7 @@
 		C7116D79FD34A726158C3D32 /* ReCall.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ReCall.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D42D15EA148CAA8057D60280 /* ItemListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemListView.swift; sourceTree = "<group>"; };
 		D85E54626A8DE911BCEC1324 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		DC6A6C831697C41FCC47C310 /* UpNextCardRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpNextCardRow.swift; sourceTree = "<group>"; };
 		F7D3C653B2C2181167022C93 /* RemindersHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersHomeView.swift; sourceTree = "<group>"; };
 		F831CC628830EEFBD07CEA3E /* NativeCaptureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeCaptureSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -132,6 +134,7 @@
 				47341608127B4B40EEB397EE /* ReminderStore.swift */,
 				8881E4FF233B1140BB438265 /* Supabase.swift */,
 				54DDD25FE4FF705D153B2111 /* Theme.swift */,
+				DC6A6C831697C41FCC47C310 /* UpNextCardRow.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -196,7 +199,6 @@
 				};
 			};
 			buildConfigurationList = D303FB154D031C1ADD11B475 /* Build configuration list for PBXProject "ReCall" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -206,6 +208,7 @@
 			mainGroup = 61A368F3F418F44B2CFFFF23;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
+			productRefGroup = 0028E5CF458CBA5B4FB16400 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -249,6 +252,7 @@
 				401B52F4C4E0ADEFD9165408 /* RemindersHomeView.swift in Sources */,
 				20C542F9C614421E15C311CB /* Supabase.swift in Sources */,
 				9187046D9BD8BF7CB92CA2A5 /* Theme.swift in Sources */,
+				72EEEEB4BFBE2AF116452E19 /* UpNextCardRow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

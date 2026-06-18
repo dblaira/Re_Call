@@ -1,10 +1,8 @@
 import SwiftUI
 
-/// The Reminders tab: an editorial "home" matching the Figma frame — a black "Notorious" hero,
-/// a tan RECALL band of story cards, and a two-column grid of reminder-shape tiles. The actual
-/// reminder list lives on the Tasks tab.
+/// The Reminders tab: editorial home — brand hero, Up Next feed, and reminder-shape tiles.
 struct RemindersHomeView: View {
-    /// Tapping a story card or shape tile starts a new reminder seeded with a title.
+    /// Tapping a shape tile starts a new reminder seeded with a title.
     var onPick: (String) -> Void = { _ in }
     /// Tapping one of your reminders opens it for editing.
     var onOpen: (Reminder) -> Void = { _ in }
@@ -21,10 +19,28 @@ struct RemindersHomeView: View {
         .init(title: "Do this after workout", bg: Brand.nearBlack, fg: .white, tags: ["TIME", "CUE"], height: 190, dark: true),
     ]
 
-
     @State private var armedReorderId: UUID?
 
     var body: some View {
+        homeScroll
+    }
+
+    @ViewBuilder private var homeScroll: some View {
+        Group {
+            if #available(iOS 18.0, *) {
+                scrollBody.onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y } action: { oldY, newY in
+                    // Only disarm when the user actually scrolls — not on layout churn from arming
+                    // (scale/shadow on the card also fires geometry callbacks).
+                    guard abs(newY - oldY) > 0.5 else { return }
+                    armedReorderId = nil
+                }
+            } else {
+                scrollBody
+            }
+        }
+    }
+
+    private var scrollBody: some View {
         ScrollView {
             VStack(spacing: 0) {
                 hero
@@ -34,8 +50,8 @@ struct RemindersHomeView: View {
             }
         }
         .accessibilityIdentifier("homeScroll")
-        // Scrolling is NEVER programmatically disabled — reorder is tap-driven (long-press to arm,
-        // then chevrons), so it never competes with the scroll pan and can't freeze the page.
+        // Up Next cards use UIKit gestures (UpNextCardRow) so vertical pans reach this ScrollView
+        // on device. SwiftUI DragGesture on every row froze scroll on launch — see HANDOFF §5b.
         .background(Brand.page)
         .ignoresSafeArea(edges: .top)
     }
@@ -83,12 +99,11 @@ struct RemindersHomeView: View {
                         : idx == 1 ? (Brand.darkRed, .white, .white)
                         : (Brand.tan, Brand.nearBlack, Brand.crimson)   // light brown, dark text
                     let detail: CardDetail = idx == 0 ? .full : (idx == 1 ? .medium : .minimal)
-                    SwipeRow(
-                        actions: cardActions(rem),
-                        onTap: { onOpen(rem) },
-                        cornerRadius: 8,
+                    UpNextCardRow(
                         reminderId: rem.id,
                         armedId: $armedReorderId,
+                        actions: cardActions(rem),
+                        onTap: { onOpen(rem) },
                         onMoveUp: { store.moveUpNext(rem, direction: .up) },
                         onMoveDown: { store.moveUpNext(rem, direction: .down) }
                     ) {

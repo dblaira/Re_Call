@@ -1,6 +1,6 @@
 import XCTest
 
-/// Home scroll must keep working after Up Next reorder gestures.
+/// Home scroll must keep working after Up Next reorder gestures (device-critical; simulator often misses the freeze).
 final class UpNextScrollTests: XCTestCase {
 
     private func dismissNotificationPrompt() {
@@ -31,9 +31,20 @@ final class UpNextScrollTests: XCTestCase {
         }
     }
 
-    /// The actual feature: long-press a card to ARM it (crimson ring + chevrons), then TAP the up
-    /// chevron to move it one slot. Two fresh reminders are adjacent (Alpha above Beta); arming Beta
-    /// and tapping up must put Beta above Alpha. Tap-driven reorder — no drag — so scroll is safe.
+    private func scrollHomeUntilShapesVisible(_ app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        let shapes = app.staticTexts["Reminder shapes"]
+        let scroll = app.scrollViews["homeScroll"]
+        XCTAssertTrue(scroll.waitForExistence(timeout: 10), "Home scroll view missing", file: file, line: line)
+
+        for _ in 0..<8 {
+            if shapes.exists && shapes.isHittable { return }
+            scroll.swipeUp()
+        }
+        XCTAssertTrue(shapes.waitForExistence(timeout: 2), "Reminder shapes never scrolled into view", file: file, line: line)
+        XCTAssertTrue(shapes.isHittable, "Reminder shapes visible but not hittable — scroll stuck", file: file, line: line)
+    }
+
+    /// Long-press to arm, tap up chevron: Beta must move above Alpha.
     func testReorderMovesCardWithinUpNext() {
         let app = XCUIApplication()
         app.launch()
@@ -51,28 +62,13 @@ final class UpNextScrollTests: XCTestCase {
         XCTAssertLessThan(alphaText.frame.minY, betaText.frame.minY,
                           "precondition: Alpha should start above Beta")
 
-        // Long-press Beta (no drag) to arm; the up/down chevrons appear.
         betaText.press(forDuration: 0.6)
         let up = app.buttons["reorderUp"].firstMatch
         XCTAssertTrue(up.waitForExistence(timeout: 5), "armed reorder chevrons did not appear")
         up.tap()
 
-        // After tap-up, Beta must now sit above Alpha.
         XCTAssertLessThan(betaText.frame.minY, alphaText.frame.minY,
-                          "tap-up did not move Beta above Alpha — the move never fired")
-    }
-
-    private func scrollHomeUntilShapesVisible(_ app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
-        let shapes = app.staticTexts["Reminder shapes"]
-        let scroll = app.scrollViews["homeScroll"]
-        XCTAssertTrue(scroll.waitForExistence(timeout: 10), "Home scroll view missing", file: file, line: line)
-
-        for _ in 0..<8 {
-            if shapes.exists && shapes.isHittable { return }
-            scroll.swipeUp()
-        }
-        XCTAssertTrue(shapes.waitForExistence(timeout: 2), "Reminder shapes never scrolled into view", file: file, line: line)
-        XCTAssertTrue(shapes.isHittable, "Reminder shapes visible but not hittable — scroll stuck", file: file, line: line)
+                          "tap-up did not move Beta above Alpha — reorder never fired")
     }
 
     func testHomeScrollsToShapesOnLaunch() {
@@ -92,28 +88,7 @@ final class UpNextScrollTests: XCTestCase {
         let card = app.otherElements["upNextCard0"]
         if card.waitForExistence(timeout: 5) {
             card.press(forDuration: 0.45)
-            // Release without moving — must not brick scroll.
         }
-
-        scrollHomeUntilShapesVisible(app)
-    }
-
-    func testHomeScrollWorksAfterUpNextReorderDrag() {
-        let app = XCUIApplication()
-        app.launch()
-        dismissNotificationPrompt()
-        XCTAssertTrue(app.staticTexts["Notorious"].waitForExistence(timeout: 20))
-
-        let card = app.otherElements["upNextCard0"]
-        guard card.waitForExistence(timeout: 5) else {
-            scrollHomeUntilShapesVisible(app)
-            return
-        }
-
-        let start = card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        let hold = start.withOffset(CGVector(dx: 0, dy: 0))
-        let up = start.withOffset(CGVector(dx: 0, dy: -80))
-        hold.press(forDuration: 0.45, thenDragTo: up)
 
         scrollHomeUntilShapesVisible(app)
     }

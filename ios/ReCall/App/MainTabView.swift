@@ -11,6 +11,7 @@ struct MainTabView: View {
     @State private var editing: Reminder?
     @State private var fabMenuOpen = false
     @State private var pendingKind: ReminderKind = .reminder
+    @State private var pendingSeed: Reminder?
     @State private var highlighted: ReminderKind?
     @State private var draggingFab = false
     @State private var menuWasOpenAtStart = false
@@ -32,15 +33,19 @@ struct MainTabView: View {
             tabBar
         }
         .preferredColorScheme(.dark)
-        .sheet(isPresented: $showingForm, onDismiss: { editing = nil }) {
-            ReminderFormView(initialKind: editing?.kind ?? pendingKind, existing: editing, existingTags: knownTags) { store.save($0) }
+        .sheet(isPresented: $showingForm, onDismiss: { editing = nil; pendingSeed = nil }) {
+            ReminderFormView(
+                initialKind: editing?.kind ?? pendingSeed?.kind ?? pendingKind,
+                existing: editing ?? pendingSeed,
+                existingTags: knownTags
+            ) { store.save($0) }
         }
     }
 
     @ViewBuilder private var content: some View {
         switch tab {
         case .reminders:
-            RemindersHomeView(onPick: { _ in startEntry(.reminder) }, onOpen: { open($0) })
+            RemindersHomeView(onPick: { pickShape($0) }, onOpen: { open($0) })
         case .calendar:
             CalendarView(onOpen: { open($0) })
         }
@@ -175,9 +180,19 @@ struct MainTabView: View {
     }
     private func startEntry(_ kind: ReminderKind) {
         pendingKind = kind
+        pendingSeed = nil
         editing = nil
         closeFabMenu()
         showingForm = true
     }
-    private func open(_ r: Reminder) { editing = r; showingForm = true }
+    private func pickShape(_ title: String) {
+        var draft = Reminder()
+        draft.kind = .reminder
+        draft.title = title
+        pendingKind = .reminder
+        pendingSeed = draft
+        editing = nil
+        showingForm = true
+    }
+    private func open(_ r: Reminder) { editing = r; pendingSeed = nil; showingForm = true }
 }

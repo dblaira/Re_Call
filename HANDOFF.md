@@ -137,17 +137,19 @@ xcrun simctl install <sim> <app> ; xcrun simctl launch <sim> app.understood.reca
 
 ## 5b. Up Next reorder + scroll (device-critical)
 
-Home scroll froze on launch when `SwipeRow` attached a touch-claiming `.gesture` drag (and a
-sequenced long-press→drag) to every card — on device that intercepts the ScrollView's vertical pan.
-**Rule: never attach a per-row drag gesture that can claim vertical pans inside the home ScrollView.**
+Home scroll froze on launch when Up Next cards used SwiftUI `DragGesture` / `LongPressGesture` on
+every row — on device that intercepts the ScrollView's vertical pan. Simulator often still scrolls.
 
-Current reorder interaction (in `ItemListView.swift` `SwipeRow`): **long-press a card to ARM it**
-(crimson ring + up/down chevrons appear), **then tap the chevrons** to move it one slot
-(`store.moveUpNext`). It's tap-driven, not drag — so it can't fight the scroll. Arming uses a
-`.highPriorityGesture(LongPressGesture)` (high-priority so the hold beats the tap-to-open, since a
-TapGesture has no max duration); a quick tap still opens the card; swipe-to-reveal stays a
-`.simultaneousGesture`. `.scrollDisabled` is NOT used anywhere. Simulator can't reproduce the device
-freeze, so device testing is the only proof.
+**Rule:** Home Up Next uses `UpNextCardRow` (`UpNextCardRow.swift`) — a UIKit pan/long-press layer
+that only claims horizontal swipes and reorder holds; vertical pans pass through to the ScrollView.
+Do **not** put SwiftUI drag/long-press reorder on feed cards inside `RemindersHomeView`.
+
+Reorder: **long-press a card** (~0.35s, crimson ring + up/down chevrons), then either **tap a chevron**
+to move one slot (stays armed for more taps) or **drag up/down while holding** to move and disarm.
+Scrolling disarms any armed card when **content offset actually changes** (iOS 18+
+`onScrollGeometryChange` with a delta threshold — arming a card must not disarm itself via
+layout churn from scale/shadow). `.scrollDisabled` is NOT used anywhere. Device testing is the
+only proof — run on Adam's iPhone via Xcode ⌘R.
 
 ## 6. Status + what's pending
 

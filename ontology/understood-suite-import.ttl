@@ -1,0 +1,29 @@
+@prefix recall: <https://understood.app/ontology/project-recall#> .
+@prefix understood: <https://understood.app/ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+#################################################################
+#  Suite graph import manifest
+#  Canonical OWL document: understood-app/ontology/understood-suite.ttl
+#  Runtime triple projection: understood-app/fixtures/ontology/suite-triples.json
+#  Personal graph IRI: https://understood.app/graph/personal
+#################################################################
+
+<https://understood.app/ontology/project-recall>
+    owl:imports <https://understood.app/ontology> .
+
+recall:SuitePersonalGraph
+    a owl:NamedGraph ;
+    rdfs:label "Understood personal suite graph"@en ;
+    rdfs:comment "Confirmed personal axioms, life-domain vocabulary, connections, and evidence links exported from Understood."@en .
+
+recall:importsSuiteAxioms
+    a owl:AnnotationProperty ;
+    rdfs:label "imports suite axioms"@en ;
+    rdfs:comment "Re_Call deterministic engine may traverse understood:Axiom individuals and understood:supportedBy evidence paths from this graph."@en .
+
+recall:SuiteGraphBinding
+    a recall:ProductRequirement ;
+    recall:requirementStatement "Re_Call must treat https://understood.app/graph/personal as the personal meaning graph and refuse to invent axioms outside exported triple paths." ;
+    recall:acceptanceCriterion "Given a recommendation request, when graphTrace is emitted, then at least one trace path references either recall:ReminderRecommendationRule or understood:Axiom individuals." .

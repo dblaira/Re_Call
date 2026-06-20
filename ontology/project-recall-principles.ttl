@@ -8,7 +8,8 @@
     a owl:Ontology ;
     rdfs:label "Re_Call Ontology" ;
     rdfs:comment "A seed ontology for Re_Call product requirements, personalization rules, and format-matching principles." ;
-    owl:versionInfo "0.1.0" .
+    owl:versionInfo "0.1.0" ;
+    owl:imports <https://understood.app/ontology> .
 
 recall:ProductRequirement
     a owl:Class ;

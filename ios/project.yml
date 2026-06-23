@@ -19,6 +19,8 @@ targets:
     sources:
       - path: ReCall/App
       - path: ReCall/Resources
+    entitlements:
+      path: ReCall/ReCall.entitlements
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.understood.recall

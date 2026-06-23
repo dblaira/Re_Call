@@ -29,6 +29,7 @@ private struct ReminderRow: Decodable {
     var when_messaging_person: String
     var kind: String
     var end_time: String?
+    var when_i_am: String
     var outcome: String
     var effort: String
     var energy: String
@@ -64,6 +65,7 @@ private struct ReminderUpsert: Encodable {
     var when_messaging_person: String
     var kind: String
     var end_time: String?
+    var when_i_am: String
     var outcome: String
     var effort: String
     var energy: String
@@ -107,7 +109,9 @@ final class SupabaseReminderRepository: ReminderRepository {
     func ensureReady() async -> Bool { await service.ensureSession() }
 
     func fetchAll() async throws -> [Reminder] {
-        guard let rReq = await service.request("GET", "reminders", query: "status=neq.deleted&order=created_at.desc") else { return [] }
+        guard let rReq = await service.request("GET", "reminders", query: "status=neq.deleted&order=created_at.desc") else {
+            throw NSError(domain: "Supabase", code: -1, userInfo: [NSLocalizedDescriptionKey: "not signed in"])
+        }
         let rows = try decoder.decode([ReminderRow].self, from: try await service.send(rReq))
 
         var tagMap: [String: [String]] = [:]
@@ -205,6 +209,7 @@ final class SupabaseReminderRepository: ReminderRepository {
             when_messaging_person: r.whenMessagingPerson,
             kind: r.kind.rawValue,
             end_time: r.endTime.map { PG.time.string(from: $0) },
+            when_i_am: r.whenIAm,
             outcome: r.outcome,
             effort: r.effort.rawValue,
             energy: r.energy.rawValue,
@@ -238,6 +243,7 @@ final class SupabaseReminderRepository: ReminderRepository {
         r.whenMessagingPerson = row.when_messaging_person
         r.kind = ReminderKind(rawValue: row.kind) ?? .reminder
         r.endTime = row.end_time.flatMap { PG.time.date(from: $0) }
+        r.whenIAm = row.when_i_am
         r.outcome = row.outcome
         r.effort = Effort(rawValue: row.effort) ?? .none
         r.energy = Energy(rawValue: row.energy) ?? .none

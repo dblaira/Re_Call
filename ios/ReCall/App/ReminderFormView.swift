@@ -160,10 +160,11 @@ struct ReminderFormView: View {
 
     @ViewBuilder private var actionSections: some View {
         Section {
-            TextField("What will you do?", text: $r.title)
-            TextField("Outcome — what does done look like?", text: $r.outcome, axis: .vertical).lineLimit(1...3)
+            TextField("What do I want?", text: $r.title)
+            TextField("When I am...I like to", text: $r.whenIAm, axis: .vertical).lineLimit(1...3)
+            TextField("Done looks like...", text: $r.outcome, axis: .vertical).lineLimit(1...3)
             subtasksEditor("Steps", addLabel: "Add Step")
-        } header: { sectionHeader("Do") }
+        } header: { sectionHeader("Delegate") }
         .listRowBackground(Brand.card)
 
         patternSection
@@ -443,7 +444,7 @@ struct ReminderFormView: View {
 
     private var hasContent: Bool {
         if !r.title.trimmingCharacters(in: .whitespaces).isEmpty { return true }
-        if !r.notes.isEmpty || !r.outcome.isEmpty || !r.url.isEmpty { return true }
+        if !r.notes.isEmpty || !r.outcome.isEmpty || !r.whenIAm.isEmpty || !r.url.isEmpty { return true }
         if !r.locationName.isEmpty || !r.waitingOn.isEmpty { return true }
         if !r.tags.isEmpty { return true }
         if r.subtasks.contains(where: { !$0.title.trimmingCharacters(in: .whitespaces).isEmpty }) { return true }

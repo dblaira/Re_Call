@@ -1,22 +1,15 @@
 import Foundation
 import SwiftUI
 
-/// Local-first source of truth: every change writes to the on-device cache immediately (so a
-/// reminder is never lost), then syncs to Supabase. Unsynced rows are retried on launch.
+/// Local-first source of truth for every item type (Reminder, Action, Event). Writes to the phone
+/// immediately, then copies the same file to iCloud Documents — no Supabase, no login screen.
 @MainActor
 final class ReminderStore: ObservableObject {
     @Published private(set) var reminders: [Reminder] = []
-    @Published var lastSyncFailed = false
 
-    private let repo: ReminderRepository
-    private let cacheURL: URL
-
-    init(repo: ReminderRepository = SupabaseReminderRepository()) {
-        self.repo = repo
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        cacheURL = dir.appendingPathComponent("reminders.json")
-        loadCache()
+    init() {
+        reminders = ICloudReminderCache.load()
+        reminders.forEach(NotificationScheduler.schedule)
     }
 
     var active: [Reminder] {
@@ -44,31 +37,21 @@ final class ReminderStore: ObservableObject {
     }
     private func sortKey(_ r: Reminder) -> Date { r.fireDate ?? r.createdAt }
 
-    func bootstrap() async {
-        guard await repo.ensureReady() else { return }
-        await pushPending()
-        await refresh()
-    }
+    /// Pull the latest copy from disk + iCloud (e.g. after another device edits or app returns active).
+    func bootstrap() async { await refresh() }
 
     func refresh() async {
-        do {
-            let remote = try await repo.fetchAll()
-            let merged = mergeRemote(remote, withLocal: reminders)
-            reminders = merged
-            saveCache()
-            reminders.forEach(NotificationScheduler.schedule)
-        } catch {
-            // Stay on the local cache; no intrusive error.
-        }
+        let loaded = ICloudReminderCache.load()
+        guard loaded != reminders else { return }
+        reminders = loaded
+        reminders.forEach(NotificationScheduler.schedule)
     }
 
     func save(_ reminder: Reminder) {
         var r = reminder
         r.updatedAt = Date()
-        r.needsSync = true
         upsertLocal(r)
         NotificationScheduler.schedule(r)
-        Task { await sync(r) }
     }
 
     func complete(_ reminder: Reminder) {
@@ -135,7 +118,6 @@ final class ReminderStore: ObservableObject {
             var r = reminders[idx]
             r.upNextOrder = i
             r.updatedAt = Date()
-            r.needsSync = true
             reminders[idx] = r
             touched.append(r)
         }
@@ -143,40 +125,13 @@ final class ReminderStore: ObservableObject {
         saveCache()
         for r in touched {
             NotificationScheduler.schedule(r)
-            Task { await sync(r) }
         }
     }
 
     func delete(_ reminder: Reminder) {
-        var r = reminder
-        r.status = .deleted
-        r.updatedAt = Date()
-        r.needsSync = true
-        upsertLocal(r)
+        reminders.removeAll { $0.id == reminder.id }
         NotificationScheduler.cancel(reminder)
-        Task { await sync(r) }
-    }
-
-    // MARK: - sync
-
-    private func sync(_ r: Reminder) async {
-        guard await repo.ensureReady() else { lastSyncFailed = true; return }
-        do {
-            if r.status == .deleted {
-                try await repo.delete(id: r.id)
-                removeSyncedDelete(r.id, updatedAt: r.updatedAt)
-            } else {
-                try await repo.upsert(r)
-                markSynced(r.id, updatedAt: r.updatedAt)
-            }
-            lastSyncFailed = false
-        } catch {
-            lastSyncFailed = true
-        }
-    }
-
-    private func pushPending() async {
-        for r in reminders where r.needsSync { await sync(r) }
+        saveCache()
     }
 
     private func upsertLocal(_ r: Reminder) {
@@ -185,61 +140,7 @@ final class ReminderStore: ObservableObject {
         saveCache()
     }
 
-    private func markSynced(_ id: UUID, updatedAt: Date) {
-        if let idx = reminders.firstIndex(where: { $0.id == id }) {
-            guard reminders[idx].updatedAt == updatedAt else { return }
-            reminders[idx].needsSync = false
-            saveCache()
-        }
-    }
-
-    private func removeSyncedDelete(_ id: UUID, updatedAt: Date) {
-        guard let idx = reminders.firstIndex(where: { $0.id == id }),
-              reminders[idx].updatedAt == updatedAt,
-              reminders[idx].status == .deleted else { return }
-        reminders.remove(at: idx)
-        saveCache()
-    }
-
-    private func mergeRemote(_ remote: [Reminder], withLocal local: [Reminder]) -> [Reminder] {
-        var merged = remote.map { incoming -> Reminder in
-            guard let localCopy = local.first(where: { $0.id == incoming.id }) else { return incoming }
-            var r = incoming
-            if r.imageLocalPath == nil { r.imageLocalPath = localCopy.imageLocalPath }
-            // These fields aren't synced to Supabase yet, so carry the local values forward.
-            r.kind = localCopy.kind
-            r.endTime = localCopy.endTime
-            r.outcome = localCopy.outcome
-            r.effort = localCopy.effort
-            r.energy = localCopy.energy
-            r.context = localCopy.context
-            r.deferDate = localCopy.deferDate
-            r.waitingOn = localCopy.waitingOn
-            r.pinned = localCopy.pinned
-            r.upNextOrder = localCopy.upNextOrder
-            return r
-        }
-
-        // Keep local rows that haven't synced yet; they win over the remote copy.
-        for u in local where u.needsSync {
-            if let idx = merged.firstIndex(where: { $0.id == u.id }) { merged[idx] = u }
-            else { merged.append(u) }
-        }
-
-        return merged
-    }
-
-    // MARK: - cache
-
-    private func loadCache() {
-        guard let data = try? Data(contentsOf: cacheURL),
-              let decoded = try? JSONDecoder.recall.decode([Reminder].self, from: data) else { return }
-        reminders = decoded
-    }
-
     private func saveCache() {
-        if let data = try? JSONEncoder.recall.encode(reminders) {
-            try? data.write(to: cacheURL, options: .atomic)
-        }
+        ICloudReminderCache.save(reminders)
     }
 }

@@ -69,9 +69,9 @@ struct MainTabView: View {
         .overlay(alignment: .top) {
             ZStack {
                 if fabMenuOpen {
-                    fabOption(.reminder, icon: "clock").offset(x: -96, y: -40)
+                    fabOption(.reminder, icon: "clock").offset(x: -76, y: -40)
                     fabOption(.action, icon: "bolt.fill").offset(x: 0, y: -116)
-                    fabOption(.event, icon: "calendar").offset(x: 96, y: -40)
+                    fabOption(.event, icon: "calendar").offset(x: 76, y: -40)
                 }
                 fab.offset(y: -22)
             }
@@ -150,7 +150,7 @@ struct MainTabView: View {
                     .background(active ? Brand.crimson : Brand.nearBlack, in: Circle())
                     .overlay(Circle().stroke(Color.white.opacity(active ? 0.9 : 0.15), lineWidth: 1.5))
                     .scaleEffect(active ? 1.15 : 1)
-                Text(kind.label).font(.system(size: 12, weight: .heavy)).foregroundStyle(.white)
+                Text(kind.label).font(.system(size: 12, weight: .heavy)).foregroundStyle(Brand.crimson)
             }
             .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
         }

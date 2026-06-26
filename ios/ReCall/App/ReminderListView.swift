@@ -28,8 +28,13 @@ struct ReminderListView: View {
             }
         }
         .sheet(isPresented: $showingForm, onDismiss: { editing = nil }) {
-            ReminderFormView(existing: editing) { store.save($0) }
+            ReminderFormView(existing: editing, existingTags: knownTags) { store.save($0) }
         }
+    }
+
+    private var knownTags: [String] {
+        let counts = Dictionary(store.reminders.flatMap { $0.tags }.map { ($0, 1) }, uniquingKeysWith: +)
+        return counts.sorted { $0.value != $1.value ? $0.value > $1.value : $0.key < $1.key }.map(\.key)
     }
 
     @ViewBuilder private var content: some View {

@@ -28,7 +28,7 @@ struct ReminderListView: View {
             }
         }
         .sheet(isPresented: $showingForm, onDismiss: { editing = nil }) {
-            ReminderFormView(existing: editing, existingTags: knownTags) { store.save($0) }
+            ReminderFormView(initialKind: editing?.kind ?? .reminder, existing: editing, existingTags: knownTags) { store.save($0) }
         }
     }
 

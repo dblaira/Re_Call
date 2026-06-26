@@ -49,3 +49,11 @@ DEVELOPMENT_TEAM = 7FKUS5M5QS
 ```
 
 That team is documented in this repo as Adam's Personal Team. Personal Team builds are useful for local/device development, but TestFlight requires the app to be under an Apple Developer Program/App Store Connect team.
+
+Once the app is moved to an App Store Connect-capable team, run:
+
+```sh
+./scripts/agent-archive-for-testflight.sh
+```
+
+The archive script calls `agent-testflight-readiness.sh` first, generates `ios/ExportOptions-TestFlight.plist` from the current project team, then runs `xcodebuild archive` and `xcodebuild -exportArchive`.

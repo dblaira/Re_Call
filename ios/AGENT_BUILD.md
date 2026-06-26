@@ -40,7 +40,13 @@ Run:
 ./scripts/agent-testflight-readiness.sh
 ```
 
-This checks the shared scheme, bundle id, signing team, and whether App Store Connect API environment variables are present for CLI upload/status work.
+This calls:
+
+```sh
+./scripts/agent-signing-report.sh
+```
+
+The signing report prints the shared scheme, bundle id, signing team, signing style, App Store Connect API environment status, and the exact Apple-side action needed before TestFlight.
 
 Current known boundary:
 

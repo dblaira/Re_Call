@@ -11,6 +11,11 @@ BUNDLE_ID="$(awk -F'= ' '/PRODUCT_BUNDLE_IDENTIFIER =/ && $0 !~ /uitests/ { gsub
 echo "TestFlight readiness: Re_Call"
 echo "Team: ${TEAM_ID:-missing}"
 echo "Bundle id: ${BUNDLE_ID:-missing}"
+echo
+"$ROOT_DIR/scripts/agent-signing-report.sh" || rc=$?
+if [ "${rc:-0}" -ne 0 ]; then
+  exit "$rc"
+fi
 
 if [ ! -f "$SCHEME_FILE" ]; then
   echo "FAIL: ReCall scheme is not shared."

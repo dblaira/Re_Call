@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// App scaffold: a tan tab bar (Reminders ↔ Calendar) with a centered, raised crimson FAB. The FAB
+/// App scaffold: a tan tab bar (Reminders ↔ Actions ↔ Calendar) with a centered, raised crimson FAB. The FAB
 /// is a lightning bolt; press it to "charge" (haptic) and the three entry types fan out — Reminder
 /// (left), Action (up), Event (right). Drag onto one and release to pick, or tap one.
 struct MainTabView: View {
@@ -19,7 +19,7 @@ struct MainTabView: View {
     private let impactGen = UIImpactFeedbackGenerator(style: .heavy)
     private let selectionGen = UISelectionFeedbackGenerator()
 
-    enum Tab: CaseIterable { case reminders, calendar }
+    enum Tab: CaseIterable { case reminders, actions, calendar }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -46,6 +46,8 @@ struct MainTabView: View {
         switch tab {
         case .reminders:
             RemindersHomeView(onPick: { pickShape($0) }, onOpen: { open($0) })
+        case .actions:
+            ActionsHomeView(onOpen: { open($0) })
         case .calendar:
             CalendarView(onOpen: { open($0) })
         }
@@ -56,6 +58,7 @@ struct MainTabView: View {
     private var tabBar: some View {
         HStack(spacing: 0) {
             tabButton(.reminders, icon: "clock", label: "Reminders").frame(maxWidth: .infinity)
+            tabButton(.actions, icon: "bolt", label: "Actions").frame(maxWidth: .infinity)
             Color.clear.frame(width: 76, height: 1)         // gap for the centered FAB
             tabButton(.calendar, icon: "calendar", label: "Calendar").frame(maxWidth: .infinity)
         }

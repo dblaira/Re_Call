@@ -27,6 +27,7 @@
 		B64BB1CBF9389567CA3C2F49 /* ReminderFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 806A9FA6D6F37A46C8EAB527 /* ReminderFormView.swift */; };
 		BD3B9E9889326AD887C9759F /* UpNextScrollTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4545EA070657E131A806F1E8 /* UpNextScrollTests.swift */; };
 		DA8547B1B0922F41A8C55FD5 /* ReminderRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E3766D436B6955155E177E /* ReminderRepository.swift */; };
+		DDD8F19783066FB9DDAE444D /* ActionsHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C34013F1610273B3C6A0EB9 /* ActionsHomeView.swift */; };
 		EBA6D7111CC8C0556CE4AD1D /* ReminderGenerationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */; };
 		ECE8863350AD504CF43308C3 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 931E5F894F39FD8F30990C78 /* Models.swift */; };
 		FE2E3847BF84533438A42369 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52753B915A441BE6403234BC /* MainTabView.swift */; };
@@ -43,6 +44,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0C34013F1610273B3C6A0EB9 /* ActionsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionsHomeView.swift; sourceTree = "<group>"; };
 		1204A47B34D6B6201D2B3472 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1227A5BF6167BDE5AF79D61E /* LocalImageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalImageStore.swift; sourceTree = "<group>"; };
 		3379E1EBD3E2B8311EB905DE /* LocationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationProvider.swift; sourceTree = "<group>"; };
@@ -118,6 +120,7 @@
 		E0A2A9715DDAA6CEE5DD6AB5 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				0C34013F1610273B3C6A0EB9 /* ActionsHomeView.swift */,
 				3F52EB2DF290C8A44E2E39BA /* CalendarView.swift */,
 				D85E54626A8DE911BCEC1324 /* ContentView.swift */,
 				979BF6FDA9FEC2603F567F49 /* ICloudReminderCache.swift */,
@@ -237,6 +240,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DDD8F19783066FB9DDAE444D /* ActionsHomeView.swift in Sources */,
 				74768025440D6C87D0DAE327 /* CalendarView.swift in Sources */,
 				8A6E477479BD7E2877F5B81F /* ContentView.swift in Sources */,
 				927798DE47266B339B009DAC /* ICloudReminderCache.swift in Sources */,

@@ -21,6 +21,13 @@ targets:
       - path: ReCall/Resources
     entitlements:
       path: ReCall/ReCall.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.app.understood.recall
+        com.apple.developer.icloud-services:
+          - CloudDocuments
+        com.apple.developer.ubiquity-container-identifiers:
+          - iCloud.app.understood.recall
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.understood.recall

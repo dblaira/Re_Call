@@ -106,25 +106,62 @@ struct CalendarView: View {
         let isToday = cal.isDateInToday(day)
         let isSelected = cal.isDate(day, inSameDayAs: selected)
         let events = reminders(on: day)
+        let weight = dayWeight(events)
+        let markSize = dayMarkSize(weight)
         return Button {
             selected = day
             if !inMonth { month = day }
         } label: {
-            VStack(spacing: 3) {
+            VStack(spacing: 2) {
                 Text("\(cal.component(.day, from: day))")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(isToday ? .white : (inMonth ? .black : .black.opacity(0.3)))
-                    .frame(width: 30, height: 30)
-                    .background {
-                        if isToday { Circle().fill(Brand.crimson) }
-                        else if isSelected { Circle().fill(Brand.crimson.opacity(0.12)) }
-                    }
-                Circle().fill(dotColor(events)).frame(width: 5, height: 5).opacity(events.isEmpty ? 0 : 1)
+                    .font(.system(size: dayFontSize(weight), weight: .heavy))
+                    .foregroundStyle(dayTextColor(inMonth: inMonth, isToday: isToday, weight: weight))
+                    .frame(width: markSize, height: markSize)
+                    .background { dayBackground(isToday: isToday, isSelected: isSelected, weight: weight) }
+                    .overlay { dayBorder(isToday: isToday, isSelected: isSelected, weight: weight) }
+                daySignal(events, weight: weight)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 42)
+            .frame(height: 54)
         }
         .buttonStyle(.plain)
+    }
+
+    @ViewBuilder private func daySignal(_ events: [Reminder], weight: Int) -> some View {
+        if events.isEmpty {
+            Circle().fill(Color.clear).frame(width: 5, height: 5)
+        } else if events.count == 1 {
+            Circle()
+                .fill(dotColor(events))
+                .frame(width: weight >= 3 ? 7 : 5, height: weight >= 3 ? 7 : 5)
+        } else {
+            Text("\(events.count)")
+                .font(.system(size: 9, weight: .heavy))
+                .foregroundStyle(weight >= 3 ? Brand.crimson : .black.opacity(0.55))
+                .frame(height: 9)
+        }
+    }
+
+    @ViewBuilder private func dayBackground(isToday: Bool, isSelected: Bool, weight: Int) -> some View {
+        if isToday {
+            Circle().fill(Brand.crimson)
+        } else if weight >= 3 {
+            Circle().fill(Brand.crimson.opacity(0.18))
+        } else if weight == 2 {
+            Circle().fill(Brand.tan)
+        } else if weight == 1 {
+            Circle().fill(Color.black.opacity(0.06))
+        } else if isSelected {
+            Circle().fill(Brand.crimson.opacity(0.10))
+        }
+    }
+
+    @ViewBuilder private func dayBorder(isToday: Bool, isSelected: Bool, weight: Int) -> some View {
+        if isSelected && !isToday {
+            Circle().stroke(Brand.crimson, lineWidth: 1.5)
+        } else if weight >= 2 && !isToday {
+            Circle().stroke(Brand.crimson.opacity(weight >= 3 ? 0.55 : 0.25), lineWidth: 1)
+        }
     }
 
     // MARK: Day header + all-day
@@ -230,6 +267,40 @@ struct CalendarView: View {
 
     private func dotColor(_ events: [Reminder]) -> Color {
         events.contains { $0.urgent || $0.flag || $0.priority == .high } ? Brand.crimson : .black
+    }
+
+    private func dayWeight(_ events: [Reminder]) -> Int {
+        events.map(eventWeight).max() ?? 0
+    }
+
+    private func eventWeight(_ r: Reminder) -> Int {
+        if r.urgent || r.flag || r.priority == .high { return 3 }
+        if r.priority == .medium || r.pinned { return 2 }
+        if r.priority == .low || r.kind == .event { return 1 }
+        return 0
+    }
+
+    private func dayMarkSize(_ weight: Int) -> CGFloat {
+        switch weight {
+        case 3...: return 42
+        case 2: return 38
+        case 1: return 34
+        default: return 30
+        }
+    }
+
+    private func dayFontSize(_ weight: Int) -> CGFloat {
+        switch weight {
+        case 3...: return 20
+        case 2: return 19
+        default: return 18
+        }
+    }
+
+    private func dayTextColor(inMonth: Bool, isToday: Bool, weight: Int) -> Color {
+        if isToday { return .white }
+        if !inMonth { return .black.opacity(0.28) }
+        return weight >= 3 ? Brand.crimson : .black
     }
 
     private func subtitle(_ r: Reminder) -> String? {

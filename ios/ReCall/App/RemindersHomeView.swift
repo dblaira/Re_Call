@@ -29,6 +29,7 @@ struct RemindersHomeView: View {
         Group {
             if #available(iOS 18.0, *) {
                 scrollBody.onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y } action: { oldY, newY in
+                    guard armedReorderId == nil else { return }
                     // Only disarm when the user actually scrolls — not on layout churn from arming
                     // (scale/shadow on the card also fires geometry callbacks).
                     guard abs(newY - oldY) > 0.5 else { return }

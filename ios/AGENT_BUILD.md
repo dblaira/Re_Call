@@ -63,3 +63,19 @@ Once the app is moved to an App Store Connect-capable team, run:
 ```
 
 The archive script calls `agent-testflight-readiness.sh` first, generates `ios/ExportOptions-TestFlight.plist` from the current project team, then runs `xcodebuild archive` and `xcodebuild -exportArchive`.
+
+To submit the exported IPA to App Store Connect/TestFlight, set:
+
+```sh
+export APP_STORE_CONNECT_API_KEY_ID="..."
+export APP_STORE_CONNECT_API_ISSUER_ID="..."
+export APP_STORE_CONNECT_API_KEY_PATH="/path/to/AuthKey_....p8"
+```
+
+Then run:
+
+```sh
+./scripts/agent-upload-to-testflight.sh
+```
+
+The upload script runs the readiness gate first, creates the IPA if needed, validates it with `xcrun altool`, and uploads it to App Store Connect. Set `APP_STORE_CONNECT_WAIT=1` to wait for Apple processing status before the command returns.

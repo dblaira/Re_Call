@@ -17,7 +17,7 @@ open ios/ReCall.xcodeproj
 2. In the toolbar, select Adam's iPhone or another iOS device.
 3. Press **Run** (⌘R).
 
-- Bundle id: `app.understood.recall`
+- Bundle id: `sh.notorious.app`
 - Display name: **Notorious Recall**
 - Deployment target: iOS 17.0+
 
@@ -41,7 +41,7 @@ and are baked into `ReCall.xcodeproj` on every `xcodegen generate`:
 - `CODE_SIGN_STYLE = Automatic`
 - `DEVELOPMENT_TEAM = 7FKUS5M5QS` (Adam Blair — App Store Connect team)
 - `CODE_SIGN_IDENTITY = "Apple Development"`
-- `PRODUCT_BUNDLE_IDENTIFIER = app.understood.recall`
+- `PRODUCT_BUNDLE_IDENTIFIER = sh.notorious.app`
 
 > **Note on the team ID:** App Store Connect lists `7FKUS5M5QS` as Adam Blair's team,
 > with Account Holder/Admin roles. Treat this as the TestFlight-capable team for this repo.

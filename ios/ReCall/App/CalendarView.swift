@@ -106,7 +106,8 @@ struct CalendarView: View {
         let isToday = cal.isDateInToday(day)
         let isSelected = cal.isDate(day, inSameDayAs: selected)
         let events = reminders(on: day)
-        let weight = dayWeight(events)
+        let importance = dayImportance(events)
+        let weight = dayWeight(importance)
         let markSize = dayMarkSize(weight)
         return Button {
             selected = day
@@ -119,25 +120,35 @@ struct CalendarView: View {
                     .frame(width: markSize, height: markSize)
                     .background { dayBackground(isToday: isToday, isSelected: isSelected, weight: weight) }
                     .overlay { dayBorder(isToday: isToday, isSelected: isSelected, weight: weight) }
-                daySignal(events, weight: weight)
+                daySignal(events, importance: importance, weight: weight)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 54)
+            .frame(height: 62)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(dayAccessibilityLabel(day: day, events: events, importance: importance))
     }
 
-    @ViewBuilder private func daySignal(_ events: [Reminder], weight: Int) -> some View {
+    @ViewBuilder private func daySignal(_ events: [Reminder], importance: Int, weight: Int) -> some View {
         if events.isEmpty {
             Circle().fill(Color.clear).frame(width: 5, height: 5)
+        } else if weight >= 3 {
+            HStack(spacing: 2) {
+                ForEach(0..<min(weight, 4), id: \.self) { _ in
+                    Capsule()
+                        .fill(Brand.crimson)
+                        .frame(width: 7, height: 3)
+                }
+            }
+            .frame(height: 9)
         } else if events.count == 1 {
             Circle()
                 .fill(dotColor(events))
-                .frame(width: weight >= 3 ? 7 : 5, height: weight >= 3 ? 7 : 5)
+                .frame(width: weight >= 2 ? 7 : 5, height: weight >= 2 ? 7 : 5)
         } else {
             Text("\(events.count)")
                 .font(.system(size: 9, weight: .heavy))
-                .foregroundStyle(weight >= 3 ? Brand.crimson : .black.opacity(0.55))
+                .foregroundStyle(importance >= 3 ? Brand.crimson : .black.opacity(0.55))
                 .frame(height: 9)
         }
     }
@@ -145,7 +156,9 @@ struct CalendarView: View {
     @ViewBuilder private func dayBackground(isToday: Bool, isSelected: Bool, weight: Int) -> some View {
         if isToday {
             Circle().fill(Brand.crimson)
-        } else if weight >= 3 {
+        } else if weight >= 4 {
+            Circle().fill(Brand.crimson.opacity(0.28))
+        } else if weight == 3 {
             Circle().fill(Brand.crimson.opacity(0.18))
         } else if weight == 2 {
             Circle().fill(Brand.tan)
@@ -158,9 +171,9 @@ struct CalendarView: View {
 
     @ViewBuilder private func dayBorder(isToday: Bool, isSelected: Bool, weight: Int) -> some View {
         if isSelected && !isToday {
-            Circle().stroke(Brand.crimson, lineWidth: 1.5)
+            Circle().stroke(Brand.crimson, lineWidth: weight >= 3 ? 2 : 1.5)
         } else if weight >= 2 && !isToday {
-            Circle().stroke(Brand.crimson.opacity(weight >= 3 ? 0.55 : 0.25), lineWidth: 1)
+            Circle().stroke(Brand.crimson.opacity(weight >= 3 ? 0.55 : 0.25), lineWidth: weight >= 4 ? 1.5 : 1)
         }
     }
 
@@ -269,29 +282,50 @@ struct CalendarView: View {
         events.contains { $0.urgent || $0.flag || $0.priority == .high } ? Brand.crimson : .black
     }
 
-    private func dayWeight(_ events: [Reminder]) -> Int {
-        events.map(eventWeight).max() ?? 0
+    private func dayImportance(_ events: [Reminder]) -> Int {
+        events.reduce(0) { $0 + eventWeight($1) }
+    }
+
+    private func dayWeight(_ importance: Int) -> Int {
+        switch importance {
+        case 9...: return 4
+        case 5...8: return 3
+        case 3...4: return 2
+        case 1...2: return 1
+        default: return 0
+        }
     }
 
     private func eventWeight(_ r: Reminder) -> Int {
-        if r.urgent || r.flag || r.priority == .high { return 3 }
-        if r.priority == .medium || r.pinned { return 2 }
-        if r.priority == .low || r.kind == .event { return 1 }
-        return 0
+        var score = 1
+        if r.kind == .action { score += 1 }
+        if r.kind == .event { score += 1 }
+        if r.pinned { score += 2 }
+        if r.flag { score += 2 }
+        if r.urgent { score += 3 }
+        switch r.priority {
+        case .high: score += 4
+        case .medium: score += 2
+        case .low: score += 1
+        case .none: break
+        }
+        return score
     }
 
     private func dayMarkSize(_ weight: Int) -> CGFloat {
         switch weight {
-        case 3...: return 42
+        case 4...: return 50
+        case 3: return 44
         case 2: return 38
-        case 1: return 34
-        default: return 30
+        case 1: return 32
+        default: return 28
         }
     }
 
     private func dayFontSize(_ weight: Int) -> CGFloat {
         switch weight {
-        case 3...: return 20
+        case 4...: return 22
+        case 3: return 21
         case 2: return 19
         default: return 18
         }
@@ -301,6 +335,12 @@ struct CalendarView: View {
         if isToday { return .white }
         if !inMonth { return .black.opacity(0.28) }
         return weight >= 3 ? Brand.crimson : .black
+    }
+
+    private func dayAccessibilityLabel(day: Date, events: [Reminder], importance: Int) -> String {
+        let date = day.formatted(.dateTime.weekday(.wide).month(.wide).day())
+        guard !events.isEmpty else { return "\(date), no scheduled items" }
+        return "\(date), \(events.count) scheduled items, importance \(importance)"
     }
 
     private func subtitle(_ r: Reminder) -> String? {

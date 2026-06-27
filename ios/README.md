@@ -39,25 +39,18 @@ Signing is **Automatic** (Xcode-managed provisioning). The settings live in `pro
 and are baked into `ReCall.xcodeproj` on every `xcodegen generate`:
 
 - `CODE_SIGN_STYLE = Automatic`
-- `DEVELOPMENT_TEAM = 7FKUS5M5QS` (Adam Blair — **Personal Team**, Apple ID `adamblair1@mac.com`)
+- `DEVELOPMENT_TEAM = 7FKUS5M5QS` (Adam Blair — App Store Connect team)
 - `CODE_SIGN_IDENTITY = "Apple Development"`
 - `PRODUCT_BUNDLE_IDENTIFIER = app.understood.recall`
 
-> **Note on the team ID:** an earlier config used `YQT2TQ53UN`, which came from a stale
-> certificate whose team is **not** signed into Xcode. The team that is actually signed in is
-> the free Personal Team `7FKUS5M5QS`, so that's what the project uses.
+> **Note on the team ID:** App Store Connect lists `7FKUS5M5QS` as Adam Blair's team,
+> with Account Holder/Admin roles. Treat this as the TestFlight-capable team for this repo.
 
 ### One-time Xcode setup (GUI)
 
 Automatic signing needs the Apple ID present in Xcode (**Settings ▸ Accounts**) so it can
-create the provisioning profile. The Apple ID `adamblair1@mac.com` is already signed in, so
-`xcodebuild ... -allowProvisioningUpdates` creates the personal-team development cert +
-profile non-interactively. If you ever sign in on a fresh machine, add the Apple ID under
+create the provisioning profile. If you ever sign in on a fresh machine, add the Apple ID under
 **Xcode ▸ Settings ▸ Accounts ▸ +** first.
-
-> **Free / personal team caveat:** `7FKUS5M5QS` is a free (personal) team, not a paid Apple
-> Developer Program team. Apps signed with it expire after **7 days** and must be re-installed
-> from Xcode. A paid membership removes this limit.
 
 ### Build for a device from the command line
 

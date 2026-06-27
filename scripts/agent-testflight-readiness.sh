@@ -27,13 +27,6 @@ if [ -z "${TEAM_ID:-}" ] || [ -z "${BUNDLE_ID:-}" ]; then
   exit 1
 fi
 
-if [ "$TEAM_ID" = "7FKUS5M5QS" ]; then
-  echo "BLOCKED: project is signed with Adam's Personal Team."
-  echo "Local builds can pass, but TestFlight requires an Apple Developer Program/App Store Connect team."
-  echo "Move this bundle id to the paid team in Xcode/App Store Connect before expecting TestFlight delivery."
-  exit 2
-fi
-
 missing_auth=0
 for var in APP_STORE_CONNECT_API_KEY_ID APP_STORE_CONNECT_API_ISSUER_ID APP_STORE_CONNECT_API_KEY_PATH; do
   if [ -z "${!var:-}" ]; then

@@ -54,9 +54,9 @@ Current known boundary:
 DEVELOPMENT_TEAM = 7FKUS5M5QS
 ```
 
-That team is documented in this repo as Adam's Personal Team. Personal Team builds are useful for local/device development, but TestFlight requires the app to be under an Apple Developer Program/App Store Connect team.
+That team is Adam Blair's App Store Connect team. The remaining TestFlight gate is App Store Connect API credentials for CLI archive/upload/status checks.
 
-Once the app is moved to an App Store Connect-capable team, run:
+Once App Store Connect API credentials are exported, run:
 
 ```sh
 ./scripts/agent-archive-for-testflight.sh

@@ -42,19 +42,6 @@ if [ -z "${TEAM_ID:-}" ] || [ -z "${BUNDLE_ID:-}" ]; then
   exit 1
 fi
 
-if [ "$TEAM_ID" = "7FKUS5M5QS" ]; then
-  echo "Status: WAITING ON APPLE-SIDE SIGNING"
-  echo "Reason: this is Adam's Personal Team. TestFlight requires an Apple Developer Program/App Store Connect team."
-  echo
-  echo "Next Apple-side action:"
-  echo "1. Open the project in Xcode."
-  echo "2. Select the ReCall app target."
-  echo "3. Set Signing & Capabilities > Team to the App Store Connect-capable team."
-  echo "4. Confirm the bundle id exists in App Store Connect: ${BUNDLE_ID}."
-  echo "5. Re-run ./scripts/agent-testflight-readiness.sh."
-  exit 2
-fi
-
 missing_auth=0
 for var in APP_STORE_CONNECT_API_KEY_ID APP_STORE_CONNECT_API_ISSUER_ID APP_STORE_CONNECT_API_KEY_PATH; do
   if [ -z "${!var:-}" ]; then

@@ -34,6 +34,23 @@ final class SmokeTests: XCTestCase {
         XCTAssertTrue(app.buttons["chargeFab"].waitForExistence(timeout: 10), "Charge FAB missing")
     }
 
+    func testProTabOpensProfessionalTemplates() {
+        let app = XCUIApplication()
+        app.launch()
+        dismissNotificationPrompt()
+
+        let proTab = app.buttons["PRO"]
+        XCTAssertTrue(proTab.waitForExistence(timeout: 10), "PRO tab missing")
+        proTab.tap()
+
+        XCTAssertTrue(app.staticTexts["Professional Templates"].waitForExistence(timeout: 10),
+                      "Professional Templates page title missing")
+        XCTAssertTrue(app.otherElements["professionalTemplateGrid"].waitForExistence(timeout: 10),
+                      "Professional template grid missing")
+        XCTAssertTrue(app.staticTexts["Reply with leverage"].waitForExistence(timeout: 10),
+                      "Expected professional template card missing")
+    }
+
     func testFABOpensEntryForm() {
         let app = XCUIApplication()
         app.launch()

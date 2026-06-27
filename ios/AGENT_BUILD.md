@@ -62,6 +62,21 @@ Once App Store Connect API credentials are exported, run:
 ./scripts/agent-archive-for-testflight.sh
 ```
 
+The scripts also auto-load credentials from either:
+
+```text
+~/.config/understood-suite/app-store-connect.env
+./.env.appstoreconnect
+```
+
+Expected keys:
+
+```sh
+APP_STORE_CONNECT_API_KEY_ID=...
+APP_STORE_CONNECT_API_ISSUER_ID=...
+APP_STORE_CONNECT_API_KEY_PATH=/absolute/path/AuthKey_....p8
+```
+
 The archive script calls `agent-testflight-readiness.sh` first, generates `ios/ExportOptions-TestFlight.plist` from the current project team, then runs `xcodebuild archive` and `xcodebuild -exportArchive`.
 
 To submit the exported IPA to App Store Connect/TestFlight, set:

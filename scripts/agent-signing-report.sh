@@ -2,6 +2,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$ROOT_DIR/scripts/load-app-store-connect-env.sh"
+load_app_store_connect_env
+
 PROJECT_FILE="$ROOT_DIR/ios/ReCall.xcodeproj/project.pbxproj"
 SCHEME_FILE="$ROOT_DIR/ios/ReCall.xcodeproj/xcshareddata/xcschemes/ReCall.xcscheme"
 APP_NAME="Re_Call"

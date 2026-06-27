@@ -2,6 +2,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$ROOT_DIR/scripts/load-app-store-connect-env.sh"
+load_app_store_connect_env
+
 PROJECT="$ROOT_DIR/ios/ReCall.xcodeproj"
 SCHEME="ReCall"
 ARCHIVE_PATH="${ARCHIVE_PATH:-$ROOT_DIR/build/ReCall.xcarchive}"

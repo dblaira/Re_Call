@@ -109,24 +109,22 @@ recall:increasesMagnitudeOf
 
 # CCO mid-level clarity: distinguish what feeds a process from what it yields.
 #
-# NOTE ON IRIs: CCO's current release publishes its Extended Relation Ontology
-# terms under opaque ont-style IRIs (e.g. cco:ont00001816). The exact
-# has_input / has_output IRIs were NOT verified here, so the two properties
-# below are declared as LOCAL recall: aliases and mapped to cco: with
-# rdfs:seeAlso PLACEHOLDERS that MUST be replaced with the real CCO IRIs
-# before relying on CCO interoperability. They are flagged, not invented as
-# real-looking IRIs.
+# NOTE ON IRIs: verified against CommonCoreOntologies develop
+# f7e61d6298bc651b3958fff01bd37717b8f995f3, ExtendedRelationOntology.ttl.
+# CCO publishes these Extended Relation Ontology terms under opaque ont-style
+# IRIs, so recall keeps local readable aliases and links them to the exact CCO
+# relations with rdfs:seeAlso.
 recall:hasInput
     a owl:ObjectProperty ;
     rdfs:label "has input" ;
-    rdfs:comment "Mid-level CCO-aligned relation: a process has some entity as input. PLACEHOLDER alias for CCO 'has_input' (Extended Relation Ontology) -- replace seeAlso with the verified CCO ont IRI." ;
-    rdfs:seeAlso <https://www.commoncoreontologies.org/has_input> .   # FLAG: placeholder, confirm CCO ont IRI
+    rdfs:comment "Local readable alias aligned to CCO Extended Relation Ontology 'has input' (cco:ont00001921): x has input y iff y is input of x." ;
+    rdfs:seeAlso cco:ont00001921 .
 
 recall:hasOutput
     a owl:ObjectProperty ;
     rdfs:label "has output" ;
-    rdfs:comment "Mid-level CCO-aligned relation: a process has some entity as output. PLACEHOLDER alias for CCO 'has_output' (Extended Relation Ontology) -- replace seeAlso with the verified CCO ont IRI." ;
-    rdfs:seeAlso <https://www.commoncoreontologies.org/has_output> .  # FLAG: placeholder, confirm CCO ont IRI
+    rdfs:comment "Local readable alias aligned to CCO Extended Relation Ontology 'has output' (cco:ont00001986): x has output y iff y is output of x." ;
+    rdfs:seeAlso cco:ont00001986 .
 
 
 #################################################################

@@ -12,3 +12,4 @@ playwright-report/
 ios/build/
 build/
 tmp/
+ios/ExportOptions-TestFlight.plist

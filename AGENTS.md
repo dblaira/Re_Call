@@ -16,7 +16,7 @@ Acceptance criteria: if it is part of the shipped iPhone app experience, it shou
 
 ## Plan Overview Rule
 
-When multi-step migration or roadmap work begins, Adam keeps `docs/recall-migration-map.html` on screen as the living status board (use `SAVY-iOS/docs/savy-migration-map.html` as the template when creating it).
+Adam keeps `docs/recall-migration-map.html` on screen as the living status board. Suite-wide progress: `/Users/adamblair/Developer/GitHub/SAVY-iOS/docs/understood-suite-migration-map.html`.
 
 When sharing multi-step plans or migration status: **overview first** — one sentence, horizontal progress track (all steps on one screen), "HERE" on current step, one-line next move. Details below or collapsed. Update the HTML when milestones change. See `.cursor/rules/plan-overview.mdc`.
 
@@ -52,4 +52,4 @@ Read `.cursor/rules/recall.mdc` for QC gates, layer boundaries, and iOS gotchas.
 
 Update this line when the active milestone changes:
 
-**Current lane:** Native reminders shell + Supabase sync — do not expand scope without Adam saying so.
+**Current lane:** TestFlight-valid native iOS; extend graph-promoted product rules into recommendation UI — do not App Store submit without Adam. Do not expand scope without Adam saying so.

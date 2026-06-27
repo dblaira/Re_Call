@@ -79,3 +79,18 @@ Then run:
 ```
 
 The upload script runs the readiness gate first, creates the IPA if needed, validates it with `xcrun altool`, and uploads it to App Store Connect. Set `APP_STORE_CONNECT_WAIT=1` to wait for Apple processing status before the command returns.
+
+To check Apple processing status after upload, use either the delivery id returned by `altool`:
+
+```sh
+export APP_STORE_CONNECT_DELIVERY_ID="..."
+./scripts/agent-testflight-status.sh
+```
+
+Or use the App Store Connect app Apple ID plus build number:
+
+```sh
+export APP_STORE_CONNECT_APPLE_ID="..."
+export APP_STORE_CONNECT_BUILD_VERSION="..."
+./scripts/agent-testflight-status.sh
+```

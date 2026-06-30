@@ -1,0 +1,127 @@
+@prefix recall: <http://recall.app/ontology#> .
+@prefix adam:   <http://recall.app/data/adam#> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+
+#################################################################
+#  Adam Pattern Step Ontology Extension
+#  Enforces sequential 8-step process. Designed so any LLM/agent
+#  interacting with the graph MUST first resolve or declare the
+#  current adam:AdamPatternStep before proposing actions.
+#  This prevents step-skipping and self-deception.
+#################################################################
+
+<http://recall.app/ontology/adam-pattern>
+    a owl:Ontology ;
+    owl:imports <http://recall.app/ontology> ;
+    dct:title "Adam Pattern Step Ontology" ;
+    dct:description "8-step sequential framework extracted from Adam's validated success patterns. Steps are first-class ontology entities so LLMs naturally query/declare currentStep before acting." ;
+    owl:versionInfo "0.1.0 (2026-06-29)" .
+
+#################################################################
+#  Core Class: AdamPatternStep
+#  Subclass of Process so it can be part of a user's ongoing process.
+#  Has ordering, description, and exit criteria.
+#################################################################
+
+recall:AdamPatternStep a owl:Class ;
+    rdfs:subClassOf recall:Process ;
+    rdfs:label "Adam Pattern Step" ;
+    rdfs:comment "One of the 8 mandatory sequential steps in The Adam Pattern. LLMs and agents are required to reference the current step (via recall:currentAdamPatternStep or equivalent) before any downstream action or recommendation." .
+
+# Object property to link agent/process to current step (enforcement point)
+recall:currentAdamPatternStep a owl:ObjectProperty ;
+    rdfs:domain recall:Agent ;
+    rdfs:range recall:AdamPatternStep ;
+    rdfs:label "current Adam Pattern step" ;
+    rdfs:comment "The step the user/agent is actively on. Any model must resolve this before acting on behalf of the user. This is the guardrail against skipping." .
+
+# Sequence properties for the 8 steps
+recall:nextAdamPatternStep a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:domain recall:AdamPatternStep ;
+    rdfs:range recall:AdamPatternStep ;
+    rdfs:label "next Adam Pattern step" .
+
+recall:previousAdamPatternStep a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:domain recall:AdamPatternStep ;
+    rdfs:range recall:AdamPatternStep ;
+    rdfs:label "previous Adam Pattern step" .
+
+# Datatype for step metadata
+recall:stepNumber a owl:DatatypeProperty ;
+    rdfs:domain recall:AdamPatternStep ;
+    rdfs:range xsd:integer ;
+    rdfs:label "step number" .
+
+recall:exitCriteria a owl:DatatypeProperty ;
+    rdfs:domain recall:AdamPatternStep ;
+    rdfs:range xsd:string ;
+    rdfs:label "exit criteria" .
+
+#################################################################
+#  The 8 Steps as Individuals (ordered via next/previous)
+#  These live as first-class entities in the ontology so they are
+#  referenceable by URI in prompts, queries, and agent memory.
+#################################################################
+
+adam:Step1_AcceptReality a recall:AdamPatternStep ;
+    rdfs:label "1. Accept reality first" ;
+    recall:stepNumber "1"^^xsd:integer ;
+    recall:exitCriteria "User has explicitly stated the unvarnished current state without optimism bias or denial." ;
+    recall:nextAdamPatternStep adam:Step2_ObserveBeforeActing .
+
+adam:Step2_ObserveBeforeActing a recall:AdamPatternStep ;
+    rdfs:label "2. Observe before acting" ;
+    recall:stepNumber "2"^^xsd:integer ;
+    recall:exitCriteria "Sufficient observation/data collection has occurred; user can articulate patterns seen." ;
+    recall:previousAdamPatternStep adam:Step1_AcceptReality ;
+    recall:nextAdamPatternStep adam:Step3_GetExpertise .
+
+adam:Step3_GetExpertise a recall:AdamPatternStep ;
+    rdfs:label "3. Get expertise for gaps" ;
+    recall:stepNumber "3"^^xsd:integer ;
+    recall:exitCriteria "External expert input or validated knowledge has been obtained for identified skill/knowledge gaps." ;
+    recall:previousAdamPatternStep adam:Step2_ObserveBeforeActing ;
+    recall:nextAdamPatternStep adam:Step4_PreciseTargets .
+
+adam:Step4_PreciseTargets a recall:AdamPatternStep ;
+    rdfs:label "4. Demand precise targets" ;
+    recall:stepNumber "4"^^xsd:integer ;
+    recall:exitCriteria "Targets are numeric, time-bound, and unambiguous (no vague goals)." ;
+    recall:previousAdamPatternStep adam:Step3_GetExpertise ;
+    recall:nextAdamPatternStep adam:Step5_BuildSimpleSystem .
+
+adam:Step5_BuildSimpleSystem a recall:AdamPatternStep ;
+    rdfs:label "5. Build simple repeatable systems" ;
+    recall:stepNumber "5"^^xsd:integer ;
+    recall:exitCriteria "A minimal, repeatable process/system has been defined and documented." ;
+    recall:previousAdamPatternStep adam:Step4_PreciseTargets ;
+    recall:nextAdamPatternStep adam:Step6_DefineKillSwitch .
+
+adam:Step6_DefineKillSwitch a recall:AdamPatternStep ;
+    rdfs:label "6. Define clear kill switches" ;
+    recall:stepNumber "6"^^xsd:integer ;
+    recall:exitCriteria "Explicit, measurable criteria for stopping or pivoting have been set." ;
+    recall:previousAdamPatternStep adam:Step5_BuildSimpleSystem ;
+    recall:nextAdamPatternStep adam:Step7_ImmediateSignals .
+
+adam:Step7_ImmediateSignals a recall:AdamPatternStep ;
+    rdfs:label "7. Look for immediate signals" ;
+    recall:stepNumber "7"^^xsd:integer ;
+    recall:exitCriteria "Leading indicators or early feedback mechanisms are in place and being monitored." ;
+    recall:previousAdamPatternStep adam:Step6_DefineKillSwitch ;
+    recall:nextAdamPatternStep adam:Step8_LetItCompound .
+
+adam:Step8_LetItCompound a recall:AdamPatternStep ;
+    rdfs:label "8. Allow results to compound" ;
+    recall:stepNumber "8"^^xsd:integer ;
+    recall:exitCriteria "System is running; focus shifts to patience and non-interference unless kill switch triggers." ;
+    recall:previousAdamPatternStep adam:Step7_ImmediateSignals .
+
+#################################################################
+#  Example usage for enforcement (in agent prompts or queries):
+#  "Before any action, resolve the value of recall:currentAdamPatternStep for adam:Adam.
+#   You may only advance or act within the current step's exit criteria."
+#################################################################

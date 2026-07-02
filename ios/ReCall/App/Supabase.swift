@@ -2,9 +2,12 @@ import Foundation
 
 enum SupabaseConfig {
     static let url = "https://vzaceoipwimphdvdxcpa.supabase.co"
-    // Public anon key — safe to ship in a client bundle; per-row access is enforced by RLS.
-    static let anonKey =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6YWNlb2lwd2ltcGhkdmR4Y3BhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MTUzNTksImV4cCI6MjA5NTQ5MTM1OX0.PpbSvOTzBbJGz4Qp4Qarj1RPs9vofFxJYI9NfFqFLh8"
+    static let publishableKey: String = {
+        guard let key = ProcessInfo.processInfo.environment["SUPABASE_PUBLISHABLE_KEY"], !key.isEmpty else {
+            fatalError("SUPABASE_PUBLISHABLE_KEY must be set in the app runtime environment.")
+        }
+        return key
+    }()
     static let schema = "recall"
 }
 
@@ -40,7 +43,7 @@ actor SupabaseService {
         guard let u = URL(string: "\(SupabaseConfig.url)/auth/v1/\(path)") else { return false }
         var req = URLRequest(url: u)
         req.httpMethod = "POST"
-        req.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
+        req.setValue(SupabaseConfig.publishableKey, forHTTPHeaderField: "apikey")
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = (try? JSONSerialization.data(withJSONObject: payload)) ?? Data("{}".utf8)
         do {
@@ -65,7 +68,7 @@ actor SupabaseService {
         guard let u = URL(string: str) else { return nil }
         var req = URLRequest(url: u)
         req.httpMethod = method
-        req.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
+        req.setValue(SupabaseConfig.publishableKey, forHTTPHeaderField: "apikey")
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.setValue(SupabaseConfig.schema, forHTTPHeaderField: "Accept-Profile")
@@ -97,7 +100,7 @@ actor SupabaseService {
               let u = URL(string: "\(SupabaseConfig.url)/storage/v1/object/\(Self.imageBucket)/\(path)") else { return false }
         var req = URLRequest(url: u)
         req.httpMethod = "POST"
-        req.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
+        req.setValue(SupabaseConfig.publishableKey, forHTTPHeaderField: "apikey")
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         req.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
         req.setValue("true", forHTTPHeaderField: "x-upsert")
@@ -111,7 +114,7 @@ actor SupabaseService {
         guard await ensureSession(), let token = accessToken,
               let u = URL(string: "\(SupabaseConfig.url)/storage/v1/object/authenticated/\(Self.imageBucket)/\(path)") else { return nil }
         var req = URLRequest(url: u)
-        req.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
+        req.setValue(SupabaseConfig.publishableKey, forHTTPHeaderField: "apikey")
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         guard let (data, resp) = try? await session.data(for: req),
               let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else { return nil }

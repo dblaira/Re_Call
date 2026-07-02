@@ -6,7 +6,7 @@
 //
 // Two modes, decided by whether an end-user access token is supplied:
 //
-//   accessToken present  -> anon key + Authorization: Bearer <jwt>. The recall.* RLS
+//   accessToken present  -> publishable key + Authorization: Bearer <jwt>. The recall.* RLS
 //                           policies (user_id = auth.uid()) enforce per-user access. This is
 //                           the multi-user / beta path: the iOS client signs in to Supabase
 //                           Auth, sends its JWT to the Vercel API, and the API forwards it.
@@ -32,11 +32,11 @@ export function createSupabaseClient(options = {}) {
   };
 
   if (options.accessToken) {
-    const anonKey = options.anonKey ?? process.env.SUPABASE_ANON_KEY;
-    if (!anonKey) {
-      throw new Error("SUPABASE_ANON_KEY is required for user-authenticated (RLS-enforced) access.");
+    const publishableKey = options.publishableKey ?? process.env.SUPABASE_PUBLISHABLE_KEY;
+    if (!publishableKey) {
+      throw new Error("SUPABASE_PUBLISHABLE_KEY is required for user-authenticated (RLS-enforced) access.");
     }
-    return createClient(url, anonKey, {
+    return createClient(url, publishableKey, {
       ...baseConfig,
       global: { headers: { Authorization: `Bearer ${options.accessToken}` } }
     });

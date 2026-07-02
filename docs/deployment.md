@@ -27,7 +27,7 @@ The build command is `npm test`, so deployment fails if the deterministic graph 
 Production environment variables currently expected by the stack:
 
 - `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
+- `SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `OPENAI_API_KEY`
 - `RECALL_OPENAI_TINY_MODEL`
@@ -51,7 +51,7 @@ Project: `Re_Call`
 
 The personalization read/write paths use `@supabase/supabase-js` via `src/supabase-client.js`
 (client factory) and `src/supabase-personalization-db.js` (the `recall.*` adapter). Env vars used
-at runtime: `SUPABASE_URL`, `SUPABASE_ANON_KEY` (user-JWT path), `SUPABASE_SERVICE_ROLE_KEY`
+at runtime: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` (user-JWT path), `SUPABASE_SERVICE_ROLE_KEY`
 (server path). Move to the user-JWT path for multi-user beta by having the client sign in to
 Supabase Auth and send its JWT; the `auth.uid()` policies then enforce per-user access with no
 code or schema change.

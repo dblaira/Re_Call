@@ -1,13 +1,12 @@
 import Foundation
 import UserNotifications
 
-/// Local notifications for the Date/Time/Early-Reminder/Repeat parts. One request per reminder,
+/// Local notifications for the Date/Time/Repeat parts. One request per reminder,
 /// keyed by its id, so rescheduling and cancellation are deterministic.
 enum NotificationScheduler {
     static func schedule(_ r: Reminder) {
         cancel(r)
-        guard r.status == .active, let base = r.fireDate else { return }
-        let fire = base.addingTimeInterval(-r.earlyReminder.lead)
+        guard r.status == .active, let fire = r.fireDate else { return }
 
         Task {
             guard await ensureAuthorized() else { return }

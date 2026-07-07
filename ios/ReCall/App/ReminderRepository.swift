@@ -21,12 +21,10 @@ private struct ReminderRow: Decodable {
     var due_time: String?
     var urgent: Bool
     var repeat_rule: String
-    var early_reminder: String
     var list_name: String
     var flag: Bool
     var priority: String
     var location_name: String
-    var when_messaging_person: String
     var kind: String
     var end_time: String?
     var when_i_am: String
@@ -57,12 +55,10 @@ private struct ReminderUpsert: Encodable {
     var due_time: String?
     var urgent: Bool
     var repeat_rule: String
-    var early_reminder: String
     var list_name: String
     var flag: Bool
     var priority: String
     var location_name: String
-    var when_messaging_person: String
     var kind: String
     var end_time: String?
     var when_i_am: String
@@ -201,12 +197,10 @@ final class SupabaseReminderRepository: ReminderRepository {
             due_time: r.dueTime.map { PG.time.string(from: $0) },
             urgent: r.urgent,
             repeat_rule: r.repeatRule.rawValue,
-            early_reminder: r.earlyReminder.rawValue,
             list_name: r.listName,
             flag: r.flag,
             priority: r.priority.rawValue,
             location_name: r.locationName,
-            when_messaging_person: r.whenMessagingPerson,
             kind: r.kind.rawValue,
             end_time: r.endTime.map { PG.time.string(from: $0) },
             when_i_am: r.whenIAm,
@@ -235,12 +229,10 @@ final class SupabaseReminderRepository: ReminderRepository {
         r.dueTime = row.due_time.flatMap { PG.time.date(from: $0) }
         r.urgent = row.urgent
         r.repeatRule = RepeatRule(rawValue: row.repeat_rule) ?? .none
-        r.earlyReminder = EarlyReminder(rawValue: row.early_reminder) ?? .none
         r.listName = row.list_name
         r.flag = row.flag
         r.priority = Priority(rawValue: row.priority) ?? .none
         r.locationName = row.location_name
-        r.whenMessagingPerson = row.when_messaging_person
         r.kind = ReminderKind(rawValue: row.kind) ?? .reminder
         r.endTime = row.end_time.flatMap { PG.time.date(from: $0) }
         r.whenIAm = row.when_i_am

@@ -198,10 +198,27 @@ struct CalendarView: View {
                     .foregroundStyle(.black.opacity(0.35))
                     .frame(width: 52, alignment: .trailing)
                 VStack(spacing: 6) {
-                    ForEach(items) { eventBlock($0, compact: true) }
+                    ForEach(items) { r in
+                        SwipeRow(actions: calendarActions(r), onTap: { onOpen(r) }, cornerRadius: 8) {
+                            eventBlock(r, compact: true).background(Color.white)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
                 }
             }
         }
+    }
+
+    /// Same swipe set as the Reminders and Actions feeds — Done/Reopen, Pin, Delete — so the
+    /// calendar is a working surface, not a viewing window.
+    private func calendarActions(_ r: Reminder) -> [SwipeAction] {
+        [
+            r.status == .completed
+                ? SwipeAction(title: "Reopen", icon: "arrow.uturn.left", bg: Brand.crimson) { store.uncomplete(r) }
+                : SwipeAction(title: "Done", icon: "checkmark", bg: Brand.crimson) { store.complete(r) },
+            SwipeAction(title: r.pinned ? "Unpin" : "Pin", icon: "pin", bg: Brand.tileBlue) { store.togglePin(r) },
+            SwipeAction(title: "Delete", icon: "trash", bg: Color(hex: 0xB00124)) { store.delete(r) },
+        ]
     }
 
     // MARK: Timeline
@@ -224,12 +241,14 @@ struct CalendarView: View {
                 }
             }
             ForEach(timed) { r in
-                Button { onOpen(r) } label: { eventBlock(r, compact: false) }
-                    .buttonStyle(.plain)
-                    .padding(.leading, gutter)
-                    .padding(.trailing, 2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .offset(y: yOffset(r))
+                SwipeRow(actions: calendarActions(r), onTap: { onOpen(r) }, cornerRadius: 8) {
+                    eventBlock(r, compact: false).background(Color.white)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(.leading, gutter)
+                .padding(.trailing, 2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .offset(y: yOffset(r))
             }
             if cal.isDateInToday(selected) { nowLine }
         }

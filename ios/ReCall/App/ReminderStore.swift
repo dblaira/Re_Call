@@ -73,6 +73,7 @@ final class ReminderStore: ObservableObject {
         guard let idx = reminders.firstIndex(where: { $0.id == reminder.id }) else { return }
         var r = reminders[idx]
         r.pinned.toggle()
+        r.updatedAt = Date()
         reminders[idx] = r
 
         if r.pinned {
@@ -88,6 +89,9 @@ final class ReminderStore: ObservableObject {
             unpinned.insert(reminders[idx], at: 0)
             applyBlockOrder(unpinned)
         }
+        // The pin flag itself must survive relaunch even when no block order changed
+        // (applyBlockOrder only saves when an upNextOrder moved).
+        saveCache()
     }
 
     enum UpNextMoveDirection { case up, down }
@@ -128,8 +132,14 @@ final class ReminderStore: ObservableObject {
         }
     }
 
+    /// Soft delete — the row keeps its history with `status = .deleted` and simply leaves every
+    /// screen. Matches SAVY and the suite rule: never hard-delete completed work.
     func delete(_ reminder: Reminder) {
-        reminders.removeAll { $0.id == reminder.id }
+        guard let idx = reminders.firstIndex(where: { $0.id == reminder.id }) else { return }
+        var r = reminders[idx]
+        r.status = .deleted
+        r.updatedAt = Date()
+        reminders[idx] = r
         NotificationScheduler.cancel(reminder)
         saveCache()
     }

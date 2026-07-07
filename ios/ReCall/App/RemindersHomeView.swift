@@ -47,6 +47,7 @@ struct RemindersHomeView: View {
                 hero
                 Rectangle().fill(Brand.crimson).frame(height: 2)
                 band
+                completedBand
                 shapes
             }
         }
@@ -121,6 +122,35 @@ struct RemindersHomeView: View {
         .background(Brand.page)
     }
 
+    /// Completed items keep a visible home — tap the circle (or swipe) to reopen. Mirrors the
+    /// Actions tab's completed band so "done" never means "gone".
+    @ViewBuilder private var completedBand: some View {
+        let done = store.completed
+        if !done.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Completed")
+                    .font(.system(size: 13, weight: .heavy))
+                    .textCase(.uppercase)
+                    .tracking(1.5)
+                    .foregroundStyle(.black.opacity(0.35))
+                ForEach(done.prefix(8)) { r in
+                    ItemRow(
+                        reminder: r,
+                        completed: true,
+                        onToggle: { store.uncomplete(r) },
+                        onTap: { onOpen(r) },
+                        onDelete: { store.delete(r) }
+                    )
+                }
+            }
+            .padding(.top, 18)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.white)
+        }
+    }
+
     private var shapes: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -129,9 +159,6 @@ struct RemindersHomeView: View {
                     .foregroundStyle(.black)
                     .accessibilityIdentifier("reminderShapes")
                 Spacer()
-                Text("Edit")
-                    .font(.system(size: 15, weight: .heavy))
-                    .foregroundStyle(Brand.crimson)
             }
             HStack(alignment: .top, spacing: 10) {
                 column(leftTiles)

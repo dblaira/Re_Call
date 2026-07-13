@@ -39,6 +39,11 @@ bad()  { FAIL+=("$1"); printf "\033[31mFAIL\033[0m %s\n" "$1"; }
 # ---------- Layer 1: engine (node) ----------
 step "Layer 1/3 — recommendation/ontology engine (node)"
 if npm test --silent >/dev/null 2>&1; then ok "engine unit tests"; else bad "engine unit tests"; fi
+if ./scripts/test-harness-capture-runtime.sh >/dev/null 2>&1; then
+  ok "native Harness capture runtime tests"
+else
+  bad "native Harness capture runtime tests"
+fi
 
 # recommendations.js must be the deterministic compile of the current KG.
 REC=build/recommendations.js

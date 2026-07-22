@@ -73,4 +73,38 @@ final class SmokeTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Smoke test reminder"].waitForExistence(timeout: 10),
                       "Created reminder did not appear in Up Next")
     }
+    func testAddingMultipleStepsKeepsEachStepVisible() {
+        let app = XCUIApplication()
+        app.launch()
+        dismissNotificationPrompt()
+        openReminderForm(app)
+
+        let title = app.textFields["Title"]
+        XCTAssertTrue(title.waitForExistence(timeout: 10))
+        title.tap()
+        title.typeText("Step regression")
+
+        let addStep = app.buttons["Add Step"]
+        XCTAssertTrue(addStep.waitForExistence(timeout: 10))
+        addStep.tap()
+
+        let firstStep = app.textFields["Step"].firstMatch
+        XCTAssertTrue(firstStep.waitForExistence(timeout: 5))
+        firstStep.tap()
+        firstStep.typeText("First step")
+
+        addStep.tap()
+        let steps = app.textFields.matching(identifier: "Step")
+        XCTAssertEqual(steps.count, 2)
+        XCTAssertEqual(firstStep.value as? String, "First step")
+
+        let removeSteps = app.buttons.matching(identifier: "removeStep")
+        XCTAssertEqual(removeSteps.count, 2)
+        removeSteps.element(boundBy: 0).tap()
+        XCTAssertEqual(steps.count, 1)
+
+        app.buttons["Save"].tap()
+        XCTAssertTrue(app.staticTexts["Step regression"].waitForExistence(timeout: 10))
+    }
+
 }

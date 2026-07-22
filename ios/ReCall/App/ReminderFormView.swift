@@ -120,9 +120,10 @@ struct ReminderFormView: View {
                 .accessibilityIdentifier("Title")
             TextField(EntryFormCopy.whenPrompt, text: $r.whenIAm, axis: .vertical).lineLimit(1...3)
             TextField(EntryFormCopy.donePrompt, text: $r.outcome, axis: .vertical).lineLimit(1...3)
-            subtasksEditor(EntryFormCopy.stepsTitle, addLabel: EntryFormCopy.addStepTitle)
         } header: { sectionHeader(EntryFormCopy.delegateHeader) }
         .listRowBackground(Brand.card)
+
+        stepsSection
 
         organizationSection
 
@@ -301,9 +302,8 @@ struct ReminderFormView: View {
         }
     }
 
-    private func subtasksEditor(_ title: String, addLabel: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label(title, systemImage: "checklist")
+    private var stepsSection: some View {
+        Section {
             ForEach($subtasks) { $sub in
                 HStack {
                     Image(systemName: "circle").foregroundStyle(.secondary)
@@ -316,19 +316,21 @@ struct ReminderFormView: View {
                     .accessibilityIdentifier("removeStep")
                 }
             }
+
             Button(action: addSubtask) {
-                Text(addLabel).foregroundStyle(Brand.crimson)
+                Text(EntryFormCopy.addStepTitle).foregroundStyle(Brand.crimson)
             }
+        } header: {
+            sectionHeader(EntryFormCopy.stepsTitle)
         }
+        .listRowBackground(Brand.card)
     }
 
     // MARK: - Actions
 
     private func addSubtask() {
-        print("[STEPS] add before: \(subtasks.count)")
         let subtask = Subtask()
         subtasks.append(subtask)
-        print("[STEPS] add after: \(subtasks.count)")
         DispatchQueue.main.async { focusedSubtaskID = subtask.id }
     }
 

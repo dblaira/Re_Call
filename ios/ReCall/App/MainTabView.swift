@@ -191,10 +191,11 @@ struct MainTabView: View {
         closeFabMenu()
         showingForm = true
     }
-    private func pickShape(_ title: String) {
+    private func pickShape(_ shape: ShapeTileSpec) {
         var draft = Reminder()
         draft.kind = .reminder
-        draft.title = title
+        draft.title = shape.title
+        draft.seededFromTemplateID = shape.templateID
         pendingKind = .reminder
         pendingSeed = draft
         editing = nil
@@ -206,15 +207,15 @@ struct MainTabView: View {
 /// Professional template library. The layout intentionally behaves like a masonry/waterfall board:
 /// uneven cards remain their natural heights and flow through two independent columns.
 struct ProfessionalTemplatesView: View {
-    var onPick: (String) -> Void = { _ in }
+    var onPick: (ShapeTileSpec) -> Void = { _ in }
 
     private let starterLeftTiles: [ShapeTileSpec] = [
-        .init(title: "Reply with leverage", bg: Brand.crimson, fg: .white, tags: ["PERSON", "URL"], height: 170, dark: true),
+        .init(title: "Reply with leverage", bg: Brand.crimson, fg: .white, tags: ["PERSON", "URL"], height: 170, dark: true, templateID: "FindLeveragePointReminder"),
         .init(title: "Turn note into ask", bg: Brand.primaryYellow, fg: .black, tags: ["ACTION"], height: 145, dark: false),
     ]
 
     private let starterRightTiles: [ShapeTileSpec] = [
-        .init(title: "Before the meeting", bg: Brand.primaryBlue, fg: .white, tags: ["TIME", "NOTES"], height: 210, dark: true),
+        .init(title: "Before the meeting", bg: Brand.primaryBlue, fg: .white, tags: ["TIME", "NOTES"], height: 210, dark: true, templateID: "ScanCalendarReminder"),
     ]
 
     private let proLeftTiles: [ShapeTileSpec] = [
@@ -295,7 +296,7 @@ struct ProfessionalTemplatesView: View {
     private func column(_ tiles: [ShapeTileSpec]) -> some View {
         VStack(spacing: 10) {
             ForEach(tiles) { spec in
-                Button { onPick(spec.title) } label: { ShapeTile(spec: spec) }
+                Button { onPick(spec) } label: { ShapeTile(spec: spec) }
                     .buttonStyle(.plain)
             }
         }

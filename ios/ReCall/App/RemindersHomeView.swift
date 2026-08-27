@@ -3,7 +3,7 @@ import SwiftUI
 /// The Reminders tab: editorial home — brand hero, Up Next feed, and reminder-shape tiles.
 struct RemindersHomeView: View {
     /// Tapping a shape tile starts a new reminder seeded with a title.
-    var onPick: (String) -> Void = { _ in }
+    var onPick: (ShapeTileSpec) -> Void = { _ in }
     /// Tapping one of your reminders opens it for editing.
     var onOpen: (Reminder) -> Void = { _ in }
 
@@ -15,8 +15,8 @@ struct RemindersHomeView: View {
         .init(title: "Bring this when I leave", bg: Brand.primaryGreen,  fg: .white, tags: ["PLACE", "PHOTO"],       height: 150, dark: true),
     ]
     private let rightTiles: [ShapeTileSpec] = [
-        .init(title: "Text them back",        bg: Brand.crimson,   fg: .white, tags: ["PERSON"],       height: 190, dark: true),
-        .init(title: "Do this after workout", bg: Brand.nearBlack, fg: .white, tags: ["TIME", "CUE"], height: 190, dark: true),
+        .init(title: "Text them back",        bg: Brand.crimson,   fg: .white, tags: ["PERSON"],       height: 190, dark: true, templateID: "ChooseCommunicationFormatReminder"),
+        .init(title: "Do this after workout", bg: Brand.nearBlack, fg: .white, tags: ["TIME", "CUE"], height: 190, dark: true, templateID: "HabitStackGymReminder"),
     ]
 
     @State private var armedReorderId: UUID?
@@ -175,7 +175,7 @@ struct RemindersHomeView: View {
     private func column(_ tiles: [ShapeTileSpec]) -> some View {
         VStack(spacing: 10) {
             ForEach(tiles) { spec in
-                Button { onPick(spec.title) } label: { ShapeTile(spec: spec) }
+                Button { onPick(spec) } label: { ShapeTile(spec: spec) }
                     .buttonStyle(.plain)
             }
         }
@@ -272,13 +272,33 @@ struct BandCard: View {
 // MARK: - Shape tile
 
 struct ShapeTileSpec: Identifiable {
-    let id = UUID()
+    let id: UUID
     let title: String
     let bg: Color
     let fg: Color
     let tags: [String]
     let height: CGFloat
     let dark: Bool
+    let templateID: String?
+
+    init(
+        title: String,
+        bg: Color,
+        fg: Color,
+        tags: [String],
+        height: CGFloat,
+        dark: Bool,
+        templateID: String? = nil
+    ) {
+        self.id = UUID()
+        self.title = title
+        self.bg = bg
+        self.fg = fg
+        self.tags = tags
+        self.height = height
+        self.dark = dark
+        self.templateID = templateID
+    }
 }
 
 struct ShapeTile: View {

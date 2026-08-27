@@ -48,25 +48,36 @@ final class ReminderStore: ObservableObject {
     }
 
     func save(_ reminder: Reminder) {
+        let existing = reminders.first { $0.id == reminder.id }
         var r = reminder
         r.updatedAt = Date()
         upsertLocal(r)
         NotificationScheduler.schedule(r)
+        HarnessCaptureExporter.record(
+            existing == nil ? .created : .updated,
+            reminder: r,
+            at: r.updatedAt
+        )
     }
 
     func complete(_ reminder: Reminder) {
         var r = reminder
         r.status = .completed
         r.completedAt = Date()
+        r.updatedAt = Date()
         NotificationScheduler.cancel(r)
-        save(r)
+        upsertLocal(r)
+        HarnessCaptureExporter.record(.completed, reminder: r, at: r.updatedAt)
     }
 
     func uncomplete(_ reminder: Reminder) {
         var r = reminder
         r.status = .active
         r.completedAt = nil
-        save(r)
+        r.updatedAt = Date()
+        upsertLocal(r)
+        NotificationScheduler.schedule(r)
+        HarnessCaptureExporter.record(.updated, reminder: r, at: r.updatedAt)
     }
 
     func togglePin(_ reminder: Reminder) {
@@ -142,6 +153,7 @@ final class ReminderStore: ObservableObject {
         reminders[idx] = r
         NotificationScheduler.cancel(reminder)
         saveCache()
+        HarnessCaptureExporter.record(.deleted, reminder: r, at: r.updatedAt)
     }
 
     private func upsertLocal(_ r: Reminder) {

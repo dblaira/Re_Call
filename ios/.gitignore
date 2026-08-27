@@ -4,7 +4,7 @@ DerivedData/
 *.xcuserstate
 xcuserdata/
 *.xcuserdatad/
-xcshareddata/xcodecloud/
+**/xcshareddata/xcodecloud/
 
 # Swift Package Manager
 .build/

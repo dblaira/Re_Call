@@ -122,33 +122,15 @@ struct RemindersHomeView: View {
         .background(Brand.page)
     }
 
-    /// Completed items keep a visible home — tap the circle (or swipe) to reopen. Mirrors the
-    /// Actions tab's completed band so "done" never means "gone".
-    @ViewBuilder private var completedBand: some View {
-        let done = store.completed
-        if !done.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Completed")
-                    .font(.system(size: 13, weight: .heavy))
-                    .textCase(.uppercase)
-                    .tracking(1.5)
-                    .foregroundStyle(.black.opacity(0.35))
-                ForEach(done.prefix(8)) { r in
-                    ItemRow(
-                        reminder: r,
-                        completed: true,
-                        onToggle: { store.uncomplete(r) },
-                        onTap: { onOpen(r) },
-                        onDelete: { store.delete(r) }
-                    )
-                }
-            }
-            .padding(.top, 18)
-            .padding(.horizontal, 16)
-            .padding(.bottom, 4)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white)
-        }
+    /// SAVY's collapsed completed indicator. Closed: `COMPLETED N >`. Open: the rows.
+    private var completedBand: some View {
+        CompletedBand(
+            items: store.completed,
+            toggleIdentifier: "completedRemindersToggle",
+            onOpen: onOpen,
+            onUncomplete: { store.uncomplete($0) },
+            onDelete: { store.delete($0) }
+        )
     }
 
     private var shapes: some View {

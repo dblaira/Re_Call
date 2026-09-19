@@ -41,6 +41,69 @@ struct ItemListView: View {
     }
 }
 
+/// SAVY's collapsed completed indicator — `SavyReminderScreens.completedBottomSection`.
+/// Closed: `COMPLETED 5 >`. Open: the existing `ItemRow` list.
+struct CompletedBand: View {
+    let items: [Reminder]
+    var toggleIdentifier: String
+    var onOpen: (Reminder) -> Void
+    var onUncomplete: (Reminder) -> Void
+    var onDelete: (Reminder) -> Void
+    var bottomPadding: CGFloat = 4
+
+    @State private var isExpanded = false
+
+    var body: some View {
+        if items.isEmpty {
+            EmptyView()
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                Button {
+                    UISelectionFeedbackGenerator().selectionChanged()
+                    withAnimation(.snappy) { isExpanded.toggle() }
+                } label: {
+                    HStack(spacing: 8) {
+                        Text("Completed")
+                            .font(.system(size: 13, weight: .heavy))
+                            .textCase(.uppercase)
+                            .tracking(1.5)
+                            .foregroundStyle(Brand.tan)
+                        Text("\(items.count)")
+                            .font(.system(size: 12, weight: .heavy))
+                            .foregroundStyle(Brand.crimson)
+                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                            .font(.system(size: 11, weight: .heavy))
+                            .foregroundStyle(Brand.crimson)
+                        Spacer(minLength: 0)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(isExpanded ? "Hide completed items" : "Show completed items")
+                .accessibilityIdentifier(toggleIdentifier)
+
+                if isExpanded {
+                    ForEach(items.prefix(12)) { reminder in
+                        ItemRow(
+                            reminder: reminder,
+                            completed: true,
+                            onToggle: { onUncomplete(reminder) },
+                            onTap: { onOpen(reminder) },
+                            onDelete: { onDelete(reminder) }
+                        )
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            .padding(.top, 18)
+            .padding(.horizontal, 16)
+            .padding(.bottom, bottomPadding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Brand.page)
+        }
+    }
+}
+
 /// One item row on a white page. Tap to open; tap the circle to complete/reopen. Swipe right to
 /// reveal Done/Reopen + Delete.
 struct ItemRow: View {

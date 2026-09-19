@@ -91,29 +91,17 @@ struct ActionsHomeView: View {
     }
 
     @ViewBuilder private var completedBand: some View {
-        if !completedActions.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Completed")
-                    .font(.system(size: 13, weight: .heavy))
-                    .textCase(.uppercase)
-                    .tracking(1.5)
-                    .foregroundStyle(.black.opacity(0.35))
-                ForEach(completedActions.prefix(8)) { action in
-                    ItemRow(
-                        reminder: action,
-                        completed: true,
-                        onToggle: { store.uncomplete(action) },
-                        onTap: { onOpen(action) },
-                        onDelete: { store.delete(action) }
-                    )
-                }
-            }
-            .padding(.top, 18)
-            .padding(.horizontal, 16)
-            .padding(.bottom, 150)
-            .background(Color.white)
-        } else {
+        if completedActions.isEmpty {
             Color.white.frame(height: 150)
+        } else {
+            CompletedBand(
+                items: completedActions,
+                toggleIdentifier: "completedActionsToggle",
+                onOpen: onOpen,
+                onUncomplete: { store.uncomplete($0) },
+                onDelete: { store.delete($0) },
+                bottomPadding: 150
+            )
         }
     }
 

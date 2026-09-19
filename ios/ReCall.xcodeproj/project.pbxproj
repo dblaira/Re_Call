@@ -293,7 +293,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				ENABLE_DEBUG_DYLIB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Notorious Recall";
+				INFOPLIST_KEY_CFBundleDisplayName = Understood;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Re_Call uses your location to tag a reminder with where it matters.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Capture quick voice memos for in-the-moment Recall reminders.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Re_Call attaches photos you choose to your reminders.";
@@ -465,7 +465,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				ENABLE_DEBUG_DYLIB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Notorious Recall";
+				INFOPLIST_KEY_CFBundleDisplayName = Understood;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Re_Call uses your location to tag a reminder with where it matters.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Capture quick voice memos for in-the-moment Recall reminders.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Re_Call attaches photos you choose to your reminders.";

@@ -75,7 +75,7 @@ final class UpNextScrollTests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
         dismissNotificationPrompt()
-        XCTAssertTrue(app.staticTexts["Notorious"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["Understood"].waitForExistence(timeout: 20))
         scrollHomeUntilShapesVisible(app)
     }
 
@@ -83,7 +83,7 @@ final class UpNextScrollTests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
         dismissNotificationPrompt()
-        XCTAssertTrue(app.staticTexts["Notorious"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["Understood"].waitForExistence(timeout: 20))
 
         let card = app.otherElements["upNextCard0"]
         if card.waitForExistence(timeout: 5) {

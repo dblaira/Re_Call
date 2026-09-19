@@ -59,7 +59,7 @@ struct RemindersHomeView: View {
     }
 
     private var hero: some View {
-        Text("Notorious")
+        Text("Understood")
             .font(Brand.serif(48))
             .foregroundStyle(Brand.nearBlack)
             .frame(maxWidth: .infinity)

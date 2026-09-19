@@ -29,7 +29,7 @@ final class SmokeTests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
         dismissNotificationPrompt()
-        XCTAssertTrue(app.staticTexts["Notorious"].waitForExistence(timeout: 20),
+        XCTAssertTrue(app.staticTexts["Understood"].waitForExistence(timeout: 20),
                       "Native Reminders did not render (brand title missing)")
         XCTAssertTrue(app.buttons["chargeFab"].waitForExistence(timeout: 10), "Charge FAB missing")
     }

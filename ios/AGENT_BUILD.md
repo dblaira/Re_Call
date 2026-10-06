@@ -109,3 +109,7 @@ export APP_STORE_CONNECT_APPLE_ID="..."
 export APP_STORE_CONNECT_BUILD_VERSION="..."
 ./scripts/agent-testflight-status.sh
 ```
+
+## Multiline field lookup
+
+SwiftUI vertical text fields can report different TextField/TextView automation types in Xcode. Give each editable field a stable accessibility identifier and query it with `app.descendants(matching: .any).matching(identifier: id).firstMatch`. Do not change the field implementation to satisfy a test's element-type assumption. For text longer than 128 characters, match labels with an NSPredicate rather than the string subscript.

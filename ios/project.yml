@@ -58,6 +58,7 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: sh.notorious.app.uitests
+        TARGETED_DEVICE_FAMILY: "1"
         TEST_TARGET_NAME: ReCall
 
 schemes:

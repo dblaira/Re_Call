@@ -15,7 +15,7 @@ final class UpNextScrollTests: XCTestCase {
         XCTAssertTrue(fab.waitForExistence(timeout: 20), "Charge FAB missing")
         let center = fab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         center.press(forDuration: 0.2, thenDragTo: center.withOffset(CGVector(dx: -120, dy: 0)))
-        let field = app.textFields["Title"]
+        let field = app.descendants(matching: .any).matching(identifier: "Title").firstMatch
         XCTAssertTrue(field.waitForExistence(timeout: 10), "Entry form did not open")
         field.tap()
         field.typeText(title)
@@ -47,6 +47,7 @@ final class UpNextScrollTests: XCTestCase {
     /// Long-press to arm, tap up chevron: Beta must move above Alpha.
     func testReorderMovesCardWithinUpNext() {
         let app = XCUIApplication()
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
         app.launch()
         dismissNotificationPrompt()
 
@@ -73,6 +74,7 @@ final class UpNextScrollTests: XCTestCase {
 
     func testHomeScrollsToShapesOnLaunch() {
         let app = XCUIApplication()
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
         app.launch()
         dismissNotificationPrompt()
         XCTAssertTrue(app.staticTexts["Understood"].waitForExistence(timeout: 20))
@@ -81,6 +83,7 @@ final class UpNextScrollTests: XCTestCase {
 
     func testHomeScrollWorksAfterUpNextLongPress() {
         let app = XCUIApplication()
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
         app.launch()
         dismissNotificationPrompt()
         XCTAssertTrue(app.staticTexts["Understood"].waitForExistence(timeout: 20))

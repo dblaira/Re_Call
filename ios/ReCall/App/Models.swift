@@ -136,6 +136,11 @@ struct Reminder: Identifiable, Codable, Equatable {
     var context: SuccessStep = .none      // the Adam Pattern step this item advances (DB column: context)
     var deferDate: Date? = nil
     var waitingOn: String = ""
+    // SAVY's shared Theme / Decide fields. Optional so older caches still decode unchanged.
+    var postThemeID: String? = nil
+    var postThemeName: String? = nil
+    var postAnswers: [String]? = nil
+    var postAnswersContainQuestions: Bool? = nil
     // Places & People
     var locationName: String = ""
     // Graph + lifecycle

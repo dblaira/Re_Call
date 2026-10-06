@@ -12,6 +12,7 @@
 		19DA60DE89EBB97D72068A99 /* ReminderListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE1A2CBC8BECFA9D2824C3D /* ReminderListView.swift */; };
 		20C542F9C614421E15C311CB /* Supabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8881E4FF233B1140BB438265 /* Supabase.swift */; };
 		314E7B183548412A85799A47 /* LocalImageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1227A5BF6167BDE5AF79D61E /* LocalImageStore.swift */; };
+		3B66890135852A041340D535 /* PostTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0281251553DF77B3EAA56558 /* PostTheme.swift */; };
 		401B52F4C4E0ADEFD9165408 /* RemindersHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D3C653B2C2181167022C93 /* RemindersHomeView.swift */; };
 		45BBBDEA593671D0262699AB /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 575C1741D3B349AB4757A98D /* SmokeTests.swift */; };
 		59B987F31C17F2B3DFDE783B /* NativeCaptureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F831CC628830EEFBD07CEA3E /* NativeCaptureSheet.swift */; };
@@ -44,6 +45,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0281251553DF77B3EAA56558 /* PostTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostTheme.swift; sourceTree = "<group>"; };
 		0C34013F1610273B3C6A0EB9 /* ActionsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionsHomeView.swift; sourceTree = "<group>"; };
 		1204A47B34D6B6201D2B3472 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1227A5BF6167BDE5AF79D61E /* LocalImageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalImageStore.swift; sourceTree = "<group>"; };
@@ -131,6 +133,7 @@
 				931E5F894F39FD8F30990C78 /* Models.swift */,
 				F831CC628830EEFBD07CEA3E /* NativeCaptureSheet.swift */,
 				76ECEE3848A4C169603E8391 /* NotificationScheduler.swift */,
+				0281251553DF77B3EAA56558 /* PostTheme.swift */,
 				3D059ADF056549352B1B7CBD /* ReCallApp.swift */,
 				806A9FA6D6F37A46C8EAB527 /* ReminderFormView.swift */,
 				6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */,
@@ -251,6 +254,7 @@
 				ECE8863350AD504CF43308C3 /* Models.swift in Sources */,
 				59B987F31C17F2B3DFDE783B /* NativeCaptureSheet.swift in Sources */,
 				880849CE3C77576F22182A3D /* NotificationScheduler.swift in Sources */,
+				3B66890135852A041340D535 /* PostTheme.swift in Sources */,
 				19845D503271B60B97E779E1 /* ReCallApp.swift in Sources */,
 				B64BB1CBF9389567CA3C2F49 /* ReminderFormView.swift in Sources */,
 				EBA6D7111CC8C0556CE4AD1D /* ReminderGenerationProvider.swift in Sources */,
@@ -291,6 +295,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = ReCall/ReCall.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_DEBUG_DYLIB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Understood;
@@ -306,7 +311,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				CURRENT_PROJECT_VERSION = 1;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = sh.notorious.app;
 				SDKROOT = iphoneos;
@@ -463,6 +467,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = ReCall/ReCall.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_DEBUG_DYLIB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Understood;
@@ -478,7 +483,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				CURRENT_PROJECT_VERSION = 1;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = sh.notorious.app;
 				SDKROOT = iphoneos;
@@ -498,7 +502,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = sh.notorious.app.uitests;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				TEST_TARGET_NAME = ReCall;
 			};
 			name = Release;

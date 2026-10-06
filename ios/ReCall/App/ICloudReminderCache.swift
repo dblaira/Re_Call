@@ -25,12 +25,19 @@ enum ICloudReminderCache {
     // MARK: - paths
 
     private static func localURL() -> URL {
+        if ProcessInfo.processInfo.arguments.contains("RECALL_UI_TEST_ISOLATED") {
+            let directory = FileManager.default.temporaryDirectory
+                .appendingPathComponent("recall-ui-tests-\(ProcessInfo.processInfo.processIdentifier)", isDirectory: true)
+            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            return directory.appendingPathComponent(fileName)
+        }
         let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appendingPathComponent(fileName)
     }
 
     private static func iCloudDocumentsURL() -> URL? {
+        guard !ProcessInfo.processInfo.arguments.contains("RECALL_UI_TEST_ISOLATED") else { return nil }
         guard let container = FileManager.default.url(forUbiquityContainerIdentifier: containerID) else {
             return nil
         }
@@ -114,6 +121,7 @@ enum HarnessCaptureExporter {
         reminder: Reminder,
         at date: Date = Date()
     ) {
+        guard !ProcessInfo.processInfo.arguments.contains("RECALL_UI_TEST_ISOLATED") else { return }
         let captureID = makeCaptureID()
         do {
             let data = try encodedCapture(

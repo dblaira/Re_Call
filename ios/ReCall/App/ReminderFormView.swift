@@ -13,6 +13,7 @@ struct ReminderFormView: View {
     var onSave: (Reminder) -> Void
 
     @State private var r: Reminder
+    @State private var themeDraft: PostEntryDraft
     @State private var hasDate: Bool
     @State private var hasDefer: Bool
     @State private var date: Date
@@ -42,6 +43,7 @@ struct ReminderFormView: View {
         var base = existing ?? Reminder()
         if existing == nil { base.kind = initialKind }
         _r = State(initialValue: base)
+        _themeDraft = State(initialValue: PostEntryDraft(entry: base))
         _subtasks = State(initialValue: base.subtasks)
         _hasDate = State(initialValue: base.dueDate != nil)
         _hasDefer = State(initialValue: base.deferDate != nil)
@@ -115,11 +117,12 @@ struct ReminderFormView: View {
     // MARK: - Shared entry flow
 
     @ViewBuilder private var unifiedEntrySections: some View {
+        themeSections
+
         Section {
-            TextField(EntryFormCopy.wantPrompt, text: $r.title)
-                .accessibilityIdentifier("Title")
-            TextField(EntryFormCopy.whenPrompt, text: $r.whenIAm, axis: .vertical).lineLimit(1...3)
-            TextField(EntryFormCopy.donePrompt, text: $r.outcome, axis: .vertical).lineLimit(1...3)
+            persistentField(EntryFormCopy.wantPrompt, text: $r.title, identifier: "Title")
+            persistentField(EntryFormCopy.whenPrompt, text: $r.whenIAm, identifier: "WhenIAm")
+            persistentField(EntryFormCopy.donePrompt, text: $r.outcome, identifier: "Outcome")
         } header: { sectionHeader(EntryFormCopy.delegateHeader) }
         .listRowBackground(Brand.card)
 
@@ -141,7 +144,7 @@ struct ReminderFormView: View {
         .listRowBackground(Brand.card)
 
         Section {
-            TextField("Notes", text: $r.notes, axis: .vertical).lineLimit(1...5)
+            TextField("Notes", text: $r.notes, axis: .vertical).lineLimit(1...)
             urlField("Link")
             imageRow
         } header: { sectionHeader("Details") }
@@ -151,13 +154,67 @@ struct ReminderFormView: View {
             locationRow
             HStack {
                 Image(systemName: "person").foregroundStyle(.secondary)
-                TextField("Waiting on / delegate to", text: $r.waitingOn)
+                TextField("Waiting on / delegate to", text: $r.waitingOn, axis: .vertical).lineLimit(1...)
             }
         } header: { sectionHeader("Place / People") }
         .listRowBackground(Brand.card)
     }
 
     // MARK: - Reusable field groups
+
+    @ViewBuilder private var themeSections: some View {
+        Section {
+            Picker(selection: Binding(
+                get: { themeDraft.themeID },
+                set: { themeDraft.selectTheme($0) }
+            )) {
+                ForEach(PostThemeCatalog.themes) { theme in
+                    Text(theme.name).tag(theme.id)
+                }
+            } label: {
+                Label("Theme", systemImage: "list.bullet")
+            }
+            .pickerStyle(.menu)
+            .accessibilityIdentifier("Theme")
+        } header: { sectionHeader("Theme") }
+        .listRowBackground(Brand.card)
+
+        Section {
+            ForEach(Array(themeDraft.answers.indices), id: \.self) { index in
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: themeDraft.theme.questions.indices.contains(index)
+                          ? themeDraft.theme.questions[index].symbol : "pencil")
+                        .foregroundStyle(Brand.crimson)
+                        .padding(.top, 3)
+                    TextField("", text: Binding(
+                        get: { themeDraft.answers[index] },
+                        set: { themeDraft.setAnswer($0, at: index) }
+                    ), axis: .vertical)
+                    .lineLimit(1...)
+                    .foregroundStyle(.black)
+                    .accessibilityLabel(themeDraft.theme.questions.indices.contains(index)
+                                        ? themeDraft.theme.questions[index].prompt : "Answer")
+                    .accessibilityIdentifier("themeAnswer\(index)")
+                }
+            }
+        } header: { sectionHeader("Decide") }
+        .listRowBackground(Brand.card)
+    }
+
+    /// The question belongs to the field and stays visible alongside the complete answer.
+    private func persistentField(_ prompt: String, text: Binding<String>, identifier: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(prompt)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(.black)
+                .fixedSize(horizontal: false, vertical: true)
+            TextField("", text: text, axis: .vertical)
+                .lineLimit(1...)
+                .foregroundStyle(.black)
+                .accessibilityLabel(prompt)
+                .accessibilityIdentifier(identifier)
+        }
+    }
 
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
@@ -166,7 +223,8 @@ struct ReminderFormView: View {
     }
 
     private func urlField(_ placeholder: String) -> some View {
-        TextField(placeholder, text: $r.url)
+        TextField(placeholder, text: $r.url, axis: .vertical)
+            .lineLimit(1...)
             .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
     }
 
@@ -187,7 +245,7 @@ struct ReminderFormView: View {
     private var locationRow: some View {
         HStack {
             Image(systemName: "mappin.and.ellipse").foregroundStyle(.secondary)
-            TextField("Location", text: $r.locationName)
+            TextField("Location", text: $r.locationName, axis: .vertical).lineLimit(1...)
             Button {
                 Task { if let name = await location.currentPlaceName() { r.locationName = name } }
             } label: {
@@ -261,7 +319,7 @@ struct ReminderFormView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label("Tags", systemImage: "tag")
             HStack {
-                TextField("Add a tag", text: $tagDraft)
+                TextField("Add a tag", text: $tagDraft, axis: .vertical).lineLimit(1...)
                     .onSubmit(addTag)
                     .onChange(of: tagDraft) { _, value in if value.contains(",") { addTag() } }
                 Button("Add", action: addTag)
@@ -307,9 +365,12 @@ struct ReminderFormView: View {
             ForEach($subtasks) { $sub in
                 HStack {
                     Image(systemName: "circle").foregroundStyle(.secondary)
-                    TextField("Step", text: $sub.title)
+                    TextField("Step", text: $sub.title, axis: .vertical).lineLimit(1...)
+                        .accessibilityIdentifier("Step")
                         .focused($focusedSubtaskID, equals: sub.id)
-                    Button { subtasks.removeAll { $0.id == sub.id } } label: {
+                    Button {
+                        subtasks.removeAll { $0.id == sub.id }
+                    } label: {
                         Image(systemName: "minus.circle.fill")
                     }
                     .foregroundStyle(.secondary)
@@ -374,6 +435,7 @@ struct ReminderFormView: View {
     }
 
     private var hasContent: Bool {
+        if themeDraft.hasUserContent { return true }
         if !r.title.trimmingCharacters(in: .whitespaces).isEmpty { return true }
         if !r.notes.isEmpty || !r.outcome.isEmpty || !r.whenIAm.isEmpty || !r.url.isEmpty { return true }
         if !r.locationName.isEmpty || !r.waitingOn.isEmpty { return true }
@@ -385,6 +447,7 @@ struct ReminderFormView: View {
 
     private func persist() {
         addTag()
+        themeDraft.apply(to: &r)
         if let pickedImage {
             r.imageLocalPath = LocalImageStore.save(pickedImage)
         }

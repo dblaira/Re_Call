@@ -9,6 +9,7 @@ coverage/
 .vercel
 test-results/
 playwright-report/
+.claude/worktrees/
 ios/build/
 build/
 tmp/

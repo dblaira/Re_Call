@@ -1,7 +1,7 @@
 name: iOS Build
 
-# Compile-check on every push so you can confirm a change builds from anywhere (e.g. your phone),
-# without needing the Mac. Simulator build, no code signing required.
+# Build and run the shared scheme's UI tests on every push.
+# Simulator only; no code signing required.
 on:
   push:
     branches: ["**"]
@@ -12,14 +12,16 @@ jobs:
   build:
     name: Compile (iOS Simulator)
     runs-on: macos-15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
     steps:
-      - uses: actions/checkout@v4
-      - name: Build
+      - uses: actions/checkout@v7
+      - name: Build and test
         run: |
           cd ios
-          xcodebuild build \
+          xcodebuild test \
             -project ReCall.xcodeproj \
             -scheme ReCall \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO

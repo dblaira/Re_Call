@@ -10,7 +10,6 @@ coverage/
 test-results/
 playwright-report/
 .claude/worktrees/
-**/xcuserdata/
 ios/build/
 build/
 tmp/

@@ -1,0 +1,12 @@
+---
+description: Completed reminders use SAVY's collapsed COMPLETED N > indicator
+alwaysApply: true
+---
+
+# Completed is SAVY's minimal indicator
+
+Adam: "the completed reminders on the new Understood app should be stored in a more stylish way. For example in the SAVY app you can see the minimal completed indicator."
+
+Closed default: `COMPLETED` + count + chevron on navy. The loud list only after tap.
+
+Copy `SavyReminderScreens.completedBottomSection`. Do not invent a completed layout.

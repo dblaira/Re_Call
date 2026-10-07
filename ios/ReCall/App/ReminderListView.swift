@@ -16,7 +16,7 @@ struct ReminderListView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("Notorious").font(Brand.serif(26)).foregroundStyle(.white)
+                    Text("Understood").font(Brand.serif(26)).foregroundStyle(.white)
                 }
             }
             .toolbarBackground(Brand.page, for: .navigationBar)

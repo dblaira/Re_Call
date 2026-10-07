@@ -3,7 +3,7 @@ import SwiftUI
 /// The Reminders tab: editorial home — brand hero, Up Next feed, and reminder-shape tiles.
 struct RemindersHomeView: View {
     /// Tapping a shape tile starts a new reminder seeded with a title.
-    var onPick: (String) -> Void = { _ in }
+    var onPick: (ShapeTileSpec) -> Void = { _ in }
     /// Tapping one of your reminders opens it for editing.
     var onOpen: (Reminder) -> Void = { _ in }
 
@@ -15,8 +15,8 @@ struct RemindersHomeView: View {
         .init(title: "Bring this when I leave", bg: Brand.primaryGreen,  fg: .white, tags: ["PLACE", "PHOTO"],       height: 150, dark: true),
     ]
     private let rightTiles: [ShapeTileSpec] = [
-        .init(title: "Text them back",        bg: Brand.crimson,   fg: .white, tags: ["PERSON"],       height: 190, dark: true),
-        .init(title: "Do this after workout", bg: Brand.nearBlack, fg: .white, tags: ["TIME", "CUE"], height: 190, dark: true),
+        .init(title: "Text them back",        bg: Brand.crimson,   fg: .white, tags: ["PERSON"],       height: 190, dark: true, templateID: "ChooseCommunicationFormatReminder"),
+        .init(title: "Do this after workout", bg: Brand.nearBlack, fg: .white, tags: ["TIME", "CUE"], height: 190, dark: true, templateID: "HabitStackGymReminder"),
     ]
 
     @State private var armedReorderId: UUID?
@@ -59,7 +59,7 @@ struct RemindersHomeView: View {
     }
 
     private var hero: some View {
-        Text("Notorious")
+        Text("Understood")
             .font(Brand.serif(48))
             .foregroundStyle(Brand.nearBlack)
             .frame(maxWidth: .infinity)
@@ -122,33 +122,15 @@ struct RemindersHomeView: View {
         .background(Brand.page)
     }
 
-    /// Completed items keep a visible home — tap the circle (or swipe) to reopen. Mirrors the
-    /// Actions tab's completed band so "done" never means "gone".
-    @ViewBuilder private var completedBand: some View {
-        let done = store.completed
-        if !done.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Completed")
-                    .font(.system(size: 13, weight: .heavy))
-                    .textCase(.uppercase)
-                    .tracking(1.5)
-                    .foregroundStyle(.black.opacity(0.35))
-                ForEach(done.prefix(8)) { r in
-                    ItemRow(
-                        reminder: r,
-                        completed: true,
-                        onToggle: { store.uncomplete(r) },
-                        onTap: { onOpen(r) },
-                        onDelete: { store.delete(r) }
-                    )
-                }
-            }
-            .padding(.top, 18)
-            .padding(.horizontal, 16)
-            .padding(.bottom, 4)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white)
-        }
+    /// SAVY's collapsed completed indicator. Closed: `COMPLETED N >`. Open: the rows.
+    private var completedBand: some View {
+        CompletedBand(
+            items: store.completed,
+            toggleIdentifier: "completedRemindersToggle",
+            onOpen: onOpen,
+            onUncomplete: { store.uncomplete($0) },
+            onDelete: { store.delete($0) }
+        )
     }
 
     private var shapes: some View {
@@ -175,7 +157,7 @@ struct RemindersHomeView: View {
     private func column(_ tiles: [ShapeTileSpec]) -> some View {
         VStack(spacing: 10) {
             ForEach(tiles) { spec in
-                Button { onPick(spec.title) } label: { ShapeTile(spec: spec) }
+                Button { onPick(spec) } label: { ShapeTile(spec: spec) }
                     .buttonStyle(.plain)
             }
         }
@@ -272,13 +254,33 @@ struct BandCard: View {
 // MARK: - Shape tile
 
 struct ShapeTileSpec: Identifiable {
-    let id = UUID()
+    let id: UUID
     let title: String
     let bg: Color
     let fg: Color
     let tags: [String]
     let height: CGFloat
     let dark: Bool
+    let templateID: String?
+
+    init(
+        title: String,
+        bg: Color,
+        fg: Color,
+        tags: [String],
+        height: CGFloat,
+        dark: Bool,
+        templateID: String? = nil
+    ) {
+        self.id = UUID()
+        self.title = title
+        self.bg = bg
+        self.fg = fg
+        self.tags = tags
+        self.height = height
+        self.dark = dark
+        self.templateID = templateID
+    }
 }
 
 struct ShapeTile: View {

@@ -18,7 +18,7 @@ open ios/ReCall.xcodeproj
 3. Press **Run** (⌘R).
 
 - Bundle id: `sh.notorious.app`
-- Display name: **Notorious Recall**
+- Display name: **Understood**
 - Deployment target: iOS 17.0+
 
 ## Build from the command line

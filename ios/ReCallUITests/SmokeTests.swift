@@ -27,15 +27,17 @@ final class SmokeTests: XCTestCase {
 
     func testAppLaunchesToNativeReminders() {
         let app = XCUIApplication()
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
         app.launch()
         dismissNotificationPrompt()
-        XCTAssertTrue(app.staticTexts["Notorious"].waitForExistence(timeout: 20),
+        XCTAssertTrue(app.staticTexts["Understood"].waitForExistence(timeout: 20),
                       "Native Reminders did not render (brand title missing)")
         XCTAssertTrue(app.buttons["chargeFab"].waitForExistence(timeout: 10), "Charge FAB missing")
     }
 
     func testProTabOpensProfessionalTemplates() {
         let app = XCUIApplication()
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
         app.launch()
         dismissNotificationPrompt()
 
@@ -53,19 +55,21 @@ final class SmokeTests: XCTestCase {
 
     func testFABOpensEntryForm() {
         let app = XCUIApplication()
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
         app.launch()
         dismissNotificationPrompt()
         openReminderForm(app)
-        XCTAssertTrue(app.textFields["Title"].waitForExistence(timeout: 10),
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "Title").firstMatch.waitForExistence(timeout: 10),
                       "Entry form did not open from the charge FAB")
     }
 
     func testCreatingAReminderShowsItInTheList() {
         let app = XCUIApplication()
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
         app.launch()
         dismissNotificationPrompt()
         openReminderForm(app)
-        let title = app.textFields["Title"]
+        let title = app.descendants(matching: .any).matching(identifier: "Title").firstMatch
         XCTAssertTrue(title.waitForExistence(timeout: 10))
         title.tap()
         title.typeText("Smoke test reminder")
@@ -75,26 +79,33 @@ final class SmokeTests: XCTestCase {
     }
     func testAddingMultipleStepsKeepsEachStepVisible() {
         let app = XCUIApplication()
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
         app.launch()
         dismissNotificationPrompt()
         openReminderForm(app)
 
-        let title = app.textFields["Title"]
-        XCTAssertTrue(title.waitForExistence(timeout: 10))
-        title.tap()
-        title.typeText("Step regression")
-
         let addStep = app.buttons["Add Step"]
-        XCTAssertTrue(addStep.waitForExistence(timeout: 10))
+        for _ in 0..<12 {
+            if addStep.exists && addStep.isHittable && addStep.frame.midY > 200 && addStep.frame.midY < 550 { break }
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
+            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -130)))
+        }
+        XCTAssertTrue(addStep.isHittable)
         addStep.tap()
 
-        let firstStep = app.textFields["Step"].firstMatch
+        let firstStep = app.descendants(matching: .any).matching(identifier: "Step").firstMatch
         XCTAssertTrue(firstStep.waitForExistence(timeout: 5))
         firstStep.tap()
         firstStep.typeText("First step")
 
+        for _ in 0..<12 {
+            if addStep.exists && addStep.isHittable && addStep.frame.midY > 200 && addStep.frame.midY < 550 { break }
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
+            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -130)))
+        }
+        XCTAssertTrue(addStep.isHittable)
         addStep.tap()
-        let steps = app.textFields.matching(identifier: "Step")
+        let steps = app.descendants(matching: .any).matching(identifier: "Step")
         XCTAssertEqual(steps.count, 2)
         XCTAssertEqual(firstStep.value as? String, "First step")
 
@@ -103,8 +114,71 @@ final class SmokeTests: XCTestCase {
         removeSteps.element(boundBy: 0).tap()
         XCTAssertEqual(steps.count, 1)
 
+        let title = app.descendants(matching: .any).matching(identifier: "Title").firstMatch
+        title.tap()
+        title.typeText("Step regression")
         app.buttons["Save"].tap()
         XCTAssertTrue(app.staticTexts["Step regression"].waitForExistence(timeout: 10))
+    }
+
+    func testThemeAndPersistentDelegateWithLongAnswers() {
+        let app = XCUIApplication()
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
+        app.launch()
+        dismissNotificationPrompt()
+        openReminderForm(app)
+        let theme = app.buttons["Theme"]
+        XCTAssertTrue(theme.waitForExistence(timeout: 10))
+        for destination in ["Action", "Event", "Reminder"] {
+            app.segmentedControls.buttons[destination].tap()
+            XCTAssertTrue(theme.exists, "Theme must remain available for every entry type")
+        }
+        app.segmentedControls.buttons["Action"].tap()
+        theme.tap()
+        let choice = app.buttons["Problem → Solution"]
+        XCTAssertTrue(choice.waitForExistence(timeout: 5))
+        choice.tap()
+        let themeAnswer = app.descendants(matching: .any).matching(identifier: "themeAnswer0").firstMatch
+        XCTAssertTrue(themeAnswer.waitForExistence(timeout: 5))
+        themeAnswer.tap()
+        themeAnswer.typeText("My exact theme answer")
+        let themeShot = XCTAttachment(screenshot: app.screenshot())
+        themeShot.name = "Action with SAVY theme"
+        themeShot.lifetime = .keepAlways
+        add(themeShot)
+
+        let title = app.descendants(matching: .any).matching(identifier: "Title").firstMatch
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
+        title.tap()
+        let initialHeight = title.frame.height
+        let longAnswer = "Full answer test " + UUID().uuidString + "\n"
+            + (1...8).map { "Line \($0): I can see all the words I enter." }.joined(separator: "\n")
+        title.typeText(longAnswer)
+        XCTAssertEqual(title.value as? String, longAnswer)
+        XCTAssertGreaterThan(title.frame.height, initialHeight * 3,
+                             "The field must expand rather than clip or scroll within three lines")
+        XCTAssertTrue(app.staticTexts["What do I want?"].exists,
+                      "The question must remain after typing an answer")
+        let when = app.descendants(matching: .any).matching(identifier: "WhenIAm").firstMatch
+        when.tap()
+        when.typeText("Learning something unfamiliar")
+        XCTAssertTrue(app.staticTexts["When I am...I like to"].exists)
+        let outcome = app.descendants(matching: .any).matching(identifier: "Outcome").firstMatch
+        outcome.tap()
+        outcome.typeText("The full question and answer stay visible")
+        XCTAssertTrue(app.staticTexts["Done looks like..."].exists)
+        let delegateShot = XCTAttachment(screenshot: app.screenshot())
+        delegateShot.name = "Persistent Delegate questions and full answers"
+        delegateShot.lifetime = .keepAlways
+        add(delegateShot)
+        app.buttons["Save"].tap()
+        let saved = app.staticTexts.matching(NSPredicate(format: "label == %@", longAnswer)).firstMatch
+        XCTAssertTrue(saved.waitForExistence(timeout: 10))
+        saved.tap()
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "Title").firstMatch.waitForExistence(timeout: 5))
+        XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "Title").firstMatch.value as? String, longAnswer)
+        XCTAssertTrue((app.descendants(matching: .any).matching(identifier: "themeAnswer0").firstMatch.value as? String ?? "").contains("My exact theme answer"))
+        app.buttons["Cancel"].tap()
     }
 
 }

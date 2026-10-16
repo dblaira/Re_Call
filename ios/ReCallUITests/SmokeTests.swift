@@ -115,6 +115,12 @@ final class SmokeTests: XCTestCase {
         XCTAssertEqual(steps.count, 1)
 
         let title = app.descendants(matching: .any).matching(identifier: "Title").firstMatch
+        // A shorter theme can leave the field under the navigation bar, where a tap cannot focus it.
+        for _ in 0..<12 {
+            if title.exists && title.isHittable && title.frame.midY > 200 && title.frame.midY < 550 { break }
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
+            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: 130)))
+        }
         title.tap()
         title.typeText("Step regression")
         app.buttons["Save"].tap()

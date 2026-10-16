@@ -3,8 +3,23 @@ import Foundation
 @main
 struct EntryThemeChecks {
     static func main() throws {
-        precondition(PostThemeCatalog.themes.count == 31)
-        precondition(Set(PostThemeCatalog.themes.map(\.id)).count == 31)
+        precondition(PostThemeCatalog.themes.count == 33)
+        precondition(Set(PostThemeCatalog.themes.map(\.id)).count == 33)
+        // Adam, 2026-10-15: Habit first, then A Strong Yes, Pattern Recognition, Inductive
+        // Reasoning, Mental Model, and Personal Lessons; the rest keep their order.
+        precondition(Array(PostThemeCatalog.themes.prefix(7).map(\.name)) == [
+            "Habit", "A Strong Yes", "Pattern Recognition", "Inductive Reasoning",
+            "Mental Model", "Personal Lessons", "The 5 Ws",
+        ])
+        precondition(PostThemeCatalog.theme(id: "habit")?.questions.map(\.prompt) == [
+            "Make it Obvious", "Make it Easy", "Make it Attractive", "Make it Satisfying",
+        ])
+        precondition(PostThemeCatalog.theme(id: "habit")?.questions.first?.symbol == "target")
+        precondition(PostEntryDraft(entry: Reminder()).theme.id == "habit")
+        var unthemed = Reminder()
+        unthemed.postAnswers = ["An older answer."]
+        precondition(PostEntryDraft(entry: unthemed).theme.id == "five-ws")
+        precondition(PostEntryDraft(entry: unthemed).answers[0] == "What happened?\n\nAn older answer.")
         guard let theme = PostThemeCatalog.theme(id: "inductive-reasoning") else { preconditionFailure("Missing Inductive Reasoning") }
         precondition(theme.questions.map(\.prompt) == [
             "Why does this feel special?", "What difference does it make?",
@@ -42,6 +57,6 @@ struct EntryThemeChecks {
             precondition(old.title == entry.title && old.whenIAm == entry.whenIAm && old.postThemeID == nil)
             print("PASS \(kind.label): full text, theme switching, reopen, and old-cache compatibility")
         }
-        print("PASS exact 31-theme SAVY catalog")
+        print("PASS exact 33-theme SAVY catalog, Habit first")
     }
 }

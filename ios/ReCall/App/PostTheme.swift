@@ -483,3 +483,18 @@ enum PostThemeCatalog {
         return themes.first { $0.id == id }
     }
 }
+
+extension Reminder {
+    /// The first written Theme answer, without its question. Nil until an answer is written.
+    var firstThemeAnswer: String? {
+        guard let answers = postAnswers else { return nil }
+        guard let theme = PostThemeCatalog.theme(id: postThemeID) else {
+            return answers.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.first { !$0.isEmpty }
+        }
+        let fields = theme.questionAndAnswers(from: answers, containQuestions: postAnswersContainQuestions == true)
+        return fields.enumerated().map { index, field in
+            let prompt = theme.questions.indices.contains(index) ? theme.questions[index].prompt : nil
+            return PostTheme.answerText(in: field, originalPrompt: prompt)
+        }.first { !$0.isEmpty }
+    }
+}

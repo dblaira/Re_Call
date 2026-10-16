@@ -57,6 +57,18 @@ struct EntryThemeChecks {
             precondition(old.title == entry.title && old.whenIAm == entry.whenIAm && old.postThemeID == nil)
             print("PASS \(kind.label): full text, theme switching, reopen, and old-cache compatibility")
         }
-        print("PASS exact 33-theme SAVY catalog, Habit first")
+        // Adam, 2026-10-15: the Theme entry, not the delegation entry or the question, leads the card.
+        var card = Reminder()
+        card.title = "My delegation entry"
+        var cardDraft = PostEntryDraft(entry: card)
+        cardDraft.apply(to: &card)
+        precondition(card.firstThemeAnswer == nil)
+        cardDraft.setAnswer("Make it Easy\nLay out my shoes the night before.", at: 1)
+        cardDraft.apply(to: &card)
+        precondition(card.firstThemeAnswer == "Lay out my shoes the night before.")
+        cardDraft.setAnswer("Make it Obvious\nPut the shoes by the door.", at: 0)
+        cardDraft.apply(to: &card)
+        precondition(card.firstThemeAnswer == "Put the shoes by the door.")
+        print("PASS exact 33-theme SAVY catalog, Habit first, Theme answer leads the card")
     }
 }

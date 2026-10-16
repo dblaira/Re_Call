@@ -109,7 +109,10 @@ struct RemindersHomeView: View {
                         onMoveUp: { store.moveUpNext(rem, direction: .up) },
                         onMoveDown: { store.moveUpNext(rem, direction: .down) }
                     ) {
-                        BandCard(reminder: rem, bg: c.bg, fg: c.fg, accent: c.accent, detail: detail)
+                        // Adam, 2026-10-15: the Theme entry reads first on the main page cards,
+                        // never the delegation entry or the question itself.
+                        BandCard(reminder: rem, bg: c.bg, fg: c.fg, accent: c.accent,
+                                 title: rem.firstThemeAnswer, detail: detail)
                             .accessibilityIdentifier(idx == 0 ? "upNextCard0" : "upNextCard")
                     }
                 }
@@ -175,6 +178,7 @@ struct BandCard: View {
     let bg: Color
     let fg: Color
     let accent: Color
+    var title: String? = nil
     var detail: CardDetail = .minimal
 
     var body: some View {
@@ -187,7 +191,7 @@ struct BandCard: View {
             }
             .foregroundStyle(fg.opacity(0.7))
 
-            Text(reminder.title.isEmpty ? "Untitled" : reminder.title)
+            Text(title ?? (reminder.title.isEmpty ? "Untitled" : reminder.title))
                 .font(Brand.serif(26, weight: .regular))
                 .foregroundStyle(fg)
                 .fixedSize(horizontal: false, vertical: true)

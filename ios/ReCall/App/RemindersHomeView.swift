@@ -112,7 +112,7 @@ struct RemindersHomeView: View {
                         // Adam, 2026-10-15: the Theme entry reads first on the main page cards,
                         // never the delegation entry or the question itself.
                         BandCard(reminder: rem, bg: c.bg, fg: c.fg, accent: c.accent,
-                                 title: rem.firstThemeAnswer, detail: detail)
+                                 title: rem.firstThemeAnswer, detail: detail, showsTextDetails: false)
                             .accessibilityIdentifier(idx == 0 ? "upNextCard0" : "upNextCard")
                     }
                 }
@@ -180,6 +180,8 @@ struct BandCard: View {
     let accent: Color
     var title: String? = nil
     var detail: CardDetail = .minimal
+    /// Adam, 2026-10-15: main page cards match SAVY — label, answer, then pills.
+    var showsTextDetails: Bool = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -199,17 +201,17 @@ struct BandCard: View {
             Rectangle().fill(accent).frame(width: 36, height: 2)
 
             // Pattern step and priority now read as the detail labels below; tags stay as text.
-            if !tagText.isEmpty {
+            if showsTextDetails, !tagText.isEmpty {
                 Text(tagText)
                     .font(.system(size: 13, weight: .bold)).foregroundStyle(fg.opacity(0.8))
                     .lineLimit(2).fixedSize(horizontal: false, vertical: true)
             }
             // Demoted but still present: date/time, Lift, location.
-            if !secondaryText.isEmpty {
+            if showsTextDetails, !secondaryText.isEmpty {
                 Text(secondaryText).font(.system(size: 12, weight: .medium)).foregroundStyle(fg.opacity(0.5))
             }
             // Notes/outcome only on the larger cards.
-            if detail != .minimal, let note = detailLine {
+            if showsTextDetails, detail != .minimal, let note = detailLine {
                 Text(note)
                     .font(.system(size: 14))
                     .foregroundStyle(fg.opacity(0.78))

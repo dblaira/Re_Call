@@ -198,9 +198,9 @@ struct BandCard: View {
 
             Rectangle().fill(accent).frame(width: 36, height: 2)
 
-            // Prominent: the signals worth scanning for — Pattern step, priority, tags.
-            if !signalText.isEmpty {
-                Text(signalText)
+            // Pattern step and priority now read as the detail labels below; tags stay as text.
+            if !tagText.isEmpty {
+                Text(tagText)
                     .font(.system(size: 13, weight: .bold)).foregroundStyle(fg.opacity(0.8))
                     .lineLimit(2).fixedSize(horizontal: false, vertical: true)
             }
@@ -216,6 +216,10 @@ struct BandCard: View {
                     .lineLimit(detail == .full ? 3 : 1)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            // Adam, 2026-10-15: "Add the meta data labels to the cards in the Understood app too."
+            // The same Theme, Pattern, Priority and Energy labels as SAVY's main page cards.
+            CardDetailPills(details: CardDetailPill.values(for: reminder), colors: pillColors)
+                .padding(.top, 2)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
@@ -237,13 +241,18 @@ struct BandCard: View {
         if !reminder.outcome.isEmpty { return reminder.outcome }
         return nil
     }
-    /// Prominent signal line — what the user scans for.
-    private var signalText: String {
-        var parts: [String] = []
-        if reminder.context != .none { parts.append(reminder.context.label) }    // Adam Pattern step
-        if reminder.priority != .none { parts.append(reminder.priority.marks) }
-        parts.append(contentsOf: reminder.tags.map { "#\($0)" })
-        return parts.joined(separator: "   ·   ")
+    private var tagText: String {
+        reminder.tags.map { "#\($0)" }.joined(separator: "   ·   ")
+    }
+    /// SAVY's muted pills: the card's own color, shaded.
+    private var pillColors: CardDetailPills.Colors {
+        if bg == Brand.darkRed {
+            return .init(background: Color(hex: 0x98011F), text: Color(hex: 0xCEC7C9), icon: Color(hex: 0xCEC7C9))
+        }
+        if bg == Brand.tan {
+            return .init(background: Color(hex: 0xBCA489), text: Color(hex: 0x595653), icon: Brand.crimson)
+        }
+        return .init(background: Color(hex: 0xEBEBEB), text: Color(hex: 0x737373), icon: Brand.crimson)
     }
     /// Quiet secondary line — Lift and location. Date/time intentionally omitted from cards
     /// (it lives in the entry form); the user doesn't scan for it here.
@@ -252,6 +261,142 @@ struct BandCard: View {
         if !reminder.listName.isEmpty { parts.append(reminder.listName) }        // Lift
         if !reminder.locationName.isEmpty { parts.append(reminder.locationName) }
         return parts.joined(separator: "   ·   ")
+    }
+}
+
+// MARK: - Detail labels
+
+/// The saved Theme, Pattern, Priority and Energy, shown the way SAVY's main page cards show them.
+struct CardDetailPill: Identifiable {
+    enum Kind: String { case theme, pattern, priority, energy }
+
+    let kind: Kind
+    let text: String
+    let systemImage: String
+    let accessibilityLabel: String
+    var id: Kind { kind }
+
+    static func values(for reminder: Reminder) -> [CardDetailPill] {
+        var values: [CardDetailPill] = []
+        let savedName = reminder.postThemeName.flatMap { name in
+            name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : name
+        }
+        let theme = PostThemeCatalog.theme(id: reminder.postThemeID)
+            ?? PostThemeCatalog.themes.first { $0.name == savedName }
+        if let name = theme?.name ?? savedName {
+            values.append(CardDetailPill(kind: .theme, text: name,
+                                         systemImage: theme?.questions.first?.symbol ?? "list.bullet",
+                                         accessibilityLabel: "Theme: \(name)"))
+        }
+        if reminder.context != .none {
+            values.append(CardDetailPill(kind: .pattern, text: reminder.context.label, systemImage: "list.number",
+                                         accessibilityLabel: "Pattern: \(reminder.context.label)"))
+        }
+        if reminder.priority != .none {
+            values.append(CardDetailPill(kind: .priority, text: "\(reminder.priority.label) priority",
+                                         systemImage: "exclamationmark.3",
+                                         accessibilityLabel: "Priority: \(reminder.priority.label)"))
+        }
+        if reminder.energy != .none {
+            values.append(CardDetailPill(kind: .energy, text: "\(reminder.energy.label) energy", systemImage: "bolt",
+                                         accessibilityLabel: "Energy: \(reminder.energy.label)"))
+        }
+        return values
+    }
+}
+
+/// Theme and Pattern share the first row, Priority and Energy the next, wrapping when needed.
+struct CardDetailPills: View {
+    struct Colors {
+        let background: Color
+        let text: Color
+        let icon: Color
+    }
+
+    let details: [CardDetailPill]
+    let colors: Colors
+
+    var body: some View {
+        if !details.isEmpty {
+            VStack(alignment: .leading, spacing: 4) {
+                pillRow(details.filter { $0.kind == .theme || $0.kind == .pattern })
+                pillRow(details.filter { $0.kind == .priority || $0.kind == .energy })
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .environment(\.legibilityWeight, .regular)
+        }
+    }
+
+    @ViewBuilder
+    private func pillRow(_ row: [CardDetailPill]) -> some View {
+        if !row.isEmpty {
+            PillFlowLayout(spacing: 4) {
+                ForEach(row) { detail in
+                    HStack(spacing: 3) {
+                        Image(systemName: detail.systemImage)
+                            .font(.system(size: 13, weight: .regular))
+                            .symbolRenderingMode(.monochrome)
+                            .foregroundStyle(colors.icon)
+                            .accessibilityHidden(true)
+                        Text(detail.text)
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundStyle(colors.text)
+                            .lineLimit(1)
+                    }
+                    .padding(.horizontal, 8)
+                    .frame(height: 24)
+                    .background(colors.background, in: Capsule())
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(detail.accessibilityLabel)
+                    .accessibilityIdentifier("cardDetail-\(detail.kind.rawValue)")
+                }
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+private struct PillFlowLayout: Layout {
+    let spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        arrangement(width: proposal.width, subviews: subviews).size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = arrangement(width: bounds.width, subviews: subviews)
+        for (index, frame) in result.frames.enumerated() {
+            subviews[index].place(
+                at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY),
+                anchor: .topLeading,
+                proposal: ProposedViewSize(frame.size)
+            )
+        }
+    }
+
+    private func arrangement(width: CGFloat?, subviews: Subviews) -> (size: CGSize, frames: [CGRect]) {
+        guard !subviews.isEmpty else { return (.zero, []) }
+        let availableWidth = width.flatMap { $0.isFinite ? max(0, $0) : nil } ?? .greatestFiniteMagnitude
+        var frames: [CGRect] = []
+        var x: CGFloat = 0
+        var y: CGFloat = 0
+        var rowHeight: CGFloat = 0
+        var usedWidth: CGFloat = 0
+        for subview in subviews {
+            let ideal = subview.sizeThatFits(.unspecified)
+            let size = subview.sizeThatFits(ProposedViewSize(width: min(ideal.width, availableWidth), height: nil))
+            if x > 0, x + size.width > availableWidth {
+                x = 0
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            frames.append(CGRect(x: x, y: y, width: size.width, height: size.height))
+            usedWidth = max(usedWidth, x + size.width)
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
+        return (CGSize(width: usedWidth, height: y + rowHeight), frames)
     }
 }
 

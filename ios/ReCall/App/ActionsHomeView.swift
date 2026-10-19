@@ -64,6 +64,7 @@ struct ActionsHomeView: View {
                 ForEach(Array(actions.enumerated()), id: \.element.id) { idx, action in
                     UpNextCardRow(
                         reminderId: action.id,
+                        cardTitle: .reminder(action),
                         armedId: $armedReorderId,
                         actions: cardActions(action),
                         onTap: { onOpen(action) },
@@ -78,6 +79,7 @@ struct ActionsHomeView: View {
                             detail: idx == 0 ? .full : (idx == 1 ? .medium : .minimal)
                         )
                         .scaleEffect(x: 1, y: cardScale(for: idx), anchor: .top)
+                        .accessibilityElement(children: .contain)
                         .accessibilityIdentifier(idx == 0 ? "topActionCard" : "actionCard")
                     }
                 }

@@ -1,0 +1,13 @@
+---
+description: Read UI test artifacts only after their result bundle has finalized
+alwaysApply: false
+globs: ["ios/ReCallUITests/**", "qc.sh", "scripts/agent-ios-check.sh"]
+---
+
+Wait for the owning xcodebuild process to finish and verify the result bundle's Info.plist exists before using xcresulttool. An in-progress bundle is not a readable failure artifact. Keep each retry in a new result path, and use an explicit simulator ID belonging to the current task.
+
+Keep card title accessibility identifiers unique by card ID. When a UI test cannot reach a card, inspect the screen recording and hierarchy before changing assertions; distinguish a hidden title, an obstructing sheet, and a gesture that steals scrolling.
+
+Native accessibility activation can expose a card title as a Button rather than a StaticText. Locate card titles by their stable card-specific identifier and exact label, without assuming an element type.
+
+Inline-title acceptance must include the rendered layout: the editable title stays above the keyboard, and the template pills remain inside the card with padding. A matching field value alone does not prove either. Keep the geometry assertions and inspect the phone screenshots when changing the editor or tile sizing.

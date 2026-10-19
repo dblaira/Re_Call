@@ -13,12 +13,19 @@ echo "Project: $PROJECT"
 echo "Scheme: $SCHEME"
 echo "Destination: $DESTINATION"
 
+EXTRA_ARGS=()
+if [ -n "${IOS_DERIVED_DATA_PATH:-}" ]; then
+  EXTRA_ARGS+=(-derivedDataPath "$IOS_DERIVED_DATA_PATH")
+fi
+
 xcodebuild \
   -project "$PROJECT" \
   -scheme "$SCHEME" \
   -configuration Debug \
   -sdk iphonesimulator \
   -destination "$DESTINATION" \
+  -parallel-testing-enabled NO \
+  "${EXTRA_ARGS[@]}" \
   test
 
 echo "Agent iOS check passed: Re_Call build and UI tests succeeded."

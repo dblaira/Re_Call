@@ -103,7 +103,20 @@ struct ReminderRowView: View {
     var onToggle: () -> Void
     var onTap: () -> Void
 
+    @StateObject private var titleSession = CardTitleSession()
+
     var body: some View {
+        Group {
+            if titleSession.isEditing { rowContent }
+            else {
+                rowContent.onTapGesture(perform: onTap)
+                    .recallCardTitleHold(.reminder(reminder), session: titleSession)
+            }
+        }
+        .recallCardTitleContext(titleSession)
+    }
+
+    private var rowContent: some View {
         HStack(spacing: 12) {
             Button(action: onToggle) {
                 Image(systemName: completed ? "checkmark.circle.fill" : "circle")
@@ -118,10 +131,11 @@ struct ReminderRowView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(reminder.title.isEmpty ? "Untitled" : reminder.title)
+                CardTitleText(card: .reminder(reminder))
+                    .tint(.white)
                     .font(.system(size: 19, weight: .bold))
                     .foregroundStyle(completed ? .white.opacity(0.5) : .white)
-                    .strikethrough(completed)
+                    .strikethrough(completed && !titleSession.isEditing)
                     .lineLimit(2)
                 if let sub = subtitle {
                     Text(sub).font(.system(size: 16)).foregroundStyle(.white.opacity(0.55)).lineLimit(1)
@@ -149,7 +163,6 @@ struct ReminderRowView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.08)))
         .contentShape(Rectangle())
-        .onTapGesture(perform: onTap)
     }
 
     private var subtitle: String? {

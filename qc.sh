@@ -45,6 +45,12 @@ else
   bad "native Harness capture runtime tests"
 fi
 
+if ./scripts/test-card-title-runtime.sh >/dev/null 2>&1; then
+  ok "native card title persistence tests"
+else
+  bad "native card title persistence tests"
+fi
+
 # recommendations.js must be the deterministic compile of the current KG.
 REC=build/recommendations.js
 BEFORE=$(md5 -q "$REC" 2>/dev/null || echo none)
@@ -72,15 +78,21 @@ fi
 # ---------- Layer 3: native device smoke (--full) ----------
 if [ "${1:-}" = "--full" ]; then
   step "Layer 3/3 — native device smoke (XCUITest, simulator)"
-  SIM_LINE=$(xcrun simctl list devices available | grep "iPhone" | tail -1)
-  SIM_ID=$(echo "$SIM_LINE" | grep -oE "[0-9A-F-]{36}" | head -1)
+  if [ -n "${RECALL_QC_SIMULATOR_ID:-}" ]; then
+    SIM_ID="$RECALL_QC_SIMULATOR_ID"
+    SIM_LINE=$(xcrun simctl list devices available | grep "$SIM_ID")
+  else
+    SIM_LINE=$(xcrun simctl list devices available | grep "iPhone" | tail -1)
+    SIM_ID=$(echo "$SIM_LINE" | grep -oE "[0-9A-F-]{36}" | head -1)
+  fi
   echo "using simulator: $SIM_LINE"
-  TEST_LOG=$(xcodebuild -project ios/ReCall.xcodeproj -scheme ReCall \
-       -sdk iphonesimulator \
-       -destination "platform=iOS Simulator,id=$SIM_ID" \
-       -derivedDataPath "$DD" test 2>&1)
+  # The full QC gate includes the required agent build-and-test gate in this same run.
+  TEST_LOG_FILE="$DD/qc-ui-tests.log"
+  echo "test log: $TEST_LOG_FILE"
+  IOS_DESTINATION="platform=iOS Simulator,id=$SIM_ID" \
+       IOS_DERIVED_DATA_PATH="$DD" ./scripts/agent-ios-check.sh >"$TEST_LOG_FILE" 2>&1
   TEST_RC=$?
-  echo "$TEST_LOG" | grep -E "Test Suite|Test Case.*(passed|failed)|TEST" | tail -8
+  grep -E "Test Suite|Test Case.*(passed|failed)|TEST|Agent iOS check passed" "$TEST_LOG_FILE" | tail -9
   if [ $TEST_RC -eq 0 ]; then ok "device smoke"; else bad "device smoke"; fi
 else
   printf "\n(skipping Layer 3 device smoke — run ./qc.sh --full to include it)\n"

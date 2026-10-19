@@ -8,6 +8,9 @@ final class ReminderStore: ObservableObject {
     @Published private(set) var reminders: [Reminder] = []
 
     init() {
+        #if DEBUG
+        CardTitleUITestFixtures.seedIfRequested()
+        #endif
         reminders = ICloudReminderCache.load()
         reminders.forEach(NotificationScheduler.schedule)
     }

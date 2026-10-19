@@ -144,12 +144,30 @@ every row — on device that intercepts the ScrollView's vertical pan. Simulator
 that only claims horizontal swipes and reorder holds; vertical pans pass through to the ScrollView.
 Do **not** put SwiftUI drag/long-press reorder on feed cards inside `RemindersHomeView`.
 
-Reorder: **long-press a card** (~0.35s, crimson ring + up/down chevrons), then either **tap a chevron**
-to move one slot (stays armed for more taps) or **drag up/down while holding** to move and disarm.
-Scrolling disarms any armed card when **content offset actually changes** (iOS 18+
-`onScrollGeometryChange` with a delta threshold — arming a card must not disarm itself via
-layout churn from scale/shadow). `.scrollDisabled` is NOT used anywhere. Device testing is the
-only proof — run on Adam's iPhone via Xcode ⌘R.
+**Updated 2026-10-18:** long-press now puts the cursor at the end of the card title. The inline
+up/down arrows still move an Up Next card one slot. Tap outside the card to save the title and
+dismiss the keyboard. Keep the UIKit gesture surface: the title field receives touches only
+while editing, and vertical pans still reach the page. `.scrollDisabled` is not used.
+Device testing is the proof for this interaction.
+
+## 5c. Inline card titles
+
+`CardTitle.swift` supplies the shared inline editor and outside-tap handling. It covers
+Reminders, Actions, completed rows, all-day and timed Calendar cards, and every Reminder shape
+and PRO template. Use the card's existing font, foreground and background; do not add a modal
+rename form. The page brings the active editor above the keyboard, and template tiles grow to
+keep the pills inside their background. A renamed template seeds the new entry with its displayed title.
+
+`CardTitleStore.swift` saves display titles in a separate local/iCloud `card-titles.json` document,
+keyed by reminder UUID or stable template ID. Original titles, Theme answers and other entry
+contents remain untouched. Empty drafts preserve the existing title; the reset icon restores
+the original display. The entry form continues to show the original writing.
+
+`CardTitleTests` uses isolated fixtures and real holds, typing, keyboard taps, outside taps and
+relaunches. Set `RECALL_QC_SIMULATOR_ID` to the simulator owned by the current task when running
+`./qc.sh --full`; this full run also executes `scripts/agent-ios-check.sh`. Tests must never write
+to the live reminder cache, iCloud or Harness. See `scripts/test-card-title-runtime.sh` for local
+persistence and per-card merge checks.
 
 ## 6. Status + what's pending
 

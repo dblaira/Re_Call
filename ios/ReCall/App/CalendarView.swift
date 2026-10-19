@@ -33,6 +33,7 @@ struct CalendarView: View {
                     .padding(.bottom, 150)
                 }
             }
+            .accessibilityIdentifier("calendarScroll")
             .background(Color.white)
             .ignoresSafeArea(edges: .top)
             .onAppear { scrollToNow(proxy, animated: false) }
@@ -199,9 +200,11 @@ struct CalendarView: View {
                     .frame(width: 52, alignment: .trailing)
                 VStack(spacing: 6) {
                     ForEach(items) { r in
-                        SwipeRow(actions: calendarActions(r), onTap: { onOpen(r) }, cornerRadius: 8) {
+                        SwipeRow(cardTitle: .reminder(r), actions: calendarActions(r), onTap: { onOpen(r) }, cornerRadius: 8) {
                             eventBlock(r, compact: true).background(Color.white)
                         }
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("calendarCard-\(r.id.uuidString)")
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                 }
@@ -241,9 +244,11 @@ struct CalendarView: View {
                 }
             }
             ForEach(timed) { r in
-                SwipeRow(actions: calendarActions(r), onTap: { onOpen(r) }, cornerRadius: 8) {
+                SwipeRow(cardTitle: .reminder(r), actions: calendarActions(r), onTap: { onOpen(r) }, cornerRadius: 8) {
                     eventBlock(r, compact: false).background(Color.white)
                 }
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("calendarCard-\(r.id.uuidString)")
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .padding(.leading, gutter)
                 .padding(.trailing, 2)
@@ -267,25 +272,8 @@ struct CalendarView: View {
     }
 
     private func eventBlock(_ r: Reminder, compact: Bool) -> some View {
-        let hot = r.urgent || r.flag || r.priority == .high
-        return HStack(spacing: 8) {
-            RoundedRectangle(cornerRadius: 2).fill(hot ? Brand.crimson : Color.black.opacity(0.5)).frame(width: 3)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(r.title.isEmpty ? "Untitled" : r.title)
-                    .font(.system(size: 15, weight: .bold)).foregroundStyle(.black)
-                    .strikethrough(r.status == .completed).lineLimit(1)
-                if let sub = compact ? subtitle(r) : (r.dueTime.map { Self.timeFmt.string(from: $0) }) {
-                    Text(sub).font(.system(size: 13, weight: .medium)).foregroundStyle(.black.opacity(0.5)).lineLimit(1)
-                }
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(.vertical, 6).padding(.horizontal, 8)
-        .frame(height: compact ? 46 : hourHeight - 8, alignment: .top)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background((hot ? Brand.crimson : Color.black).opacity(hot ? 0.12 : 0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke((hot ? Brand.crimson : Color.black).opacity(0.15)))
+        CalendarEventCard(reminder: r, height: compact ? 46 : hourHeight - 8,
+                          subtitle: compact ? subtitle(r) : r.dueTime.map { Self.timeFmt.string(from: $0) })
     }
 
     // MARK: Data & helpers
@@ -399,5 +387,40 @@ struct CalendarView: View {
         guard let start = cal.date(byAdding: .day, value: -(weekdayOfFirst - 1), to: monthStart) else { return [] }
         let days = (0..<42).compactMap { cal.date(byAdding: .day, value: $0, to: start) }
         return stride(from: 0, to: days.count, by: 7).map { Array(days[$0..<min($0 + 7, days.count)]) }
+    }
+}
+
+/// Expands with the inline cursor so a calendar slot never clips the editable title.
+private struct CalendarEventCard: View {
+    let reminder: Reminder
+    let height: CGFloat
+    let subtitle: String?
+    @Environment(\.isEditingRecallCardTitle) private var isEditing
+
+    var body: some View {
+        let hot = reminder.urgent || reminder.flag || reminder.priority == .high
+        HStack(spacing: 8) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(hot ? Brand.crimson : Color.black.opacity(0.5)).frame(width: 3)
+            VStack(alignment: .leading, spacing: 1) {
+                CardTitleText(card: .reminder(reminder))
+                    .tint(.black)
+                    .font(.system(size: 15, weight: .bold)).foregroundStyle(.black)
+                    .strikethrough(reminder.status == .completed && !isEditing)
+                    .lineLimit(isEditing ? nil : 1)
+                if let subtitle {
+                    Text(subtitle).font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.black.opacity(0.5)).lineLimit(1)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.vertical, 6).padding(.horizontal, 8)
+        .frame(minHeight: height, maxHeight: isEditing ? nil : height, alignment: .top)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background((hot ? Brand.crimson : Color.black).opacity(hot ? 0.12 : 0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke((hot ? Brand.crimson : Color.black).opacity(0.15)))
     }
 }

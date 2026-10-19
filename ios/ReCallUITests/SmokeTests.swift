@@ -49,7 +49,7 @@ final class SmokeTests: XCTestCase {
                       "Professional Templates page title missing")
         XCTAssertTrue(app.otherElements["professionalTemplateGrid"].waitForExistence(timeout: 10),
                       "Professional template grid missing")
-        XCTAssertTrue(app.staticTexts["Reply with leverage"].waitForExistence(timeout: 10),
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "cardTitleText-shape:pro-reply").firstMatch.waitForExistence(timeout: 10),
                       "Expected professional template card missing")
     }
 

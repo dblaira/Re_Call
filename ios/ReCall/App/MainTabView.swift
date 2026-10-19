@@ -5,13 +5,16 @@ import UIKit
 /// is a lightning bolt; press it to "charge" (haptic) and the three entry types fan out — Reminder
 /// (left), Action (up), Event (right). Drag onto one and release to pick, or tap one.
 struct MainTabView: View {
+    @ObservedObject private var titleEditing = CardTitleEditingState.shared
     @EnvironmentObject var store: ReminderStore
     @State private var tab: Tab = .reminders
-    @State private var showingForm = false
-    @State private var editing: Reminder?
+    private struct EntryPresentation: Identifiable {
+        let id = UUID()
+        let kind: ReminderKind
+        let existing: Reminder?
+    }
+    @State private var entryForm: EntryPresentation?
     @State private var fabMenuOpen = false
-    @State private var pendingKind: ReminderKind = .reminder
-    @State private var pendingSeed: Reminder?
     @State private var highlighted: ReminderKind?
     @State private var draggingFab = false
     @State private var menuWasOpenAtStart = false
@@ -24,19 +27,27 @@ struct MainTabView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             Brand.page.ignoresSafeArea()
-            content
+            ScrollViewReader { proxy in
+                content
+                    .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)) { _ in
+                        guard titleEditing.isEditing else { return }
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            proxy.scrollTo("activeCardTitleEditor", anchor: .center)
+                        }
+                    }
+            }
             if fabMenuOpen {
                 Color.black.opacity(0.45).ignoresSafeArea()
                     .onTapGesture { closeFabMenu() }
                     .transition(.opacity)
             }
-            tabBar
+            if !titleEditing.isEditing { tabBar }
         }
         .preferredColorScheme(.dark)
-        .sheet(isPresented: $showingForm, onDismiss: { editing = nil; pendingSeed = nil }) {
+        .sheet(item: $entryForm) { presentation in
             ReminderFormView(
-                initialKind: editing?.kind ?? pendingSeed?.kind ?? pendingKind,
-                existing: editing ?? pendingSeed,
+                initialKind: presentation.kind,
+                existing: presentation.existing,
                 existingTags: knownTags
             ) { store.save($0) }
         }
@@ -185,23 +196,19 @@ struct MainTabView: View {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { fabMenuOpen = false }
     }
     private func startEntry(_ kind: ReminderKind) {
-        pendingKind = kind
-        pendingSeed = nil
-        editing = nil
         closeFabMenu()
-        showingForm = true
+        entryForm = EntryPresentation(kind: kind, existing: nil)
     }
     private func pickShape(_ shape: ShapeTileSpec) {
         var draft = Reminder()
         draft.kind = .reminder
-        draft.title = shape.title
+        draft.title = CardTitleStore.shared.title(for: shape.cardTitle)
         draft.seededFromTemplateID = shape.templateID
-        pendingKind = .reminder
-        pendingSeed = draft
-        editing = nil
-        showingForm = true
+        entryForm = EntryPresentation(kind: .reminder, existing: draft)
     }
-    private func open(_ r: Reminder) { editing = r; pendingSeed = nil; showingForm = true }
+    private func open(_ r: Reminder) {
+        entryForm = EntryPresentation(kind: r.kind, existing: r)
+    }
 }
 
 /// Professional template library. The layout intentionally behaves like a masonry/waterfall board:
@@ -210,24 +217,24 @@ struct ProfessionalTemplatesView: View {
     var onPick: (ShapeTileSpec) -> Void = { _ in }
 
     private let starterLeftTiles: [ShapeTileSpec] = [
-        .init(title: "Reply with leverage", bg: Brand.crimson, fg: .white, tags: ["PERSON", "URL"], height: 170, dark: true, templateID: "FindLeveragePointReminder"),
-        .init(title: "Turn note into ask", bg: Brand.primaryYellow, fg: .black, tags: ["ACTION"], height: 145, dark: false),
+        .init(id: "pro-reply", title: "Reply with leverage", bg: Brand.crimson, fg: .white, tags: ["PERSON", "URL"], height: 170, dark: true, templateID: "FindLeveragePointReminder"),
+        .init(id: "pro-note", title: "Turn note into ask", bg: Brand.primaryYellow, fg: .black, tags: ["ACTION"], height: 145, dark: false),
     ]
 
     private let starterRightTiles: [ShapeTileSpec] = [
-        .init(title: "Before the meeting", bg: Brand.primaryBlue, fg: .white, tags: ["TIME", "NOTES"], height: 210, dark: true, templateID: "ScanCalendarReminder"),
+        .init(id: "pro-meeting", title: "Before the meeting", bg: Brand.primaryBlue, fg: .white, tags: ["TIME", "NOTES"], height: 210, dark: true, templateID: "ScanCalendarReminder"),
     ]
 
     private let proLeftTiles: [ShapeTileSpec] = [
-        .init(title: "Research sprint", bg: Brand.nearBlack, fg: .white, tags: ["URL", "TIME", "PRO"], height: 140, dark: true),
-        .init(title: "Client follow-up", bg: Brand.primaryGreen, fg: .white, tags: ["PERSON", "DATE"], height: 155, dark: true),
-        .init(title: "Decision receipt", bg: Brand.tan, fg: Brand.nearBlack, tags: ["PROOF"], height: 175, dark: false),
+        .init(id: "pro-research", title: "Research sprint", bg: Brand.nearBlack, fg: .white, tags: ["URL", "TIME", "PRO"], height: 140, dark: true),
+        .init(id: "pro-client", title: "Client follow-up", bg: Brand.primaryGreen, fg: .white, tags: ["PERSON", "DATE"], height: 155, dark: true),
+        .init(id: "pro-decision", title: "Decision receipt", bg: Brand.tan, fg: Brand.nearBlack, tags: ["PROOF"], height: 175, dark: false),
     ]
 
     private let proRightTiles: [ShapeTileSpec] = [
-        .init(title: "Promise tracker", bg: Brand.darkRed, fg: .white, tags: ["PERSON", "TIME"], height: 140, dark: true),
-        .init(title: "Professional reset", bg: Brand.tileBlue, fg: .white, tags: ["CUE"], height: 150, dark: true),
-        .init(title: "Send the clean version", bg: Brand.tileGray, fg: Brand.nearBlack, tags: ["DELEGATE"], height: 190, dark: false),
+        .init(id: "pro-promise", title: "Promise tracker", bg: Brand.darkRed, fg: .white, tags: ["PERSON", "TIME"], height: 140, dark: true),
+        .init(id: "pro-reset", title: "Professional reset", bg: Brand.tileBlue, fg: .white, tags: ["CUE"], height: 150, dark: true),
+        .init(id: "pro-send", title: "Send the clean version", bg: Brand.tileGray, fg: Brand.nearBlack, tags: ["DELEGATE"], height: 190, dark: false),
     ]
 
     var body: some View {
@@ -296,8 +303,11 @@ struct ProfessionalTemplatesView: View {
     private func column(_ tiles: [ShapeTileSpec]) -> some View {
         VStack(spacing: 10) {
             ForEach(tiles) { spec in
-                Button { onPick(spec) } label: { ShapeTile(spec: spec) }
-                    .buttonStyle(.plain)
+                EditableCardButton(cardTitle: spec.cardTitle, action: { onPick(spec) }) {
+                    ShapeTile(spec: spec)
+                }
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("shapeCard-\(spec.id)")
             }
         }
         .frame(maxWidth: .infinity, alignment: .top)

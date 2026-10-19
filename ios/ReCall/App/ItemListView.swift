@@ -87,6 +87,7 @@ struct CompletedBand: View {
                         ItemRow(
                             reminder: reminder,
                             completed: true,
+                            darkBackground: true,
                             onToggle: { onUncomplete(reminder) },
                             onTap: { onOpen(reminder) },
                             onDelete: { onDelete(reminder) }
@@ -109,29 +110,42 @@ struct CompletedBand: View {
 struct ItemRow: View {
     let reminder: Reminder
     var completed: Bool = false
+    var darkBackground: Bool = false
     var onToggle: () -> Void
     var onTap: () -> Void
     var onDelete: (() -> Void)? = nil
 
+    @StateObject private var titleSession = CardTitleSession()
     @State private var offset: CGFloat = 0
     private let actionsWidth: CGFloat = 132
+    private var ink: Color { darkBackground ? Brand.tan : .black }
 
     var body: some View {
         ZStack(alignment: .leading) {
-            actions
-            rowContent
-                .background(completed ? Color.black.opacity(0.03) : Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.black.opacity(0.08)))
-                .offset(x: offset)
-                .simultaneousGesture(swipe)
-                .onTapGesture {
-                    if offset != 0 { withAnimation(.snappy) { offset = 0 } }
-                    else { onTap() }
+            if offset > 0 { actions }
+            Group {
+                if titleSession.isEditing { rowContent }
+                else {
+                    rowContent
+                        .simultaneousGesture(swipe)
+                        .onTapGesture {
+                            if offset != 0 { withAnimation(.snappy) { offset = 0 } }
+                            else { onTap() }
+                        }
+                        .recallCardTitleHold(.reminder(reminder), session: titleSession)
                 }
+            }
+            .background(darkBackground ? Color.white.opacity(0.04) : (completed ? Color.black.opacity(0.03) : Color.white))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.black.opacity(0.08)))
+            .offset(x: offset)
         }
         .clipShape(RoundedRectangle(cornerRadius: 12))
-        .opacity(completed ? 0.7 : 1)
+        .opacity(completed && !titleSession.isEditing ? 0.7 : 1)
+        .recallCardTitleContext(titleSession)
+        .onChange(of: titleSession.isEditing) { _, editing in if editing { offset = 0 } }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("itemCard-\(reminder.id.uuidString)")
     }
 
     private var swipe: some Gesture {
@@ -186,13 +200,14 @@ struct ItemRow: View {
             .buttonStyle(.plain)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(reminder.title.isEmpty ? "Untitled" : reminder.title)
+                CardTitleText(card: .reminder(reminder))
+                    .tint(ink)
                     .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(completed ? .black.opacity(0.4) : .black)
-                    .strikethrough(completed)
+                    .foregroundStyle(ink.opacity(completed && !titleSession.isEditing ? 0.65 : 1))
+                    .strikethrough(completed && !titleSession.isEditing)
                     .lineLimit(2)
                 if let sub = subtitle {
-                    Text(sub).font(.system(size: 14)).foregroundStyle(.black.opacity(0.45)).lineLimit(1)
+                    Text(sub).font(.system(size: 14)).foregroundStyle(ink.opacity(0.45)).lineLimit(1)
                 }
             }
 
@@ -247,50 +262,62 @@ struct SwipeAction: Identifiable {
 /// Home Up Next reorder lives in `UpNextCardRow` (UIKit gestures). Do not add per-row SwiftUI
 /// drag/long-press reorder here — it froze home scroll on device (HANDOFF §5b).
 struct SwipeRow<Content: View>: View {
+    let cardTitle: CardTitle
     let actions: [SwipeAction]
     var onTap: () -> Void = {}
     var cornerRadius: CGFloat = 12
     var swipeEnabled: Bool = true
     @ViewBuilder var content: Content
 
+    @StateObject private var titleSession = CardTitleSession()
     @State private var offset: CGFloat = 0
     private var actionsWidth: CGFloat { CGFloat(actions.count) * 64 }
 
     var body: some View {
-        ZStack(alignment: .leading) {
-            HStack(spacing: 0) {
-                ForEach(actions) { a in
-                    Button {
-                        withAnimation(.snappy) { offset = 0 }
-                        a.run()
-                    } label: {
-                        VStack(spacing: 3) {
-                            Image(systemName: a.icon).font(.system(size: 16, weight: .bold))
-                            Text(a.title).font(.system(size: 10, weight: .heavy))
-                        }
-                        .foregroundStyle(.white)
-                        .frame(width: 64)
-                        .frame(maxHeight: .infinity)
-                        .background(a.bg)
-                    }
-                    .buttonStyle(.plain)
-                }
+        interactiveContent
+            .background(alignment: .leading) {
+                if offset > 0 { actionTray }
             }
-            .frame(width: actionsWidth)
-            .frame(maxHeight: .infinity)
+            .recallCardTitleContext(titleSession)
+            .onChange(of: titleSession.isEditing) { _, editing in if editing { offset = 0 } }
+            .zIndex(titleSession.isEditing ? 1 : 0)
+    }
 
-            interactiveContent
+    private var actionTray: some View {
+        HStack(spacing: 0) {
+            ForEach(actions) { a in
+                Button {
+                    withAnimation(.snappy) { offset = 0 }
+                    a.run()
+                } label: {
+                    VStack(spacing: 3) {
+                        Image(systemName: a.icon).font(.system(size: 16, weight: .bold))
+                        Text(a.title).font(.system(size: 10, weight: .heavy))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(width: 64)
+                    .frame(maxHeight: .infinity)
+                    .background(a.bg)
+                }
+                .buttonStyle(.plain)
+            }
         }
+        .frame(width: actionsWidth)
+        .frame(maxHeight: .infinity)
     }
 
     @ViewBuilder private var interactiveContent: some View {
-        content
-            .offset(x: offset)
-            .onTapGesture {
-                if offset != 0 { withAnimation(.snappy) { offset = 0 } }
-                else { onTap() }
-            }
-            .simultaneousGesture(swipeDragGesture)
+        if titleSession.isEditing { content }
+        else {
+            content
+                .offset(x: offset)
+                .onTapGesture {
+                    if offset != 0 { withAnimation(.snappy) { offset = 0 } }
+                    else { onTap() }
+                }
+                .simultaneousGesture(swipeDragGesture)
+                .recallCardTitleHold(cardTitle, session: titleSession)
+        }
     }
 
     /// Horizontal swipe — simultaneous so vertical pans reach the ScrollView.

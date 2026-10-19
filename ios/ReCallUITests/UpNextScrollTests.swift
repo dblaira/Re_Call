@@ -38,7 +38,19 @@ final class UpNextScrollTests: XCTestCase {
 
         for _ in 0..<8 {
             if shapes.exists && shapes.isHittable { return }
-            scroll.swipeUp()
+            // A full-screen swipe can jump past the heading on smaller phones,
+            // especially with the keyboard open. Drag within the visible page
+            // and reverse if the heading has already passed above the viewport.
+            let keyboard = app.keyboards.firstMatch
+            let top = max(scroll.frame.minY, app.frame.minY + 100)
+            let bottom = min(scroll.frame.maxY, keyboard.exists ? keyboard.frame.minY : app.frame.maxY) - 24
+            let low = top + (bottom - top) * 0.7
+            let high = top + (bottom - top) * 0.3
+            let towardTop = !shapes.exists || shapes.frame.maxY >= top
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            let start = origin.withOffset(CGVector(dx: app.frame.width / 2, dy: towardTop ? low : high))
+            let end = origin.withOffset(CGVector(dx: app.frame.width / 2, dy: towardTop ? high : low))
+            start.press(forDuration: 0.05, thenDragTo: end)
         }
         XCTAssertTrue(shapes.waitForExistence(timeout: 2), "Reminder shapes never scrolled into view", file: file, line: line)
         XCTAssertTrue(shapes.isHittable, "Reminder shapes visible but not hittable — scroll stuck", file: file, line: line)
@@ -67,6 +79,8 @@ final class UpNextScrollTests: XCTestCase {
         let up = app.buttons["reorderUp"].firstMatch
         XCTAssertTrue(up.waitForExistence(timeout: 5), "armed reorder chevrons did not appear")
         up.tap()
+        app.staticTexts["Understood"].tap()
+        XCTAssertFalse(app.textFields["cardTitleField"].exists)
 
         XCTAssertLessThan(betaText.frame.minY, alphaText.frame.minY,
                           "tap-up did not move Beta above Alpha — reorder never fired")
@@ -83,16 +97,17 @@ final class UpNextScrollTests: XCTestCase {
 
     func testHomeScrollWorksAfterUpNextLongPress() {
         let app = XCUIApplication()
-        app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED", "RECALL_UI_TEST_CARD_TITLES"]
         app.launch()
         dismissNotificationPrompt()
         XCTAssertTrue(app.staticTexts["Understood"].waitForExistence(timeout: 20))
 
         let card = app.otherElements["upNextCard0"]
-        if card.waitForExistence(timeout: 5) {
-            card.press(forDuration: 0.45)
-        }
-
+        XCTAssertTrue(card.waitForExistence(timeout: 5))
+        card.press(forDuration: 0.6)
+        XCTAssertTrue(app.textFields["cardTitleField"].waitForExistence(timeout: 5))
         scrollHomeUntilShapesVisible(app)
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.006, dy: 0.20)).tap()
+        XCTAssertTrue(app.textFields["cardTitleField"].waitForNonExistence(timeout: 5))
     }
 }

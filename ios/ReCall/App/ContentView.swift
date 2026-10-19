@@ -14,6 +14,7 @@ struct ContentView: View {
             }
             .onChange(of: scenePhase) { _, phase in
                 guard phase == .active, didStartBootstrap else { return }
+                CardTitleStore.shared.refresh()
                 Task { await store.refresh() }
             }
     }
@@ -21,6 +22,7 @@ struct ContentView: View {
     private func bootstrapAfterFirstFrame() async {
         guard !didStartBootstrap else { return }
         didStartBootstrap = true
+        CardTitleStore.shared.refresh()
         await Task.yield()
         await store.bootstrap()
     }

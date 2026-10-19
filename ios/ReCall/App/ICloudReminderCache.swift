@@ -24,10 +24,12 @@ enum ICloudReminderCache {
 
     // MARK: - paths
 
-    private static func localURL() -> URL {
+    static func localURL(fileName: String = fileName) -> URL {
         if ProcessInfo.processInfo.arguments.contains("RECALL_UI_TEST_ISOLATED") {
+            let session = ProcessInfo.processInfo.environment["RECALL_UI_TEST_SESSION"]
+                .flatMap(UUID.init(uuidString:))?.uuidString ?? String(ProcessInfo.processInfo.processIdentifier)
             let directory = FileManager.default.temporaryDirectory
-                .appendingPathComponent("recall-ui-tests-\(ProcessInfo.processInfo.processIdentifier)", isDirectory: true)
+                .appendingPathComponent("recall-ui-tests-\(session)", isDirectory: true)
             try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             return directory.appendingPathComponent(fileName)
         }
@@ -36,7 +38,7 @@ enum ICloudReminderCache {
         return dir.appendingPathComponent(fileName)
     }
 
-    private static func iCloudDocumentsURL() -> URL? {
+    static func iCloudDocumentsURL(fileName: String = fileName) -> URL? {
         guard !ProcessInfo.processInfo.arguments.contains("RECALL_UI_TEST_ISOLATED") else { return nil }
         guard let container = FileManager.default.url(forUbiquityContainerIdentifier: containerID) else {
             return nil

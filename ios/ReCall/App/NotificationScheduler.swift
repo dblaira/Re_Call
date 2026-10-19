@@ -5,6 +5,7 @@ import UserNotifications
 /// keyed by its id, so rescheduling and cancellation are deterministic.
 enum NotificationScheduler {
     static func schedule(_ r: Reminder) {
+        guard !ProcessInfo.processInfo.arguments.contains("RECALL_UI_TEST_ISOLATED") else { return }
         cancel(r)
         guard r.status == .active, let fire = r.fireDate else { return }
 
@@ -15,6 +16,7 @@ enum NotificationScheduler {
     }
 
     static func cancel(_ r: Reminder) {
+        guard !ProcessInfo.processInfo.arguments.contains("RECALL_UI_TEST_ISOLATED") else { return }
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids(r))
     }
 

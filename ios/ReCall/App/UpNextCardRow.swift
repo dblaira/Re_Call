@@ -4,6 +4,7 @@ import UIKit
 /// Up Next feed row: UIKit pan/long-press so vertical scroll isn't stolen from the parent ScrollView.
 struct UpNextCardRow<Content: View>: View {
     let reminderId: UUID
+    let cardTitle: CardTitle
     @Binding var armedId: UUID?
     let actions: [SwipeAction]
     var onTap: () -> Void
@@ -11,47 +12,54 @@ struct UpNextCardRow<Content: View>: View {
     var onMoveDown: () -> Void
     @ViewBuilder var content: Content
 
+    @StateObject private var titleSession = CardTitleSession()
     @State private var swipeOffset: CGFloat = 0
     private var actionsWidth: CGFloat { CGFloat(actions.count) * 64 }
     private var isArmed: Bool { armedId == reminderId }
 
     var body: some View {
         ZStack(alignment: .leading) {
-            HStack(spacing: 0) {
-                ForEach(actions) { a in
-                    Button {
-                        withAnimation(.snappy) { swipeOffset = 0 }
-                        a.run()
-                    } label: {
-                        VStack(spacing: 3) {
-                            Image(systemName: a.icon).font(.system(size: 16, weight: .bold))
-                            Text(a.title).font(.system(size: 10, weight: .heavy))
+            if swipeOffset > 0 {
+                HStack(spacing: 0) {
+                    ForEach(actions) { a in
+                        Button {
+                            withAnimation(.snappy) { swipeOffset = 0 }
+                            a.run()
+                        } label: {
+                            VStack(spacing: 3) {
+                                Image(systemName: a.icon).font(.system(size: 16, weight: .bold))
+                                Text(a.title).font(.system(size: 10, weight: .heavy))
+                            }
+                            .foregroundStyle(.white)
+                            .frame(width: 64)
+                            .frame(maxHeight: .infinity)
+                            .background(a.bg)
                         }
-                        .foregroundStyle(.white)
-                        .frame(width: 64)
-                        .frame(maxHeight: .infinity)
-                        .background(a.bg)
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
+                .frame(width: actionsWidth)
+                .frame(maxHeight: .infinity)
             }
-            .frame(width: actionsWidth)
-            .frame(maxHeight: .infinity)
 
             ZStack(alignment: .topTrailing) {
                 content
-                    .allowsHitTesting(false)
+                    .allowsHitTesting(titleSession.isEditing)
                 UpNextGestureHost(
                     armedId: $armedId,
                     reminderId: reminderId,
                     actionsWidth: actionsWidth,
                     swipeOffset: $swipeOffset,
                     onTap: onTap,
+                    onRename: beginTitleEditing,
                     onMoveUp: onMoveUp,
                     onMoveDown: onMoveDown
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
+                .allowsHitTesting(!titleSession.isEditing)
+                .accessibilityHidden(titleSession.isEditing)
+                .accessibilityIdentifier("cardHold-\(reminderId.uuidString)")
                 if isArmed {
                     reorderControls
                         .padding(8)
@@ -75,9 +83,19 @@ struct UpNextCardRow<Content: View>: View {
             .shadow(color: isArmed ? Brand.crimson.opacity(0.3) : .clear, radius: 6, y: 2)
             .animation(.snappy, value: isArmed)
         }
+        .recallCardTitleContext(titleSession)
+        .accessibilityAction(named: "Change Title", beginTitleEditing)
         .onDisappear {
             if isArmed { armedId = nil }
         }
+    }
+
+    private func beginTitleEditing() {
+        swipeOffset = 0
+        armedId = nil
+        titleSession.onMoveUp = onMoveUp
+        titleSession.onMoveDown = onMoveDown
+        titleSession.begin(cardTitle)
     }
 
     /// Up/down chevrons while armed — SwiftUI buttons, not gestures, so scroll stays safe.
@@ -116,6 +134,7 @@ private struct UpNextGestureHost: UIViewRepresentable {
     let actionsWidth: CGFloat
     @Binding var swipeOffset: CGFloat
     var onTap: () -> Void
+    var onRename: (() -> Void)?
     var onMoveUp: () -> Void
     var onMoveDown: () -> Void
 
@@ -244,10 +263,16 @@ private final class UpNextGestureView: UIView {
     @objc private func handleLongPress() {
         switch longPress.state {
         case .began:
+            if let rename = coordinator?.parent.onRename {
+                rename()
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                return
+            }
             reorderArmed = true
             longPressStartY = longPress.location(in: self).y
             coordinator?.arm()
         case .ended, .cancelled, .failed:
+            guard reorderArmed else { return }
             let dy = longPress.location(in: self).y - longPressStartY
             if abs(dy) > 20 {
                 if dy < 0 { coordinator?.moveUp() }

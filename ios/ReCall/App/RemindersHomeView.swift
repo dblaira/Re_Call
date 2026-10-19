@@ -10,13 +10,13 @@ struct RemindersHomeView: View {
     @EnvironmentObject private var store: ReminderStore
 
     private let leftTiles: [ShapeTileSpec] = [
-        .init(title: "Add one movement",        bg: Brand.primaryBlue,   fg: .white, tags: ["PHOTO", "TIME", "URL"], height: 190, dark: true),
-        .init(title: "Pay before due",          bg: Brand.primaryYellow, fg: .black, tags: ["DATE"],                 height: 135, dark: false),
-        .init(title: "Bring this when I leave", bg: Brand.primaryGreen,  fg: .white, tags: ["PLACE", "PHOTO"],       height: 150, dark: true),
+        .init(id: "reminder-movement", title: "Add one movement",        bg: Brand.primaryBlue,   fg: .white, tags: ["PHOTO", "TIME", "URL"], height: 190, dark: true),
+        .init(id: "reminder-pay", title: "Pay before due",          bg: Brand.primaryYellow, fg: .black, tags: ["DATE"],                 height: 135, dark: false),
+        .init(id: "reminder-bring", title: "Bring this when I leave", bg: Brand.primaryGreen,  fg: .white, tags: ["PLACE", "PHOTO"],       height: 150, dark: true),
     ]
     private let rightTiles: [ShapeTileSpec] = [
-        .init(title: "Text them back",        bg: Brand.crimson,   fg: .white, tags: ["PERSON"],       height: 190, dark: true, templateID: "ChooseCommunicationFormatReminder"),
-        .init(title: "Do this after workout", bg: Brand.nearBlack, fg: .white, tags: ["TIME", "CUE"], height: 190, dark: true, templateID: "HabitStackGymReminder"),
+        .init(id: "reminder-text", title: "Text them back",        bg: Brand.crimson,   fg: .white, tags: ["PERSON"],       height: 190, dark: true, templateID: "ChooseCommunicationFormatReminder"),
+        .init(id: "reminder-workout", title: "Do this after workout", bg: Brand.nearBlack, fg: .white, tags: ["TIME", "CUE"], height: 190, dark: true, templateID: "HabitStackGymReminder"),
     ]
 
     @State private var armedReorderId: UUID?
@@ -103,6 +103,7 @@ struct RemindersHomeView: View {
                     let detail: CardDetail = idx == 0 ? .full : (idx == 1 ? .medium : .minimal)
                     UpNextCardRow(
                         reminderId: rem.id,
+                        cardTitle: .reminder(rem, title: rem.firstThemeAnswer),
                         armedId: $armedReorderId,
                         actions: cardActions(rem),
                         onTap: { onOpen(rem) },
@@ -113,6 +114,7 @@ struct RemindersHomeView: View {
                         // never the delegation entry or the question itself.
                         BandCard(reminder: rem, bg: c.bg, fg: c.fg, accent: c.accent,
                                  title: rem.firstThemeAnswer, detail: detail, showsTextDetails: false)
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier(idx == 0 ? "upNextCard0" : "upNextCard")
                     }
                 }
@@ -160,8 +162,11 @@ struct RemindersHomeView: View {
     private func column(_ tiles: [ShapeTileSpec]) -> some View {
         VStack(spacing: 10) {
             ForEach(tiles) { spec in
-                Button { onPick(spec) } label: { ShapeTile(spec: spec) }
-                    .buttonStyle(.plain)
+                EditableCardButton(cardTitle: spec.cardTitle, action: { onPick(spec) }) {
+                    ShapeTile(spec: spec)
+                }
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("shapeCard-\(spec.id)")
             }
         }
         .frame(maxWidth: .infinity, alignment: .top)
@@ -193,7 +198,8 @@ struct BandCard: View {
             }
             .foregroundStyle(fg.opacity(0.7))
 
-            Text(title ?? (reminder.title.isEmpty ? "Untitled" : reminder.title))
+            CardTitleText(card: .reminder(reminder, title: title))
+                .tint(fg)
                 .font(Brand.serif(26, weight: .regular))
                 .foregroundStyle(fg)
                 .fixedSize(horizontal: false, vertical: true)
@@ -405,7 +411,7 @@ private struct PillFlowLayout: Layout {
 // MARK: - Shape tile
 
 struct ShapeTileSpec: Identifiable {
-    let id: UUID
+    let id: String
     let title: String
     let bg: Color
     let fg: Color
@@ -413,8 +419,10 @@ struct ShapeTileSpec: Identifiable {
     let height: CGFloat
     let dark: Bool
     let templateID: String?
+    var cardTitle: CardTitle { CardTitle(id: "shape:\(id)", original: title) }
 
     init(
+        id: String,
         title: String,
         bg: Color,
         fg: Color,
@@ -423,7 +431,7 @@ struct ShapeTileSpec: Identifiable {
         dark: Bool,
         templateID: String? = nil
     ) {
-        self.id = UUID()
+        self.id = id
         self.title = title
         self.bg = bg
         self.fg = fg
@@ -441,7 +449,8 @@ struct ShapeTile: View {
             grip
             Spacer(minLength: 8)
             VStack(alignment: .leading, spacing: 11) {
-                Text(spec.title)
+                CardTitleText(card: spec.cardTitle)
+                    .tint(spec.fg)
                     .font(.system(size: 24, weight: .heavy))
                     .foregroundStyle(spec.fg)
                     .fixedSize(horizontal: false, vertical: true)
@@ -449,9 +458,11 @@ struct ShapeTile: View {
                     ForEach(spec.tags, id: \.self) { tag in tagPill(tag) }
                 }
             }
+            .fixedSize(horizontal: false, vertical: true)
         }
         .padding(12)
         .frame(maxWidth: .infinity, minHeight: spec.height, alignment: .topLeading)
+        .fixedSize(horizontal: false, vertical: true)
         .background(spec.bg)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay(RoundedRectangle(cornerRadius: 8)

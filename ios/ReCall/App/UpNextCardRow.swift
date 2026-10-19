@@ -26,16 +26,15 @@ struct UpNextCardRow<Content: View>: View {
                             withAnimation(.snappy) { swipeOffset = 0 }
                             a.run()
                         } label: {
-                            VStack(spacing: 3) {
-                                Image(systemName: a.icon).font(.system(size: 16, weight: .bold))
-                                Text(a.title).font(.system(size: 10, weight: .heavy))
-                            }
-                            .foregroundStyle(.white)
-                            .frame(width: 64)
-                            .frame(maxHeight: .infinity)
-                            .background(a.bg)
+                            Image(systemName: a.icon)
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(a.foreground)
+                                .frame(width: 64)
+                                .frame(maxHeight: .infinity)
+                                .background(a.bg)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(a.title)
                     }
                 }
                 .frame(width: actionsWidth)

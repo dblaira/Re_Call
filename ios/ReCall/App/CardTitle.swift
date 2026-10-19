@@ -96,13 +96,28 @@ private struct InlineCardTitle: View {
     @ObservedObject var session: CardTitleSession
     @FocusState private var focused: Bool
 
+    private var titleText: Binding<String> {
+        Binding(get: { session.draft }, set: { value in
+            // A vertical TextField can send Done as an inserted newline rather
+            // than onSubmit. Finish that key press without changing the title;
+            // pasted text containing several characters remains ordinary input.
+            let insertions = value.difference(from: session.draft).insertions
+            if insertions.count == 1,
+               case let .insert(_, character, _) = insertions[0], character.isNewline {
+                session.finish()
+            } else {
+                session.draft = value
+            }
+        })
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Group {
                 if #available(iOS 18.0, *) {
-                    SelectedCardTitleField(text: $session.draft, onSubmit: session.finish)
+                    SelectedCardTitleField(text: titleText, onSubmit: session.finish)
                 } else {
-                    TextField("", text: $session.draft, axis: .vertical)
+                    TextField("", text: titleText, axis: .vertical)
                         .textFieldStyle(.plain)
                         .lineLimit(1...8)
                         .focused($focused)

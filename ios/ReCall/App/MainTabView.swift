@@ -8,6 +8,7 @@ struct MainTabView: View {
     @ObservedObject private var titleEditing = CardTitleEditingState.shared
     @EnvironmentObject var store: ReminderStore
     @State private var tab: Tab = .reminders
+    @StateObject private var proImages = ProImageStore()
     private struct EntryPresentation: Identifiable {
         let id = UUID()
         let kind: ReminderKind
@@ -62,7 +63,7 @@ struct MainTabView: View {
         case .calendar:
             CalendarView(onOpen: { open($0) })
         case .pro:
-            ProfessionalTemplatesView(onPick: { pickShape($0) })
+            ProLibraryView(library: proImages, onPick: { pickShape($0) })
         }
     }
 

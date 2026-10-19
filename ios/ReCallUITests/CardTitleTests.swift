@@ -190,6 +190,7 @@ final class CardTitleTests: XCTestCase {
 
     func testEveryProfessionalTemplateSupportsInlineTitles() {
         app.buttons["PRO"].tap()
+        app.buttons["proTemplatesToggle"].tap()
         for title in ["Reply with leverage", "Turn note into ask", "Before the meeting", "Research sprint", "Client follow-up", "Decision receipt", "Promise tracker", "Professional reset", "Send the clean version"] {
             begin(title, scroll: "professionalTemplatesHome")
             replace(with: title + " edited")
@@ -202,6 +203,7 @@ final class CardTitleTests: XCTestCase {
         }
         app.buttons["Reminders"].tap()
         app.buttons["PRO"].tap()
+        app.buttons["proTemplatesToggle"].tap()
         XCTAssertTrue(titleElement("Reply with leverage edited").exists)
     }
 }

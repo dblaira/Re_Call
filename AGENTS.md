@@ -52,7 +52,7 @@ Read `.cursor/rules/recall.mdc` for QC gates, layer boundaries, and iOS gotchas.
 
 Update this line when the active milestone changes:
 
-**Current lane:** TestFlight-valid native iOS; extend graph-promoted product rules into recommendation UI — do not App Store submit without Adam. Do not expand scope without Adam saying so.
+**Current lane:** Pro title keyboard repair installed and physically verified: keyboard appears in both editors, actual onscreen keys edit, Done saves, and the title survives relaunch. Device Hub hardware-keyboard simulation stays off. Adam’s two saved images are unchanged. Full QC is green for the final code (20/20 UI tests, October 19 at 10:30 PDT). See docs/PRO_IMAGES_VERIFICATION.md. Do not App Store submit without Adam. Do not expand scope without Adam saying so.
 
 ## How agents use Adam's Macs (required)
 

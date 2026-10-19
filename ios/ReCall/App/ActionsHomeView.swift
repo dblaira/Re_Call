@@ -124,8 +124,8 @@ struct ActionsHomeView: View {
 
     private func cardActions(_ action: Reminder) -> [SwipeAction] {
         [
-            SwipeAction(title: "Done", icon: "checkmark", bg: Brand.crimson) { store.complete(action) },
-            SwipeAction(title: action.pinned ? "Unpin" : "Pin", icon: "pin", bg: Brand.tileBlue) { store.togglePin(action) },
+            SwipeAction(title: "Done", icon: "checkmark", bg: Brand.tan, foreground: Brand.nearBlack) { store.complete(action) },
+            SwipeAction(title: action.pinned ? "Unpin" : "Pin", icon: "pin", bg: Brand.nearBlack) { store.togglePin(action) },
             SwipeAction(title: "Delete", icon: "trash", bg: Color(hex: 0xB00124)) { store.delete(action) },
         ]
     }

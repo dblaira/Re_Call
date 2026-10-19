@@ -44,6 +44,8 @@ final class SmokeTests: XCTestCase {
         let proTab = app.buttons["PRO"]
         XCTAssertTrue(proTab.waitForExistence(timeout: 10), "PRO tab missing")
         proTab.tap()
+        XCTAssertTrue(app.buttons["proFirstImage"].waitForExistence(timeout: 10), "Saved image collection missing")
+        app.buttons["proTemplatesToggle"].tap()
 
         XCTAssertTrue(app.staticTexts["Professional Templates"].waitForExistence(timeout: 10),
                       "Professional Templates page title missing")

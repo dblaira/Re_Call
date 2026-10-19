@@ -163,7 +163,7 @@ struct ItemRow: View {
         HStack(spacing: 0) {
             swipeButton(completed ? "Reopen" : "Done",
                         icon: completed ? "arrow.uturn.left" : "checkmark",
-                        bg: Brand.crimson) {
+                        bg: Brand.tan, foreground: Brand.nearBlack) {
                 withAnimation(.snappy) { offset = 0 }
                 onToggle()
             }
@@ -176,18 +176,17 @@ struct ItemRow: View {
         .frame(maxHeight: .infinity)
     }
 
-    private func swipeButton(_ title: String, icon: String, bg: Color, action: @escaping () -> Void) -> some View {
+    private func swipeButton(_ title: String, icon: String, bg: Color, foreground: Color = .white, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            VStack(spacing: 3) {
-                Image(systemName: icon).font(.system(size: 16, weight: .bold))
-                Text(title).font(.system(size: 11, weight: .heavy))
-            }
-            .foregroundStyle(.white)
-            .frame(width: actionsWidth / 2)
-            .frame(maxHeight: .infinity)
-            .background(bg)
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(foreground)
+                .frame(width: actionsWidth / 2)
+                .frame(maxHeight: .infinity)
+                .background(bg)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
     }
 
     private var rowContent: some View {
@@ -253,6 +252,7 @@ struct SwipeAction: Identifiable {
     let title: String
     let icon: String
     let bg: Color
+    var foreground: Color = .white
     let run: () -> Void
 }
 
@@ -290,16 +290,15 @@ struct SwipeRow<Content: View>: View {
                     withAnimation(.snappy) { offset = 0 }
                     a.run()
                 } label: {
-                    VStack(spacing: 3) {
-                        Image(systemName: a.icon).font(.system(size: 16, weight: .bold))
-                        Text(a.title).font(.system(size: 10, weight: .heavy))
-                    }
-                    .foregroundStyle(.white)
-                    .frame(width: 64)
-                    .frame(maxHeight: .infinity)
-                    .background(a.bg)
+                    Image(systemName: a.icon)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(a.foreground)
+                        .frame(width: 64)
+                        .frame(maxHeight: .infinity)
+                        .background(a.bg)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(a.title)
             }
         }
         .frame(width: actionsWidth)

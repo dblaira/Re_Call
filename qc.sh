@@ -51,6 +51,12 @@ else
   bad "native card title persistence tests"
 fi
 
+if ./scripts/test-pro-image-runtime.sh >/dev/null 2>&1; then
+  ok "native Pro image persistence tests"
+else
+  bad "native Pro image persistence tests"
+fi
+
 # recommendations.js must be the deterministic compile of the current KG.
 REC=build/recommendations.js
 BEFORE=$(md5 -q "$REC" 2>/dev/null || echo none)

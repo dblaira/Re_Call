@@ -217,9 +217,9 @@ struct CalendarView: View {
     private func calendarActions(_ r: Reminder) -> [SwipeAction] {
         [
             r.status == .completed
-                ? SwipeAction(title: "Reopen", icon: "arrow.uturn.left", bg: Brand.crimson) { store.uncomplete(r) }
-                : SwipeAction(title: "Done", icon: "checkmark", bg: Brand.crimson) { store.complete(r) },
-            SwipeAction(title: r.pinned ? "Unpin" : "Pin", icon: "pin", bg: Brand.tileBlue) { store.togglePin(r) },
+                ? SwipeAction(title: "Reopen", icon: "arrow.uturn.left", bg: Brand.tan, foreground: Brand.nearBlack) { store.uncomplete(r) }
+                : SwipeAction(title: "Done", icon: "checkmark", bg: Brand.tan, foreground: Brand.nearBlack) { store.complete(r) },
+            SwipeAction(title: r.pinned ? "Unpin" : "Pin", icon: "pin", bg: Brand.nearBlack) { store.togglePin(r) },
             SwipeAction(title: "Delete", icon: "trash", bg: Color(hex: 0xB00124)) { store.delete(r) },
         ]
     }

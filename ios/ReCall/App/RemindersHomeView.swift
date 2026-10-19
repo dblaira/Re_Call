@@ -75,8 +75,8 @@ struct RemindersHomeView: View {
 
     private func cardActions(_ r: Reminder) -> [SwipeAction] {
         [
-            SwipeAction(title: "Done", icon: "checkmark", bg: Brand.crimson) { store.complete(r) },
-            SwipeAction(title: r.pinned ? "Unpin" : "Pin", icon: "pin", bg: Brand.tileBlue) { store.togglePin(r) },
+            SwipeAction(title: "Done", icon: "checkmark", bg: Brand.tan, foreground: Brand.nearBlack) { store.complete(r) },
+            SwipeAction(title: r.pinned ? "Unpin" : "Pin", icon: "pin", bg: Brand.nearBlack) { store.togglePin(r) },
             SwipeAction(title: "Delete", icon: "trash", bg: Color(hex: 0xB00124)) { store.delete(r) },
         ]
     }

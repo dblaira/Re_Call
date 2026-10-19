@@ -6,8 +6,12 @@ globs: ["ios/ReCallUITests/**", "qc.sh", "scripts/agent-ios-check.sh"]
 
 Wait for the owning xcodebuild process to finish and verify the result bundle's Info.plist exists before using xcresulttool. An in-progress bundle is not a readable failure artifact. Keep each retry in a new result path, and use an explicit simulator ID belonging to the current task.
 
+Never start another QC run while an earlier xcodebuild for the same simulator or DerivedData directory is still running. Terminating the older process after a retry has begun can terminate the retry's shared test runner and corrupt the shared log. Confirm process exit before retrying.
+
 Keep card title accessibility identifiers unique by card ID. When a UI test cannot reach a card, inspect the screen recording and hierarchy before changing assertions; distinguish a hidden title, an obstructing sheet, and a gesture that steals scrolling.
 
 Native accessibility activation can expose a card title as a Button rather than a StaticText. Locate card titles by their stable card-specific identifier and exact label, without assuming an element type.
 
 Inline-title acceptance must include the rendered layout: the editable title stays above the keyboard, and the template pills remain inside the card with padding. A matching field value alone does not prove either. Keep the geometry assertions and inspect the phone screenshots when changing the editor or tile sizing.
+
+Physical-iPhone keyboard acceptance requires the phone's onscreen keyboard to appear, actual onscreen key taps to change the field, and its Done key to finish editing. Typing through the Mac, an insertion caret, or a Simulator screenshot does not prove that behavior on the phone. In Device Hub, disable Simulate Hardware Keyboard for this check; Capture Keyboard is a separate setting. Verify both the card pencil and the opened image's details editor, then leave the device connection with hardware-keyboard simulation off.

@@ -169,6 +169,45 @@ relaunches. Set `RECALL_QC_SIMULATOR_ID` to the simulator owned by the current t
 to the live reminder cache, iCloud or Harness. See `scripts/test-card-title-runtime.sh` for local
 persistence and per-card merge checks.
 
+## 5d. Pro saved images (2026-10-18)
+
+Pro opens `ProLibraryView`: a saved-image collection with native Photos and Files import.
+The Templates button retains the existing professional templates and their inline title editing.
+`ProImageArchive` stores the imported bytes without recompression and an atomic `cards.json`
+index in Application Support/pro-library. These are local image records, not reminders;
+they do not schedule notifications or export Harness events. Image sync is not implemented.
+
+`ProPosterViewer` uses UIKit `UIScrollView` for pinch, pan, double-tap and zoom controls.
+The full-screen presentation keeps the collection mounted so closing returns to the same place.
+Full images decode only in the viewer; cards use downsampled previews. Source URLs and notes
+belong to the image and can be edited from its details. Keep original bytes intact.
+
+`ProImageTests` runs only in a per-session isolated store; test posters are never seeded into
+the normal collection. `scripts/test-pro-image-runtime.sh` checks byte preservation, persistence,
+metadata edits, invalid imports, removal, and refusal to overwrite a damaged index. Full QC
+includes this runtime check and the saved-card/viewer UI tests. Verification: `docs/PRO_IMAGES_VERIFICATION.md`.
+
+Resumed on 2026-10-19 to test every Pro control. Fixed the conflict between the inline title
+override and the image details title; both editors now use the same displayed title and saving
+details clears an older override. Each saved card has a pencil button. Copy source shows a
+checkmark. Direct physical-iPhone checks cover title entry, metadata, source opening/copying,
+sharing, removal, both native imports, cancellation, and persistence. The user's two real cards
+and image bytes are unchanged; the normal Pro collection is open on the installed build.
+Full QC is green on October 19: all 19 UI tests passed, including the five expanded Pro tests,
+and all engine, persistence, and native build gates passed. The final build is installed on the
+physical iPhone. Evidence and exact result paths are in `docs/PRO_IMAGES_VERIFICATION.md`.
+
+October 19 keyboard follow-up: the earlier physical typing used Mac input, which did not prove
+the onscreen keyboard appeared. Device Hub's Simulate Hardware Keyboard setting hid it even
+with Capture Keyboard off. Disabling simulation restored it on the user's actual second card.
+Actual phone key taps also exposed Done inserting a newline. That code fix and its new regression
+pass are complete. The updated build is installed; actual onscreen typing, Done, details Save,
+and relaunch persistence were verified on the phone. Both original card pencils and the actual
+opened image title display the keyboard. The normal collection is open and its original files
+are unchanged. Full QC for the final code completed with exit 0 at 10:30 PDT: all 20 UI tests
+passed, including six Pro tests, plus all engine, persistence, and build gates. The current result
+is `Test-ReCall-2026.10.19_10-20-09--0700.xcresult` under ReCall-QC/Logs/Test.
+
 ## 6. Status + what's pending
 
 **Working:** native list + 16-part form, builds clean, signs, runs on device, data syncs to

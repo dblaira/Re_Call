@@ -17,7 +17,7 @@ struct ProImageCard: Codable, Identifiable, Equatable {
 }
 
 enum ProImageError: LocalizedError {
-    case unreadableImage, imageTooLarge, invalidSource, missingCard, titleSaveFailed
+    case unreadableImage, imageTooLarge, invalidSource, missingCard, missingRow, titleSaveFailed
 
     var errorDescription: String? {
         switch self {
@@ -25,6 +25,7 @@ enum ProImageError: LocalizedError {
         case .imageTooLarge: return "This image is too large. Choose an image under 80 MB and 120 megapixels."
         case .invalidSource: return "Enter a website address for the source, or leave it empty."
         case .missingCard: return "This saved image is no longer in Pro."
+        case .missingRow: return "This row is no longer available. Close this sheet and choose a row again."
         case .titleSaveFailed: return "The title couldn’t be saved. Try Save again."
         }
     }
@@ -35,6 +36,7 @@ enum ProImageError: LocalizedError {
 actor ProImageArchive {
     let directory: URL
     private var indexURL: URL { directory.appendingPathComponent("cards.json") }
+    private var arrangementURL: URL { directory.appendingPathComponent("arrangement.json") }
 
     init(directory: URL) { self.directory = directory }
 
@@ -43,10 +45,37 @@ actor ProImageArchive {
         return try JSONDecoder().decode([ProImageCard].self, from: Data(contentsOf: indexURL))
     }
 
-    func save(data: Data, title: String, source: String, notes: String) throws -> [ProImageCard] {
+    func loadArrangement() throws -> ProLibraryArrangement {
+        let ids = try load().map(\.id)
+        guard FileManager.default.fileExists(atPath: arrangementURL.path) else {
+            return ProLibraryArrangement(cardIDs: ids)
+        }
+        return try JSONDecoder().decode(ProLibraryArrangement.self, from: Data(contentsOf: arrangementURL))
+            .reconciled(with: ids)
+    }
+
+    /// Serialized with imports and removals. Do not replace an unreadable layout.
+    func arrange(_ change: @Sendable (inout ProLibraryArrangement) -> Void) throws -> ProLibraryArrangement {
+        var arrangement = try loadArrangement()
+        change(&arrangement)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try JSONEncoder().encode(arrangement).write(to: arrangementURL, options: .atomic)
+        return arrangement
+    }
+
+    func save(data: Data, title: String, source: String, notes: String, to areaID: UUID? = nil)
+        throws -> (cards: [ProImageCard], arrangement: ProLibraryArrangement?) {
         let dimensions = try Self.dimensions(data)
         let source = try Self.normalizedSource(source)
         var cards = try load()
+        var arrangement: ProLibraryArrangement?
+        if let areaID {
+            let current = try loadArrangement()
+            guard current.areas.contains(where: { $0.id == areaID && $0.style == .row }) else {
+                throw ProImageError.missingRow
+            }
+            arrangement = current
+        }
         let id = UUID()
         let imageSource = CGImageSourceCreateWithData(data as CFData, nil)
         let typeID = imageSource.flatMap { CGImageSourceGetType($0) } as String?
@@ -60,12 +89,22 @@ actor ProImageArchive {
         let imageURL = directory.appendingPathComponent(name)
         try data.write(to: imageURL, options: .atomic)
         cards.insert(card, at: 0)
-        do { try persist(cards) }
+        do {
+            if let areaID, let current = arrangement {
+                var updated = current.reconciled(with: cards.map(\.id))
+                updated.move(id, to: areaID)
+                // The index is the commit point. If that final write fails, the
+                // uncommitted ID in the layout is ignored by reconciliation.
+                try JSONEncoder().encode(updated).write(to: arrangementURL, options: .atomic)
+                arrangement = updated
+            }
+            try persist(cards)
+        }
         catch {
             try? FileManager.default.removeItem(at: imageURL)
             throw error
         }
-        return cards
+        return (cards, arrangement)
     }
 
     func update(_ card: ProImageCard, title: String, source: String, notes: String) throws -> [ProImageCard] {

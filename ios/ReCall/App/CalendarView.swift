@@ -18,10 +18,9 @@ struct CalendarView: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-            ScrollView {
-                VStack(spacing: 0) {
-                    hero(proxy)
-                    Rectangle().fill(Brand.crimson).frame(height: 2)
+            VStack(spacing: 0) {
+                hero(proxy)
+                ScrollView {
                     VStack(spacing: 18) {
                         monthCard
                         dayHeader
@@ -32,45 +31,40 @@ struct CalendarView: View {
                     .padding(.top, 16)
                     .padding(.bottom, 150)
                 }
+                .accessibilityIdentifier("calendarScroll")
             }
-            .accessibilityIdentifier("calendarScroll")
-            .background(Color.white)
-            .ignoresSafeArea(edges: .top)
-            .onAppear { scrollToNow(proxy, animated: false) }
+            .background(Brand.tan)
         }
     }
 
     // MARK: Hero
 
     private func hero(_ proxy: ScrollViewProxy) -> some View {
-        HStack(alignment: .center, spacing: 10) {
-            Text("Calendar").font(Brand.serif(40)).foregroundStyle(.white)
-            Spacer(minLength: 0)
-            Button { goToToday(proxy) } label: {
-                Text("Today")
-                    .font(.system(size: 13, weight: .heavy))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 14).padding(.vertical, 8)
-                    .background(Color.white.opacity(0.14))
-                    .clipShape(Capsule())
+        BrandPageHeader(title: "Calendar") {
+            HStack(spacing: 10) {
+                Text(month.formatted(.dateTime.month(.wide).year()))
+                Spacer(minLength: 0)
+                Button { goToToday(proxy) } label: {
+                    Text("Today")
+                        .font(.system(size: 13, weight: .heavy))
+                        .padding(.horizontal, 14).padding(.vertical, 8)
+                        .background(Brand.tan.opacity(0.14))
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                chevron("chevron.left") { shiftMonth(-1) }
+                chevron("chevron.right") { shiftMonth(1) }
             }
-            .buttonStyle(.plain)
-            chevron("chevron.left") { shiftMonth(-1) }
-            chevron("chevron.right") { shiftMonth(1) }
         }
-        .padding(.top, 60)
-        .padding(.bottom, 18)
-        .padding(.horizontal, 16)
-        .background(Brand.nearBlack)
     }
 
     private func chevron(_ icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.system(size: 15, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Brand.tan)
                 .frame(width: 38, height: 38)
-                .background(Color.white.opacity(0.12))
+                .background(Brand.tan.opacity(0.12))
                 .clipShape(Circle())
         }
         .buttonStyle(.plain)
@@ -100,6 +94,8 @@ struct CalendarView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.black.opacity(0.08)))
         .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("calendarMonthGrid")
     }
 
     private func dayCell(_ day: Date) -> some View {

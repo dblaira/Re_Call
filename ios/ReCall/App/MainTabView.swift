@@ -27,7 +27,7 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            Brand.page.ignoresSafeArea()
+            Brand.tan.ignoresSafeArea()
             ScrollViewReader { proxy in
                 content
                     .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)) { _ in
@@ -55,6 +55,15 @@ struct MainTabView: View {
     }
 
     @ViewBuilder private var content: some View {
+        if #available(iOS 26.0, *) {
+            // Keep the navy header solid behind the status bar instead of fading to the tan body.
+            tabContent.scrollEdgeEffectHidden(true, for: .top)
+        } else {
+            tabContent
+        }
+    }
+
+    @ViewBuilder private var tabContent: some View {
         switch tab {
         case .reminders:
             RemindersHomeView(onPick: { pickShape($0) }, onOpen: { open($0) })
@@ -82,7 +91,6 @@ struct MainTabView: View {
         .frame(maxWidth: .infinity)
         .background(Color.white)
         .background(Color.white.ignoresSafeArea(edges: .bottom))
-        // Hairline to crisp the edge where the white bar meets the navy feed above it.
         .overlay(alignment: .top) { Rectangle().fill(Color.black.opacity(0.08)).frame(height: 0.5) }
         .overlay(alignment: .top) {
             ZStack {
@@ -103,7 +111,7 @@ struct MainTabView: View {
                 Image(systemName: icon).font(.system(size: 22, weight: .bold))
                 Text(label).font(.system(size: 13, weight: .heavy))
             }
-            .foregroundStyle(active ? Brand.nearBlack : Brand.nearBlack.opacity(0.4))
+            .foregroundStyle(Brand.nearBlack.opacity(active ? 1 : 0.45))
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
@@ -240,40 +248,15 @@ struct ProfessionalTemplatesView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) {
-                hero
-                Rectangle().fill(Brand.crimson).frame(height: 2)
-                templateBand
-            }
+            templateBand
         }
-        .background(Brand.page)
-        .ignoresSafeArea(edges: .top)
-        .accessibilityIdentifier("professionalTemplatesHome")
-    }
-
-    private var hero: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Professional Templates")
-                .font(Brand.serif(42))
-                .foregroundStyle(Brand.nearBlack)
-                .fixedSize(horizontal: false, vertical: true)
-            Text("Start with the move already shaped.")
-                .font(.system(size: 17, weight: .heavy))
-                .foregroundStyle(Brand.crimson)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, 60)
-        .padding(.bottom, 18)
-        .padding(.horizontal, 16)
         .background(Brand.tan)
+        .accessibilityIdentifier("professionalTemplatesHome")
     }
 
     private var templateBand: some View {
         VStack(alignment: .leading, spacing: 18) {
-            sectionHeader("LIGHT OFFERING")
             masonryColumns(left: starterLeftTiles, right: starterRightTiles)
-
-            sectionHeader("PRO LIBRARY")
             VStack(spacing: 0) {
                 masonryColumns(left: proLeftTiles, right: proRightTiles)
             }
@@ -284,14 +267,7 @@ struct ProfessionalTemplatesView: View {
         .padding(.horizontal, 16)
         .padding(.bottom, 150)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white)
-    }
-
-    private func sectionHeader(_ title: String) -> some View {
-        Text(title)
-            .font(.system(size: 14, weight: .heavy))
-            .tracking(2.5)
-            .foregroundStyle(title == "PRO LIBRARY" ? Brand.crimson : .black.opacity(0.45))
+        .background(Brand.tan)
     }
 
     private func masonryColumns(left: [ShapeTileSpec], right: [ShapeTileSpec]) -> some View {

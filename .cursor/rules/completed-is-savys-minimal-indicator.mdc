@@ -7,6 +7,6 @@ alwaysApply: true
 
 Adam: "the completed reminders on the new Understood app should be stored in a more stylish way. For example in the SAVY app you can see the minimal completed indicator."
 
-Closed default: `COMPLETED` + count + chevron on navy. The loud list only after tap.
+Closed default: `COMPLETED` + count + chevron. The loud list only after tap. Adam's October 19 palette correction makes this band tan with navy lettering, matching the page body.
 
 Copy `SavyReminderScreens.completedBottomSection`. Do not invent a completed layout.

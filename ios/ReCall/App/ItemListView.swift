@@ -67,7 +67,7 @@ struct CompletedBand: View {
                             .font(.system(size: 13, weight: .heavy))
                             .textCase(.uppercase)
                             .tracking(1.5)
-                            .foregroundStyle(Brand.tan)
+                            .foregroundStyle(Brand.nearBlack)
                         Text("\(items.count)")
                             .font(.system(size: 12, weight: .heavy))
                             .foregroundStyle(Brand.crimson)
@@ -87,7 +87,7 @@ struct CompletedBand: View {
                         ItemRow(
                             reminder: reminder,
                             completed: true,
-                            darkBackground: true,
+                            darkBackground: false,
                             onToggle: { onUncomplete(reminder) },
                             onTap: { onOpen(reminder) },
                             onDelete: { onDelete(reminder) }
@@ -100,7 +100,7 @@ struct CompletedBand: View {
             .padding(.horizontal, 16)
             .padding(.bottom, bottomPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Brand.page)
+            .background(Brand.tan)
         }
     }
 }

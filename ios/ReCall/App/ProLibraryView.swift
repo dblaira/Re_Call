@@ -11,7 +11,10 @@ struct ProImageDraft: Identifiable {
     let data: Data
     let preview: UIImage
     var title = ""
+    var destinationAreaID: UUID?
 }
+
+enum ProImageImportSource { case photos, files }
 
 struct ProLibraryView: View {
     @ObservedObject var library: ProImageStore
@@ -24,27 +27,14 @@ struct ProLibraryView: View {
     @State private var selectedCard: ProImageCard?
     @State private var loading = false
     @State private var problem: String?
+    @State private var arranging = false
+    @State private var importAreaID: UUID?
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Button(showTemplates ? "Saved images" : "Templates") { showTemplates.toggle() }
-                    .accessibilityIdentifier("proTemplatesToggle")
-                Spacer()
-                Menu {
-                    Button("Photo Library", systemImage: "photo.on.rectangle") { showPhotos = true }
-                    Button("Choose File", systemImage: "folder") { showFiles = true }
-                } label: {
-                    Label("Add image", systemImage: "plus")
-                }
-                .accessibilityIdentifier("proAddImage")
-                .disabled(loading)
+            BrandPageHeader(title: "Pro") {
+                controls
             }
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(Brand.nearBlack)
-            .padding(.horizontal, 18)
-            .padding(.vertical, 12)
-            .background(Brand.tan)
 
             if showTemplates {
                 ProfessionalTemplatesView(onPick: onPick)
@@ -52,11 +42,12 @@ struct ProLibraryView: View {
                 savedImages
             }
         }
-        .background(Brand.tan.ignoresSafeArea(edges: .top))
+        .background(Brand.tan)
         .photosPicker(isPresented: $showPhotos, selection: $selectedPhoto, matching: .images)
         .fileImporter(isPresented: $showFiles, allowedContentTypes: [.image]) { result in
             switch result {
             case .success(let url):
+                let destination = importAreaID
                 Task {
                     loading = true
                     defer { loading = false }
@@ -68,7 +59,7 @@ struct ProLibraryView: View {
                             guard size <= 80 * 1_024 * 1_024 else { throw ProImageError.imageTooLarge }
                             return try Data(contentsOf: url)
                         }.value
-                        try await prepare(data, title: url.deletingPathExtension().lastPathComponent)
+                        try await prepare(data, title: url.deletingPathExtension().lastPathComponent, to: destination)
                     } catch { problem = error.localizedDescription }
                 }
             case .failure(let error): problem = error.localizedDescription
@@ -76,6 +67,7 @@ struct ProLibraryView: View {
         }
         .task(id: selectedPhoto) {
             guard let selectedPhoto else { return }
+            let destination = importAreaID
             loading = true
             defer { loading = false; self.selectedPhoto = nil }
             do {
@@ -83,7 +75,7 @@ struct ProLibraryView: View {
                     throw ProImageError.unreadableImage
                 }
                 try Task.checkCancellation()
-                try await prepare(data)
+                try await prepare(data, to: destination)
             } catch is CancellationError { }
             catch { problem = error.localizedDescription }
         }
@@ -101,51 +93,62 @@ struct ProLibraryView: View {
         .fullScreenCover(item: $selectedCard) { card in
             ProPosterViewer(library: library, originalCard: card)
         }
-        .alert("Image couldn’t be opened", isPresented: problemPresented) {
+        .alert("Pro couldn’t complete that change", isPresented: problemPresented) {
             Button("OK") { problem = nil }
         } message: { Text(problem ?? "") }
     }
 
-    private var savedImages: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Pro").font(Brand.serif(44))
-                        Text("Images & ideas to explore.").font(.system(size: 17, weight: .medium))
+    private var controls: some View {
+        HStack {
+                Button(showTemplates ? "Saved images" : "Templates") { arranging = false; showTemplates.toggle() }
+                    .accessibilityIdentifier("proTemplatesToggle")
+                Spacer()
+                if !showTemplates {
+                    Button(arranging ? "Done" : "Arrange") {
+                        withAnimation(.snappy) { arranging.toggle() }
                     }
-                    .foregroundStyle(Brand.nearBlack)
-                    .padding(.horizontal, 18)
-                    .padding(.top, 12)
-
-                    if loading {
-                        ProgressView("Opening image…").frame(maxWidth: .infinity).tint(Brand.nearBlack)
-                            .foregroundStyle(Brand.nearBlack)
-                    }
-                    if library.cards.isEmpty {
-                        emptyCollection
-                    } else {
-                        let columns = columns(width: max(1, (geometry.size.width - 48) / 2))
-                        HStack(alignment: .top, spacing: 12) {
-                            imageColumn(columns.0)
-                            imageColumn(columns.1)
-                        }
-                        .padding(.horizontal, 18)
-                    }
+                    .accessibilityIdentifier("proArrange")
+                    .padding(.trailing, 12)
                 }
-                .padding(.bottom, 140)
-            }
-            .accessibilityIdentifier("proSavedImages")
+                Menu {
+                    Button("Photo Library", systemImage: "photo.on.rectangle") { beginImport(.photos) }
+                    Button("Choose File", systemImage: "folder") { beginImport(.files) }
+                } label: {
+                    Label("Add image", systemImage: "plus")
+                }
+                .accessibilityIdentifier("proAddImage")
+                .disabled(loading)
         }
+        .frame(minHeight: 44)
+    }
+
+    private var savedImages: some View {
+        ScrollView {
+            VStack(spacing: 22) {
+                if loading {
+                    ProgressView("Opening image…").frame(maxWidth: .infinity).tint(Brand.nearBlack)
+                        .foregroundStyle(Brand.nearBlack)
+                }
+                if library.cards.isEmpty && !arranging && !library.arrangement.areas.contains(where: { $0.style == .row }) {
+                    emptyCollection
+                } else {
+                    ProArrangedImages(library: library, arranging: arranging, importing: loading,
+                                      addImage: { area, source in beginImport(source, to: area) },
+                                      open: { selectedCard = $0 }, report: { problem = $0 })
+                }
+            }
+            .padding(.top, 22)
+            .padding(.bottom, 140)
+            .frame(maxWidth: .infinity)
+        }
+        .background(Brand.tan)
+        .accessibilityIdentifier("proSavedImages")
     }
 
     private var emptyCollection: some View {
         VStack(spacing: 16) {
             Image(systemName: "photo.on.rectangle.angled").font(.system(size: 44, weight: .light))
-            Text("Save something that catches your eye.").font(Brand.serif(26)).multilineTextAlignment(.center)
-            Text("Keep images, posters, and ideas here to explore.")
-                .font(.system(size: 16)).multilineTextAlignment(.center)
-            Button("Add your first image") { showPhotos = true }
+            Button("Add your first image") { beginImport(.photos) }
                 .font(.system(size: 16, weight: .semibold))
                 .padding(.horizontal, 20).padding(.vertical, 14)
                 .background(Brand.nearBlack, in: Capsule()).foregroundStyle(.white)
@@ -157,30 +160,19 @@ struct ProLibraryView: View {
         .padding(.horizontal, 18)
     }
 
-    private func imageColumn(_ cards: [ProImageCard]) -> some View {
-        LazyVStack(spacing: 14) {
-            ForEach(cards) { card in
-                ProSavedImageCard(card: card, url: library.url(for: card)) { selectedCard = card }
-            }
-        }.frame(maxWidth: .infinity)
-    }
-
-    private func columns(width: CGFloat) -> ([ProImageCard], [ProImageCard]) {
-        var left: [ProImageCard] = [], right: [ProImageCard] = []
-        var leftHeight: CGFloat = 0, rightHeight: CGFloat = 0
-        for card in library.cards {
-            let height = width / card.aspectRatio + 78
-            if leftHeight <= rightHeight { left.append(card); leftHeight += height }
-            else { right.append(card); rightHeight += height }
+    private func beginImport(_ source: ProImageImportSource, to areaID: UUID? = nil) {
+        importAreaID = areaID
+        switch source {
+        case .photos: showPhotos = true
+        case .files: showFiles = true
         }
-        return (left, right)
     }
 
-    private func prepare(_ data: Data, title: String = "") async throws {
+    private func prepare(_ data: Data, title: String = "", to areaID: UUID? = nil) async throws {
         let preview = try await ProImageLoader.preview(data: data)
         try Task.checkCancellation()
         showTemplates = false
-        draft = ProImageDraft(data: data, preview: preview, title: title)
+        draft = ProImageDraft(data: data, preview: preview, title: title, destinationAreaID: areaID)
     }
 
     private var problemPresented: Binding<Bool> {
@@ -188,15 +180,16 @@ struct ProLibraryView: View {
     }
 }
 
-private struct ProSavedImageCard: View {
+struct ProSavedImageCard: View {
     let card: ProImageCard
     let url: URL
+    var compact = false
     var open: () -> Void
     @StateObject private var titleSession = CardTitleSession()
 
     var body: some View {
         EditableCardButton(cardTitle: card.cardTitle, session: titleSession, action: open) {
-            ProSavedImageTile(card: card, url: url)
+            ProSavedImageTile(card: card, url: url, compact: compact)
         }
         .accessibilityIdentifier("proImageCard-\(card.id.uuidString)")
         .overlay(alignment: .bottomTrailing) {
@@ -214,16 +207,20 @@ private struct ProSavedImageCard: View {
     }
 }
 
-private struct ProSavedImageTile: View {
+struct ProSavedImageTile: View {
     let card: ProImageCard
     let url: URL
+    var compact = false
     @State private var image: UIImage?
     @State private var failed = false
     @Environment(\.isEditingRecallCardTitle) private var isEditingTitle
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Color.clear.aspectRatio(card.aspectRatio, contentMode: .fit)
+            Group {
+                if compact { Brand.tan.frame(height: 148) }
+                else { Color.clear.aspectRatio(card.aspectRatio, contentMode: .fit) }
+            }
                 .overlay {
                     if let image {
                         Image(uiImage: image).resizable().scaledToFit()
@@ -233,16 +230,18 @@ private struct ProSavedImageTile: View {
                 }
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                CardTitleText(card: card.cardTitle).font(.system(size: 15, weight: .semibold))
-                if let host = card.sourceURL?.host() {
+                CardTitleText(card: card.cardTitle).font(.system(size: compact ? 13 : 15, weight: .semibold))
+                    .lineLimit(compact && !isEditingTitle ? 2 : nil)
+                if !compact, let host = card.sourceURL?.host() {
                     Text(host).font(.system(size: 11)).lineLimit(1).foregroundStyle(Brand.nearBlack.opacity(0.65))
                 }
             }
             .foregroundStyle(Brand.nearBlack)
             .padding(.trailing, isEditingTitle ? 0 : 33)
             .padding(11)
+            .frame(minHeight: compact ? 62 : nil, alignment: .topLeading)
         }
-        .background(Brand.card)
+        .background(compact ? Brand.tan : Brand.card)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .task(id: url) {
             let loaded = await ProImageLoader.load(url: url, maxPixelSize: 700)
@@ -312,7 +311,8 @@ struct ProImageEditor: View {
             if let card {
                 try await library.update(card, title: title, source: source, notes: notes)
             } else if let draft {
-                try await library.save(data: draft.data, title: title, source: source, notes: notes)
+                try await library.save(data: draft.data, title: title, source: source, notes: notes,
+                                       to: draft.destinationAreaID)
             }
             dismiss()
         } catch { problem = error.localizedDescription }

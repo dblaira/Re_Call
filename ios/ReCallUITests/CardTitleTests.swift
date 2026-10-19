@@ -145,6 +145,9 @@ final class CardTitleTests: XCTestCase {
 
     func testCalendarTimedAndAllDayTitles() {
         app.buttons["Calendar"].tap()
+        // Calendar now opens at the month grid. Use its visible Today action to reach
+        // the fixture at the current time before exercising the unchanged title editor.
+        app.buttons["Today"].tap()
         begin("Original timed writing", scroll: "calendarScroll")
         replace(with: "My timed title")
         attach("Calendar timed title expands inline")

@@ -31,6 +31,36 @@ enum Brand {
     }
 }
 
+/// One header size for the four tabs, with navy extending through the status-bar safe area.
+struct BrandPageHeader<Controls: View>: View {
+    let title: String
+    var centered = false
+    @ViewBuilder var controls: () -> Controls
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(Brand.serif(48))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .frame(maxWidth: .infinity, alignment: centered ? .center : .leading)
+            controls()
+                .font(.system(size: 15, weight: .semibold))
+        }
+        .foregroundStyle(Brand.tan)
+        .padding(.horizontal, 18)
+        .padding(.top, 18)
+        .padding(.bottom, 4)
+        .frame(height: 128, alignment: .top)
+        .frame(maxWidth: .infinity)
+        .background(Brand.nearBlack.ignoresSafeArea(edges: .top))
+        .overlay(alignment: .bottom) { Rectangle().fill(Brand.crimson).frame(height: 2) }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("pageHeader")
+    }
+}
+
 extension Color {
     /// 0xRRGGBB convenience initializer for design-token colors.
     init(hex: UInt, alpha: Double = 1) {

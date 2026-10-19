@@ -16,48 +16,21 @@ struct ActionsHomeView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                hero
-                Rectangle().fill(Brand.crimson).frame(height: 2)
-                priorityBand
-                completedBand
+        VStack(spacing: 0) {
+            BrandPageHeader(title: "Actions") { EmptyView() }
+            ScrollView {
+                VStack(spacing: 0) {
+                    priorityBand
+                    completedBand
+                }
             }
+            .accessibilityIdentifier("actionsHome")
         }
-        .background(Brand.page)
-        .ignoresSafeArea(edges: .top)
-        .accessibilityIdentifier("actionsHome")
-    }
-
-    private var hero: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Actions")
-                .font(Brand.serif(48))
-                .foregroundStyle(Brand.nearBlack)
-            Text("Choose the move that matters.")
-                .font(.system(size: 18, weight: .heavy))
-                .foregroundStyle(Brand.crimson)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, 60)
-        .padding(.bottom, 18)
-        .padding(.horizontal, 16)
         .background(Brand.tan)
     }
 
     private var priorityBand: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .lastTextBaseline) {
-                Text("PRIORITY")
-                    .font(.system(size: 15, weight: .heavy))
-                    .tracking(2.5)
-                    .foregroundStyle(Brand.tan)
-                Spacer()
-                Text("\(actions.count)")
-                    .font(.system(size: 14, weight: .heavy))
-                    .foregroundStyle(.white.opacity(0.45))
-            }
-
             if actions.isEmpty {
                 emptyState
             } else {
@@ -89,12 +62,12 @@ struct ActionsHomeView: View {
         .padding(.bottom, 16)
         .padding(.horizontal, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Brand.page)
+        .background(Brand.tan)
     }
 
     @ViewBuilder private var completedBand: some View {
         if completedActions.isEmpty {
-            Color.white.frame(height: 150)
+            Brand.tan.frame(height: 150)
         } else {
             CompletedBand(
                 items: completedActions,
@@ -112,9 +85,6 @@ struct ActionsHomeView: View {
             Text("No actions yet.")
                 .font(Brand.serif(26))
                 .foregroundStyle(.white)
-            Text("Tap the charge button and choose Action.")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(.white.opacity(0.55))
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)

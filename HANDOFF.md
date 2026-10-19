@@ -4,6 +4,32 @@ Handoff for continuing the native SwiftUI reminders feature. Written 2026-06-15.
 top to bottom before touching the iOS build — the **Gotchas** section is what caused repeated
 build/crash loops.
 
+## October 19 update — Pro arrangements and approved page appearance
+
+The physical iPhone build includes Pro card ordering and user-selected smaller horizontal rows.
+Arrange opens the controls; a card's menu offers **Start a row here**. Cards can be dragged,
+moved earlier/later, or moved between areas. Rows have no heading during normal browsing.
+Each row's Add image card accepts a fresh photo or file directly into that row. Empty rows
+remain available, so they do not require any existing Pro cards. The header's Add image
+still imports to the full-size area at the top.
+Carousel image padding, title areas, and the Add image card use the same tan as the
+page, following Adam's screenshot correction. The original images are not altered.
+Layout is stored separately in `pro-library/arrangement.json`; images and metadata retain
+their identity and original bytes. Adam said he will choose row membership in Arrange.
+
+The four tabs use `BrandPageHeader`: compact 128-point content height, solid navy through
+the top safe area, white titles, sand controls, tan body, and white bottom navigation.
+Calendar opens at its month grid. Today explicitly jumps to the current time. Descriptive
+page subtitles and UP NEXT/PRIORITY headings were removed. Adam approved this version
+and asked to move on; do not continue adjusting header size or title placement.
+
+Current app bundle is `sh.notorious.app`; Adam's current iPhone identifier is
+`00008150-000D793E0208401C`. The older identifiers and appearance descriptions below are
+historical. Physical drag, row persistence, uniform headers, Calendar opening, and Calendar
+title editing passed. After the seamless-carousel color correction, all 13 then-current
+Application Support files matched before/after installation byte for byte. See
+`docs/PRO_ARRANGEMENT_PREVIEW.md` for the final regression gate and evidence.
+
 ---
 
 ## 1. What was built

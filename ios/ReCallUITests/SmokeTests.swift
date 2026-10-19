@@ -47,12 +47,47 @@ final class SmokeTests: XCTestCase {
         XCTAssertTrue(app.buttons["proFirstImage"].waitForExistence(timeout: 10), "Saved image collection missing")
         app.buttons["proTemplatesToggle"].tap()
 
-        XCTAssertTrue(app.staticTexts["Professional Templates"].waitForExistence(timeout: 10),
-                      "Professional Templates page title missing")
+        XCTAssertTrue(app.staticTexts["Pro"].waitForExistence(timeout: 10), "Pro page title missing")
         XCTAssertTrue(app.otherElements["professionalTemplateGrid"].waitForExistence(timeout: 10),
                       "Professional template grid missing")
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "cardTitleText-shape:pro-reply").firstMatch.waitForExistence(timeout: 10),
                       "Expected professional template card missing")
+    }
+
+    func testCalendarOpensAtTheTopWithUniformTabHeaders() {
+        let app = XCUIApplication()
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
+        app.launchEnvironment["RECALL_UI_TEST_SESSION"] = UUID().uuidString
+        app.launch()
+        dismissNotificationPrompt()
+
+        let header = app.otherElements["pageHeader"].firstMatch
+        XCTAssertTrue(header.waitForExistence(timeout: 20))
+        let homeFrame = header.frame
+        for tab in ["Actions", "Calendar", "PRO"] {
+            app.buttons[tab].tap()
+            XCTAssertTrue(header.waitForExistence(timeout: 10))
+            XCTAssertEqual(header.frame.height, homeFrame.height, accuracy: 1, "\(tab) header must match Home")
+            XCTAssertEqual(header.frame.minY, homeFrame.minY, accuracy: 1, "\(tab) header must start at the same position")
+            if tab == "Calendar" {
+                let grid = app.otherElements["calendarMonthGrid"].firstMatch
+                XCTAssertTrue(grid.waitForExistence(timeout: 10))
+                XCTAssertTrue(grid.isHittable, "Calendar must open at its month grid")
+                XCTAssertGreaterThanOrEqual(grid.frame.minY, header.frame.maxY)
+                XCTAssertLessThan(grid.frame.maxY, app.frame.height - 100,
+                                  "The whole month must be visible before any scrolling")
+                app.buttons["Today"].tap()
+                XCTAssertTrue(header.staticTexts["Calendar"].isHittable,
+                              "Jumping to today must retain the Calendar header")
+                app.buttons["Actions"].tap()
+                app.buttons["Calendar"].tap()
+                XCTAssertTrue(grid.isHittable, "Reopening Calendar must return to the month at the top")
+            }
+            let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            shot.name = "\(tab) shared header and navigation"
+            shot.lifetime = .keepAlways
+            add(shot)
+        }
     }
 
     func testFABOpensEntryForm() {

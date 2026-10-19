@@ -1,0 +1,15 @@
+---
+description: Adam's approved page appearance and phone verification
+globs: ["ios/ReCall/App/Theme.swift", "ios/ReCall/App/*HomeView.swift", "ios/ReCall/App/MainTabView.swift", "ios/ReCall/App/CalendarView.swift", "ios/ReCall/App/ProLibraryView.swift"]
+alwaysApply: false
+---
+
+Use the shared compact header across Reminders, Actions, Calendar, and Pro. Keep navy solid through the status bar to the very top of the iPhone. Header titles are white and sit lower; controls and other header text stay sand. Body backgrounds, Reminder Shapes, and the space around smaller Pro rows are tan. The bottom navigation bar is white on every tab.
+
+Smaller Pro row cards blend into that tan page: image letterboxing, title areas, and the Add image card all use Brand.tan. Do not add white or cream panels behind them. Original image pixels stay intact.
+
+Page names stand on their own. Do not add descriptive subtitles, UP NEXT, PRIORITY, LIGHT OFFERING, or PRO LIBRARY labels. Pro appears above Templates, Arrange, and Add image. Keep functional controls and the user's saved card contents.
+
+Calendar opens at its month grid. Only an explicit Today action jumps to the current time; its header remains visible.
+
+For any shared appearance change, inspect all four tabs on Adam's physical iPhone, including the full top edge and bottom navigation. A correct Pro screenshot does not verify Home, Actions, or Calendar. Show the resulting live screen before committing.

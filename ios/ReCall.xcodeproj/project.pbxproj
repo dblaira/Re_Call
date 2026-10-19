@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0C10C135B2C1CD0199B5489F /* ProArrangedImages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E8B301309610CAD47624452 /* ProArrangedImages.swift */; };
 		134FDD757C7A6C7FC746EF94 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1204A47B34D6B6201D2B3472 /* Assets.xcassets */; };
 		19845D503271B60B97E779E1 /* ReCallApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D059ADF056549352B1B7CBD /* ReCallApp.swift */; };
 		19DA60DE89EBB97D72068A99 /* ReminderListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE1A2CBC8BECFA9D2824C3D /* ReminderListView.swift */; };
@@ -14,6 +15,7 @@
 		314E7B183548412A85799A47 /* LocalImageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1227A5BF6167BDE5AF79D61E /* LocalImageStore.swift */; };
 		3B66890135852A041340D535 /* PostTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0281251553DF77B3EAA56558 /* PostTheme.swift */; };
 		401B52F4C4E0ADEFD9165408 /* RemindersHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D3C653B2C2181167022C93 /* RemindersHomeView.swift */; };
+		4533693446103631CA177A4E /* ProArrangementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36CA8E8ABBD5986E689550FF /* ProArrangementTests.swift */; };
 		45BBBDEA593671D0262699AB /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 575C1741D3B349AB4757A98D /* SmokeTests.swift */; };
 		53FEBBBDA178568BF41BF064 /* CardTitleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8A20729E73DEE287A9AF270 /* CardTitleTests.swift */; };
 		59B987F31C17F2B3DFDE783B /* NativeCaptureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F831CC628830EEFBD07CEA3E /* NativeCaptureSheet.swift */; };
@@ -34,6 +36,7 @@
 		A769C95A93C917B63E578DE3 /* CardTitleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E440C4A9E6ADA9AA40373866 /* CardTitleStore.swift */; };
 		B21A0B553D091D8ED2251F06 /* ProLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA7B8A9F1FAB8323A2A3E2 /* ProLibraryView.swift */; };
 		B64BB1CBF9389567CA3C2F49 /* ReminderFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 806A9FA6D6F37A46C8EAB527 /* ReminderFormView.swift */; };
+		B99FBB42809E6297A2B329F4 /* ProLibraryArrangement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 027F225EE010C16F5ABC790A /* ProLibraryArrangement.swift */; };
 		BD3B9E9889326AD887C9759F /* UpNextScrollTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4545EA070657E131A806F1E8 /* UpNextScrollTests.swift */; };
 		CC11EE45CE1A5FC8784A4276 /* ProImageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50194EF262AD4FA01CF780E8 /* ProImageStore.swift */; };
 		DA8547B1B0922F41A8C55FD5 /* ReminderRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E3766D436B6955155E177E /* ReminderRepository.swift */; };
@@ -55,6 +58,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		027F225EE010C16F5ABC790A /* ProLibraryArrangement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProLibraryArrangement.swift; sourceTree = "<group>"; };
 		0281251553DF77B3EAA56558 /* PostTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostTheme.swift; sourceTree = "<group>"; };
 		0326AE4E656F4503FB5F17A4 /* CardTitle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardTitle.swift; sourceTree = "<group>"; };
 		0C34013F1610273B3C6A0EB9 /* ActionsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionsHomeView.swift; sourceTree = "<group>"; };
@@ -63,6 +67,7 @@
 		173255D843C9504DB59D4E09 /* CardTitleUITestFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardTitleUITestFixtures.swift; sourceTree = "<group>"; };
 		1F69F71A94B9DB02B91B9736 /* ProPosterViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProPosterViewer.swift; sourceTree = "<group>"; };
 		3379E1EBD3E2B8311EB905DE /* LocationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationProvider.swift; sourceTree = "<group>"; };
+		36CA8E8ABBD5986E689550FF /* ProArrangementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProArrangementTests.swift; sourceTree = "<group>"; };
 		3D059ADF056549352B1B7CBD /* ReCallApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReCallApp.swift; sourceTree = "<group>"; };
 		3F52EB2DF290C8A44E2E39BA /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		4079AAC3EA2A59744AF1F729 /* ReCallUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReCallUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -76,6 +81,7 @@
 		6322EE5C8DCF754F307394E5 /* ReminderGenerationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderGenerationProvider.swift; sourceTree = "<group>"; };
 		76ECEE3848A4C169603E8391 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
 		7CE1A2CBC8BECFA9D2824C3D /* ReminderListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderListView.swift; sourceTree = "<group>"; };
+		7E8B301309610CAD47624452 /* ProArrangedImages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProArrangedImages.swift; sourceTree = "<group>"; };
 		806A9FA6D6F37A46C8EAB527 /* ReminderFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderFormView.swift; sourceTree = "<group>"; };
 		8881E4FF233B1140BB438265 /* Supabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Supabase.swift; sourceTree = "<group>"; };
 		88FA7B8A9F1FAB8323A2A3E2 /* ProLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProLibraryView.swift; sourceTree = "<group>"; };
@@ -126,6 +132,7 @@
 			isa = PBXGroup;
 			children = (
 				A8A20729E73DEE287A9AF270 /* CardTitleTests.swift */,
+				36CA8E8ABBD5986E689550FF /* ProArrangementTests.swift */,
 				C5D7290BC9A84332AC978ADF /* ProImageTests.swift */,
 				575C1741D3B349AB4757A98D /* SmokeTests.swift */,
 				4545EA070657E131A806F1E8 /* UpNextScrollTests.swift */,
@@ -159,9 +166,11 @@
 				F831CC628830EEFBD07CEA3E /* NativeCaptureSheet.swift */,
 				76ECEE3848A4C169603E8391 /* NotificationScheduler.swift */,
 				0281251553DF77B3EAA56558 /* PostTheme.swift */,
+				7E8B301309610CAD47624452 /* ProArrangedImages.swift */,
 				F00F2F2CCCE1022D20D39E08 /* ProImageArchive.swift */,
 				50194EF262AD4FA01CF780E8 /* ProImageStore.swift */,
 				EF36A66CC2BE890F52611AEB /* ProImageUITestFixtures.swift */,
+				027F225EE010C16F5ABC790A /* ProLibraryArrangement.swift */,
 				88FA7B8A9F1FAB8323A2A3E2 /* ProLibraryView.swift */,
 				1F69F71A94B9DB02B91B9736 /* ProPosterViewer.swift */,
 				3D059ADF056549352B1B7CBD /* ReCallApp.swift */,
@@ -288,9 +297,11 @@
 				59B987F31C17F2B3DFDE783B /* NativeCaptureSheet.swift in Sources */,
 				880849CE3C77576F22182A3D /* NotificationScheduler.swift in Sources */,
 				3B66890135852A041340D535 /* PostTheme.swift in Sources */,
+				0C10C135B2C1CD0199B5489F /* ProArrangedImages.swift in Sources */,
 				6F48C377EF2AABEEB8772AF5 /* ProImageArchive.swift in Sources */,
 				CC11EE45CE1A5FC8784A4276 /* ProImageStore.swift in Sources */,
 				754F58FA54007E3D0073FA27 /* ProImageUITestFixtures.swift in Sources */,
+				B99FBB42809E6297A2B329F4 /* ProLibraryArrangement.swift in Sources */,
 				B21A0B553D091D8ED2251F06 /* ProLibraryView.swift in Sources */,
 				EB843A84F165E01F7A2C9A6B /* ProPosterViewer.swift in Sources */,
 				19845D503271B60B97E779E1 /* ReCallApp.swift in Sources */,
@@ -311,6 +322,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				53FEBBBDA178568BF41BF064 /* CardTitleTests.swift in Sources */,
+				4533693446103631CA177A4E /* ProArrangementTests.swift in Sources */,
 				657663F5BE7B5329A057CCF1 /* ProImageTests.swift in Sources */,
 				45BBBDEA593671D0262699AB /* SmokeTests.swift in Sources */,
 				BD3B9E9889326AD887C9759F /* UpNextScrollTests.swift in Sources */,

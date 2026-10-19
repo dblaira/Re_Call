@@ -22,7 +22,10 @@ struct RemindersHomeView: View {
     @State private var armedReorderId: UUID?
 
     var body: some View {
-        homeScroll
+        VStack(spacing: 0) {
+            BrandPageHeader(title: "Understood", centered: true) { EmptyView() }
+            homeScroll
+        }
     }
 
     @ViewBuilder private var homeScroll: some View {
@@ -44,8 +47,6 @@ struct RemindersHomeView: View {
     private var scrollBody: some View {
         ScrollView {
             VStack(spacing: 0) {
-                hero
-                Rectangle().fill(Brand.crimson).frame(height: 2)
                 band
                 completedBand
                 shapes
@@ -54,19 +55,7 @@ struct RemindersHomeView: View {
         .accessibilityIdentifier("homeScroll")
         // Up Next cards use UIKit gestures (UpNextCardRow) so vertical pans reach this ScrollView
         // on device. SwiftUI DragGesture on every row froze scroll on launch — see HANDOFF §5b.
-        .background(Brand.page)
-        .ignoresSafeArea(edges: .top)
-    }
-
-    private var hero: some View {
-        Text("Understood")
-            .font(Brand.serif(48))
-            .foregroundStyle(Brand.nearBlack)
-            .frame(maxWidth: .infinity)
-            .padding(.top, 60)
-            .padding(.bottom, 18)
-            .padding(.horizontal, 16)
-            .background(Brand.tan)
+        .background(Brand.tan)
     }
 
     /// The "what matters now" feed — reminders, actions, and events together, pinned first then
@@ -83,15 +72,9 @@ struct RemindersHomeView: View {
 
     private var band: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("UP NEXT")
-                    .font(.system(size: 15, weight: .heavy)).tracking(2.5)
-                    .foregroundStyle(Brand.tan)
-                Spacer()
-            }
             if feed.isEmpty {
                 Text("Nothing yet — tap + to add your first.")
-                    .font(.system(size: 15)).foregroundStyle(.white.opacity(0.5))
+                    .font(.system(size: 15)).foregroundStyle(Brand.nearBlack.opacity(0.65))
                     .padding(.vertical, 6)
             } else {
                 ForEach(Array(feed.enumerated()), id: \.element.id) { idx, rem in
@@ -124,7 +107,7 @@ struct RemindersHomeView: View {
         .padding(.bottom, 16)
         .padding(.horizontal, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Brand.page)
+        .background(Brand.tan)
     }
 
     /// SAVY's collapsed completed indicator. Closed: `COMPLETED N >`. Open: the rows.
@@ -156,7 +139,7 @@ struct RemindersHomeView: View {
         .padding(.horizontal, 16)
         .padding(.bottom, 150)   // clearance for the FAB + tab bar
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white)
+        .background(Brand.tan)
     }
 
     private func column(_ tiles: [ShapeTileSpec]) -> some View {

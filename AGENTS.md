@@ -52,7 +52,7 @@ Read `.cursor/rules/recall.mdc` for QC gates, layer boundaries, and iOS gotchas.
 
 Update this line when the active milestone changes:
 
-**Current lane:** Pro title keyboard repair installed and physically verified: keyboard appears in both editors, actual onscreen keys edit, Done saves, and the title survives relaunch. Device Hub hardware-keyboard simulation stays off. Adam’s two saved images are unchanged. Full QC is green for the final code (20/20 UI tests, October 19 at 10:30 PDT). See docs/PRO_IMAGES_VERIFICATION.md. Do not App Store submit without Adam. Do not expand scope without Adam saying so.
+**Current lane:** Pro arrangements, fresh carousel imports, and the approved compact navy/white/sand headers are complete and installed on the physical iPhone. Adam confirmed additions work; carousel image padding, titles, and Add image now blend into the tan page. Both native imports, persistence, drag, and horizontal swiping were physically verified. All 13 current saved-data files are unchanged across the color correction. Full QC is green for the final code: 24/24 UI tests, zero failures or skips, October 19 at 12:46 PDT. See docs/PRO_ARRANGEMENT_PREVIEW.md. Do not keep adjusting approved headers. No App Store submission.
 
 ## How agents use Adam's Macs (required)
 

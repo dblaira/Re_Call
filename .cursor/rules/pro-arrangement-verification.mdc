@@ -1,0 +1,15 @@
+---
+description: Verify Pro arrangement gestures and preserve the boundary between a mockup and saved layout
+globs: ["ios/ReCall/App/ProArrang*.swift", "ios/ReCall/App/ProLibrary*.swift"]
+alwaysApply: false
+---
+
+Check vertical scrolling with Arrange both on and off on the physical iPhone. Card activation must not consume the page pan. Check horizontal carousel swiping independently from the next-image button; a button-driven scroll does not prove a swipe. Check drag reordering independently from move-menu actions.
+
+Device Hub's accessibility tree describes its Mac window, not the phone contents. An unchanged tree is not proof that the phone stayed unchanged. Read a fresh screenshot after an input, and dismiss Mac menus through their exposed Cancel action before continuing.
+
+For design previews, read the saved collection and keep sample arrangements in memory. After Adam approves or corrects the design, verify production persistence, relaunch, source bytes, card identity, existing title editing, and scroll/drag interactions before committing. Use an isolated collection for agent-chosen test arrangements. The user's real row membership is their choice.
+
+Rows must accept fresh images directly through their own Add image control, including when the row and collection are empty. Verify a real system picker, Save into the intended row, and relaunch. Cancelling must leave the empty row usable. The header's Add image must reset the destination to the top full-size area.
+
+Locate a source with `rg --files` or a symbol search before reading an assumed filename; the shared palette is in `Theme.swift`, not a separate `Brand.swift` file.

@@ -4,6 +4,7 @@ import ImageIO
 @MainActor
 final class ProImageStore: ObservableObject {
     @Published private(set) var cards: [ProImageCard] = []
+    @Published private(set) var arrangement = ProLibraryArrangement(cardIDs: [])
     let directory: URL
     private let archive: ProImageArchive
 
@@ -12,10 +13,17 @@ final class ProImageStore: ObservableObject {
         archive = ProImageArchive(directory: directory)
     }
 
-    func refresh() async throws { cards = try await archive.load() }
+    func refresh() async throws {
+        cards = try await archive.load()
+        // Keep images available even if the separate layout needs repair.
+        arrangement = arrangement.reconciled(with: cards.map(\.id))
+        arrangement = try await archive.loadArrangement()
+    }
 
-    func save(data: Data, title: String, source: String, notes: String) async throws {
-        cards = try await archive.save(data: data, title: title, source: source, notes: notes)
+    func save(data: Data, title: String, source: String, notes: String, to areaID: UUID? = nil) async throws {
+        let saved = try await archive.save(data: data, title: title, source: source, notes: notes, to: areaID)
+        cards = saved.cards
+        arrangement = saved.arrangement ?? arrangement.reconciled(with: cards.map(\.id))
     }
 
     func update(_ card: ProImageCard, title: String, source: String, notes: String) async throws {
@@ -28,7 +36,19 @@ final class ProImageStore: ObservableObject {
         }
     }
 
-    func remove(_ card: ProImageCard) async throws { cards = try await archive.remove(card) }
+    func remove(_ card: ProImageCard) async throws {
+        cards = try await archive.remove(card)
+        arrangement = arrangement.reconciled(with: cards.map(\.id))
+    }
+
+    func arrange(_ change: @Sendable @escaping (inout ProLibraryArrangement) -> Void) async throws {
+        arrangement = try await archive.arrange(change)
+    }
+
+    func cards(in area: ProLibraryArrangement.Area) -> [ProImageCard] {
+        let lookup = Dictionary(uniqueKeysWithValues: cards.map { ($0.id, $0) })
+        return area.cardIDs.compactMap { lookup[$0] }
+    }
 
     func url(for card: ProImageCard) -> URL { directory.appendingPathComponent(card.imageName) }
 }

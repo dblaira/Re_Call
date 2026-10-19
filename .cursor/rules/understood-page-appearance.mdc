@@ -4,9 +4,9 @@ globs: ["ios/ReCall/App/Theme.swift", "ios/ReCall/App/*HomeView.swift", "ios/ReC
 alwaysApply: false
 ---
 
-Use the shared compact header across Reminders, Actions, Calendar, and Pro. Keep navy solid through the status bar to the very top of the iPhone. Header titles are white and sit lower; controls and other header text stay sand. Body backgrounds, Reminder Shapes, and the space around smaller Pro rows are tan. The bottom navigation bar is white on every tab.
+Use the shared compact header across Reminders, Actions, Calendar, and Pro. Keep navy solid through the status bar to the very top of the iPhone. Header titles are white and sit lower; controls and other header text stay sand. Reminders, Actions, Calendar, and Templates retain tan body backgrounds. The Pro image collection is black. The bottom navigation bar is white on every tab.
 
-Smaller Pro row cards blend into that tan page: image letterboxing, title areas, and the Add image card all use Brand.tan. Do not add white or cream panels behind them. Original image pixels stay intact.
+Pro images use their original proportions, strongly varied widths and heights, and simple white captions directly on black. Carousel cards have different lengths and widths; do not return them to uniform boxes or add pale panels. Sizes stay stable across relaunch, and the user's chosen order stays intact. Original image pixels stay intact.
 
 Page names stand on their own. Do not add descriptive subtitles, UP NEXT, PRIORITY, LIGHT OFFERING, or PRO LIBRARY labels. Pro appears above Templates, Arrange, and Add image. Keep functional controls and the user's saved card contents.
 

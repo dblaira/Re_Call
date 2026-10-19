@@ -8,8 +8,12 @@ Check vertical scrolling with Arrange both on and off on the physical iPhone. Ca
 
 Device Hub's accessibility tree describes its Mac window, not the phone contents. An unchanged tree is not proof that the phone stayed unchanged. Read a fresh screenshot after an input, and dismiss Mac menus through their exposed Cancel action before continuing.
 
+If XCTest times out enabling automation, inspect the phone for Apple's passcode prompt. Ask Adam to enter it on the phone and continue independent checks. Retry only after the prompt is cleared; a setup timeout proves no app behavior and must not be counted as a test pass or an app regression.
+
 For design previews, read the saved collection and keep sample arrangements in memory. After Adam approves or corrects the design, verify production persistence, relaunch, source bytes, card identity, existing title editing, and scroll/drag interactions before committing. Use an isolated collection for agent-chosen test arrangements. The user's real row membership is their choice.
 
 Rows must accept fresh images directly through their own Add image control, including when the row and collection are empty. Verify a real system picker, Save into the intended row, and relaunch. Cancelling must leave the empty row usable. The header's Add image must reset the destination to the top full-size area.
+
+Verify that carousel images retain different lengths and widths on the black collection background. Variety must survive relaunch without shuffling the saved order. Check the short and tall cards, Add image, and editing controls in the rendered phone UI.
 
 Locate a source with `rg --files` or a symbol search before reading an assumed filename; the shared palette is in `Theme.swift`, not a separate `Brand.swift` file.

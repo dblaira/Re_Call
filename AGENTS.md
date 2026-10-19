@@ -52,7 +52,7 @@ Read `.cursor/rules/recall.mdc` for QC gates, layer boundaries, and iOS gotchas.
 
 Update this line when the active milestone changes:
 
-**Current lane:** Pro arrangements, fresh carousel imports, and the approved compact navy/white/sand headers are complete and installed on the physical iPhone. Adam confirmed additions work; carousel image padding, titles, and Add image now blend into the tan page. Both native imports, persistence, drag, and horizontal swiping were physically verified. All 13 current saved-data files are unchanged across the color correction. Full QC is green for the final code: 24/24 UI tests, zero failures or skips, October 19 at 12:46 PDT. See docs/PRO_ARRANGEMENT_PREVIEW.md. Do not keep adjusting approved headers. No App Store submission.
+**Current lane:** Black Pro collection with strongly varied image widths and lengths is installed and verified on the physical iPhone. Images retain their proportions and chosen order; captions are white directly on black. All four physical interaction tests passed, including native drag, carousel swiping, relaunch, fresh-import pickers, and onscreen title editing. All 13 saved-data files are unchanged. Final full QC is green: 24/24 UI tests, zero failures or skips, October 19 at 13:15 PDT. See docs/PRO_ARRANGEMENT_PREVIEW.md. Keep the approved shared headers. No App Store submission.
 
 ## How agents use Adam's Macs (required)
 

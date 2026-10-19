@@ -6,6 +6,16 @@ build/crash loops.
 
 ## October 19 update — Pro arrangements and approved page appearance
 
+Latest Pro direction: black behind the saved-image collection, simple white captions,
+and strongly varied image widths and lengths in both the main grid and carousels.
+This replaces the tan Pro body described in the earlier verification below. Original
+image proportions, saved order, row membership, and source bytes are preserved. The
+shared navy headers and white navigation retain their approved appearance. This build
+is installed and visually verified on the physical iPhone; all four selected physical
+tests passed. All 13 saved-data files are unchanged. Final full QC is green: 24/24 UI
+tests, zero failures or skips, October 19 at 13:15 PDT. See the latest section of
+`docs/PRO_ARRANGEMENT_PREVIEW.md` for evidence. The tan-page results below are historical.
+
 The physical iPhone build includes Pro card ordering and user-selected smaller horizontal rows.
 Arrange opens the controls; a card's menu offers **Start a row here**. Cards can be dragged,
 moved earlier/later, or moved between areas. Rows have no heading during normal browsing.

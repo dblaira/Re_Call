@@ -1,6 +1,27 @@
 # Pro arrangements — October 19, 2026
 
-## Adam’s decisions
+## Latest direction — black and varied image sizes
+
+After the tan version was saved as `e4dbe08`, Adam supplied two Pinterest screenshots and requested a black Pro collection with strongly different image widths and lengths. This replaces the earlier tan Pro collection described below. The approved shared navy header and white bottom navigation remain in place.
+
+The native view now uses black behind images and simple white captions. Full-size columns have different widths, and images retain their proportions. Each carousel derives varied sizes from stable image identity and separates neighboring images with similar dimensions. The layout keeps the saved order, row membership, original image files, and existing image viewer. Add image remains available in every row.
+
+The new device build is installed. Direct inspection on the physical iPhone shows the backpack, Running Inspiration, and Presentation Inspiration at different widths and lengths. The lower SAVY and Adam to Understood images also have visibly contrasting sizes. Direct horizontal swiping reaches Add image on black without shifting the grid below it. The normal collection was reopened after the isolated tests. All 13 saved-data files match the pre-installation copy byte for byte.
+
+The physical iPhone passed all four selected tests, with zero failures or skips: chosen row membership, order and sizes after relaunch; horizontal swiping to Add image and returning from image detail; opening Photos and Files from an empty row; native drag and vertical scrolling; and both title editors using actual onscreen keys. Result: `/tmp/Understood-ProArrangement-device/Logs/Test/Test-ReCall-2026.10.19_13-06-00--0700.xcresult`. The first attempt stopped at Apple's XCTest passcode prompt without running app tests. Adam cleared that prompt, and the retry passed.
+
+The new size assertion initially searched for a Button where the card exposes an accessibility container. The lookup was corrected to the existing identifier across element types, retaining the height-difference and relaunch assertions. Its targeted simulator rerun passed. The final `./qc.sh --full` completed QC GREEN on October 19 at 13:15 PDT: all 24 UI tests passed, with zero failures or skips. Engine, native persistence, deterministic KG output, and build gates also passed. Final result: `/Users/adamblair/Library/Developer/Xcode/DerivedData/ReCall-QC/Logs/Test/Test-ReCall-2026.10.19_13-03-56--0700.xcresult`.
+
+Current evidence directory: `/Users/adamblair/.codex/visualizations/2026/10/19/01a15550-786d-7151-87b2-d02e194093a5/pro-black-varied`.
+
+- `iphone-opening.png`, `iphone-lower-carousel.png`, and `iphone-final-swipe.png`: native captures of the actual collection on the phone.
+- `physical-tests-summary.json`, `physical-tests.log`, and `physical-test-proof/`: the four passing physical tests and ten captured screens.
+- `size-relaunch-simulator-summary.json`: the corrected targeted assertion passing on the simulator.
+- `full-qc-summary.json`, `full-qc.log`, and `full-qc-ui.log`: all 24 UI tests and the full quality gate passing for the black Pro version.
+- `black-background-readback.json`: the page, image spacing, and caption background are black in the captured pixels.
+- `device-before/`, `device-after-final/`, and `data-integrity-after-final.json`: matching files and SHA-256 hashes for all 13 saved-data files.
+
+## Earlier decisions and verification
 
 Reorder Pro cards between areas, add smaller horizontal rows farther down the page, and let Adam choose the cards in each row. The header background is solid navy, extending to the top edge of the iPhone. Header titles are white and lowered; controls and other header text stay sand. The body and space behind each smaller row use the same tan. Browsing has no “Carousel” heading; shape, size, and horizontal scrolling distinguish the row.
 

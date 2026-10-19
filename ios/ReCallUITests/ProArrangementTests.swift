@@ -59,11 +59,23 @@ final class ProArrangementTests: XCTestCase {
         app.buttons["proArrange"].tap()
         XCTAssertFalse(app.staticTexts["Carousel"].exists)
         XCTAssertFalse(app.staticTexts["Row 1"].exists, "The horizontal row must have no visible heading while browsing")
+        let firstCard = row.descendants(matching: .any).matching(identifier:
+            first.identifier.replacingOccurrences(of: "cardTitleText-pro-image:", with: "proImageCard-")).firstMatch
+        let secondCard = row.descendants(matching: .any).matching(identifier:
+            second.identifier.replacingOccurrences(of: "cardTitleText-pro-image:", with: "proImageCard-")).firstMatch
+        XCTAssertTrue(firstCard.waitForExistence(timeout: 5))
+        XCTAssertTrue(secondCard.waitForExistence(timeout: 5))
+        let originalSize = firstCard.frame.size
+        XCTAssertGreaterThan(abs(firstCard.frame.height - secondCard.frame.height), 20,
+                             "Different image proportions must remain visibly different lengths in a carousel")
         attach("Only the chosen cards occupy the unlabelled smaller row")
         app.terminate(); app.launch(); app.buttons["PRO"].tap()
         reveal(first)
         XCTAssertTrue(second.exists)
         XCTAssertLessThan(first.frame.minX, second.frame.minX)
+        XCTAssertEqual(firstCard.frame.width, originalSize.width, accuracy: 1,
+                       "Varied sizes must stay stable across relaunch")
+        XCTAssertEqual(firstCard.frame.height, originalSize.height, accuracy: 1)
         let addImage = row.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "proRowAddImage-")).firstMatch
         row.swipeLeft(velocity: .slow)
         XCTAssertTrue(addImage.isHittable)

@@ -29,6 +29,20 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "0093CEB0ED86212772C5B890"
+               BuildableName = "ReCallTests.xctest"
+               BlueprintName = "ReCallTests"
+               ReferencedContainer = "container:ReCall.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "1B3058E4AF76047BF72CA228"
                BuildableName = "ReCallUITests.xctest"
                BlueprintName = "ReCallUITests"
@@ -53,6 +67,17 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "0093CEB0ED86212772C5B890"
+               BuildableName = "ReCallTests.xctest"
+               BlueprintName = "ReCallTests"
+               ReferencedContainer = "container:ReCall.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
          <TestableReference
             skipped = "NO"
             parallelizable = "NO">

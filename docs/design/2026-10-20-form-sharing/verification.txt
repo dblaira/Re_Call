@@ -1,0 +1,34 @@
+Understood form sharing verification — 2026-10-20
+
+Final behavior: tap Share -> native destination picker -> entire current form.
+No Entire form / Delegate only scope choice. Metadata included; images excluded.
+Approved control preserved: icon only, 64-point circle, 30-point glyph, centered,
+22-point overlap above a solid 1-point divider, white footer through safe area.
+
+All functional checks used isolated iPhone 17 Pro Max simulator storage on iOS 27.
+Focused sharing run:
+/tmp/understood-form-sharing-20261020/entire-only-focused.xcresult
+/tmp/understood-form-sharing-20261020/entire-only-focused.log
+5 export unit tests and 1 sharing UI test passed. TEST SUCCEEDED.
+The UI test checks FAB geometry, keyboard reachability, direct native Copy,
+exact complete content, editing and sharing again, return to the unchanged
+editor, and Cancel without creating an entry. Current screenshots were inspected.
+
+Final required full gate: ./qc.sh --full — QC GREEN.
+/tmp/understood-form-sharing-20261020/entire-only-final-full-qc.log
+/Users/adamblair/Library/Developer/Xcode/DerivedData/ReCall-QC/Logs/Test/Test-ReCall-2026.10.20_11-27-51--0700.xcresult
+Engine, Harness runtime, card-title persistence, Pro image persistence,
+recommendation generation parity, native build, 5 unit tests, and all 25 UI tests
+passed. Zero failures or skips. Sharing passed again within this full run.
+The initial full run was interrupted to correct the sharing test's cursor-position
+assumption; the final complete run above used the corrected test.
+
+Physical iPhone installation requested by Adam:
+Signed Debug build: BUILD SUCCEEDED.
+/tmp/understood-form-sharing-20261020/entire-only-device-build.log
+Install: /tmp/understood-form-sharing-20261020/entire-only-phone-install.json
+Launch: /tmp/understood-form-sharing-20261020/entire-only-phone-launch.json
+Observed main page: /tmp/understood-form-sharing-20261020/entire-only-phone-launched.png
+Before install: main page visible, no editor open.
+Saved reminders were byte-for-byte unchanged after installation (35 entries).
+Sharing interactions were tested in the simulator, not on the live phone.

@@ -68,6 +68,9 @@ struct ReminderFormView: View {
             .scrollContentBackground(.hidden)
             .background(Color.white.ignoresSafeArea())
             .tint(Brand.crimson)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                EntryShareBar(content: shareContent)
+            }
             // Header mirrors the Title as you type — the type name until the first character, then
             // the live title at full size. Compact icon buttons leave it more room.
             .navigationTitle(r.title.trimmingCharacters(in: .whitespaces).isEmpty ? r.kind.label : r.title)
@@ -115,6 +118,19 @@ struct ReminderFormView: View {
     }
 
     // MARK: - Shared entry flow
+
+    private var shareContent: EntryShareContent {
+        var entry = r
+        themeDraft.apply(to: &entry)
+        entry.subtasks = subtasks
+        entry.tags = EntryShareContent.tags(r.tags, pending: tagDraft)
+        entry.dueDate = hasDate ? date : nil
+        entry.dueTime = hasDate ? date : nil
+        entry.deferDate = hasDefer ? deferDate : nil
+        entry.endTime = nil
+        return EntryShareContent(entry: entry, sourceApp: "Understood", entryLabel: entry.kind.label,
+                                 whenIAm: entry.whenIAm)
+    }
 
     @ViewBuilder private var unifiedEntrySections: some View {
         themeSections

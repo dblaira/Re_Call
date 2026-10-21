@@ -16,4 +16,4 @@ Rows must accept fresh images directly through their own Add image control, incl
 
 Verify identical 90 × 135 pt carousel frames for different source proportions, matching Adam's October 21 Pinterest reference. Use enough cards to overflow the screen before testing a horizontal swipe. Verify the full-width square is 1:1, accepts fresh imports or one chosen saved image, and persists without changing source bytes or losing other images. Check Add image, holding a thumbnail to edit its title, and return from the original-image viewer. The main grid retains its varied proportions on black.
 
-Locate a source with `rg --files` or a symbol search before reading an assumed filename; the shared palette is in `Theme.swift`, not a separate `Brand.swift` file.
+Locate a source with `rg --files` or a symbol search before reading an assumed filename; the shared palette is in `Theme.swift`, not a separate `Brand.swift` file. Apply this to every related file in a batch as well: the image editor and viewer may not have names inferred from their screen labels. Never include an unverified filename in a read or search command.

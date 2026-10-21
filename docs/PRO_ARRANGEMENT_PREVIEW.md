@@ -1,5 +1,30 @@
 # Pro arrangements
 
+## October 21 follow-up — position whole carousels
+
+Arrange now gives every carousel the same up/down controls as the large square.
+Each tap moves the entire carousel past an adjacent card area, square, or carousel,
+keeping its images in their existing order. Placement uses the existing atomic
+arrangement save. The shared top card area remains the destination for new header imports.
+
+The physical-iPhone check passed on October 21 at 08:22 PDT. It moved a populated
+carousel below and above the square, moved another carousel past it, and verified
+membership, image order, placement after relaunch, and vertical scroll. Result:
+`/tmp/Understood-ProPinterest-device/Logs/Test/Test-ReCall-2026.10.21_08-21-20--0700.xcresult`.
+
+The normal collection is restored on the updated phone. Both actual carousel headings
+show their new arrows in Arrange. All 15 Application Support files, including the
+user's chosen square image and arrangement, match the pre-update copy byte for byte.
+Final `./qc.sh --full` completed QC GREEN on October 21 at 08:37 PDT. All 27 UI tests
+and 5 unit tests passed, with zero failures or skips, along with the engine, persistence,
+deterministic KG output, and native build gates. Result:
+`/Users/adamblair/Library/Developer/Xcode/DerivedData/ReCall-QC/Logs/Test/Test-ReCall-2026.10.21_08-22-46--0700.xcresult`.
+
+Evidence: `/Users/adamblair/.codex/visualizations/2026/10/19/01a15550-786d-7151-87b2-d02e194093a5/pro-area-movement-2026-10-21`.
+It includes `iphone-carousel-arrange-arrows.png`, both physical-test screenshots in
+`physical-proof-all`, `physical-tests-summary.json`, `data-integrity.json`, and the final
+`full-qc-summary.json`, `full-qc.log`, and `full-qc-ui.log`.
+
 ## October 21, 2026 — Pinterest carousel and large square
 
 Adam's supplied `IMG_3052.png` shows the compact “Your saves” carousel. On the original

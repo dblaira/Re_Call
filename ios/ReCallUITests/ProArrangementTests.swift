@@ -155,6 +155,66 @@ final class ProArrangementTests: XCTestCase {
         XCTAssertTrue(title("Poster 1").isHittable)
     }
 
+    func testCarouselsMoveAroundSquareAndKeepMembershipAfterRelaunch() {
+        app.buttons["proArrange"].tap()
+        menu("Poster 1")
+        app.buttons["proStartRow"].tap()
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        let firstID = row.identifier
+        let first = app.scrollViews[firstID]
+        menu("Poster 2")
+        app.buttons["proStartRow"].tap()
+        let rows = app.scrollViews.matching(NSPredicate(format: "identifier BEGINSWITH %@", "proRow-"))
+        XCTAssertEqual(rows.count, 2)
+        let secondID = rows.element(boundBy: 1).identifier
+        let second = app.scrollViews[secondID]
+        menu("Poster 3")
+        app.buttons["Move to Row 2"].tap()
+        let addSquare = app.buttons[firstID.replacingOccurrences(of: "proRow-", with: "proAddSquare-")]
+        reveal(addSquare, up: false)
+        addSquare.tap()
+        let square = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "proSquare-")).firstMatch
+        XCTAssertTrue(square.waitForExistence(timeout: 5))
+        let later = app.buttons[firstID.replacingOccurrences(of: "proRow-", with: "proRowLater-")]
+        reveal(later, up: false)
+        later.tap()
+        XCTAssertLessThan(square.frame.minY, first.frame.minY,
+                          "The whole carousel must move below the square")
+        reveal(first)
+        attach("Carousel moved below the large square")
+        let earlier = app.buttons[firstID.replacingOccurrences(of: "proRow-", with: "proRowEarlier-")]
+        reveal(earlier, up: false)
+        earlier.tap()
+        XCTAssertLessThan(first.frame.minY, square.frame.minY)
+        let secondEarlier = app.buttons[secondID.replacingOccurrences(of: "proRow-", with: "proRowEarlier-")]
+        reveal(secondEarlier)
+        // Pass the two empty card areas, the square, and the first carousel.
+        for _ in 0..<4 {
+            reveal(secondEarlier, up: false)
+            secondEarlier.tap()
+        }
+        XCTAssertLessThan(second.frame.minY, first.frame.minY,
+                          "A carousel must be able to pass another carousel")
+        XCTAssertLessThan(first.frame.minY, square.frame.minY)
+        XCTAssertTrue(title("Poster 1", in: first).exists)
+        XCTAssertTrue(title("Poster 2", in: second).exists)
+        XCTAssertTrue(title("Poster 3", in: second).exists)
+        XCTAssertLessThan(title("Poster 2", in: second).frame.minX, title("Poster 3", in: second).frame.minX)
+        app.buttons["proArrange"].tap()
+        app.terminate(); app.launch(); app.buttons["PRO"].tap()
+        app.buttons["proArrange"].tap()
+        XCTAssertTrue(second.waitForExistence(timeout: 5))
+        XCTAssertLessThan(second.frame.minY, first.frame.minY)
+        XCTAssertLessThan(first.frame.minY, square.frame.minY)
+        XCTAssertTrue(title("Poster 1", in: first).exists)
+        XCTAssertTrue(title("Poster 2", in: second).exists)
+        XCTAssertTrue(title("Poster 3", in: second).exists)
+        XCTAssertLessThan(title("Poster 2", in: second).frame.minX, title("Poster 3", in: second).frame.minX)
+        attach("Carousel placement and image order survive relaunch")
+        reveal(title("Poster 7"))
+        XCTAssertTrue(title("Poster 7").isHittable)
+    }
+
     func testNativeDragReordersCardsAndKeepsVerticalScroll() {
         app.buttons["proArrange"].tap()
         let firstID = title("Poster 1").identifier.replacingOccurrences(of: "cardTitleText-pro-image:", with: "")

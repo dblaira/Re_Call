@@ -6,6 +6,14 @@ build/crash loops.
 
 ## October 21 update — Pinterest carousel sizing and one large square
 
+Latest follow-up: every carousel now has up/down arrows in Arrange, matching the large
+square. Moving a carousel preserves its membership and image order. The physical iPhone
+passed moves across the square and another carousel, relaunch persistence, and vertical
+scrolling. Both actual carousel headings were inspected on the updated phone, and all
+15 normal collection files are unchanged. Final full QC is green: 27 UI tests and 5 unit
+tests passed, zero failures or skips, October 21 at 08:37 PDT. See the latest section of
+`docs/PRO_ARRANGEMENT_PREVIEW.md`.
+
 Adam supplied three Pinterest screenshots and requested identical compact carousel sizing
 plus one large square image container. Carousel thumbnails now use 90 × 135 pt frames,
 4 pt gaps and side margins, and 16 pt corners. Captions are hidden while browsing the

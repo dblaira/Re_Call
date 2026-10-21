@@ -183,17 +183,17 @@ struct ProArrangedImages: View {
         HStack {
             Text(library.arrangement.name(for: area)).font(Brand.serif(22))
             Spacer()
-            if area.style == .square {
+            if area.style != .grid {
                 Button { change { $0.moveArea(area.id, by: -1) } } label: {
                     Image(systemName: "arrow.up").frame(width: 44, height: 44)
                 }
-                .accessibilityLabel("Move square earlier")
-                .accessibilityIdentifier("proSquareEarlier")
+                .accessibilityLabel("Move \(area.style == .square ? "square" : library.arrangement.name(for: area)) earlier")
+                .accessibilityIdentifier(area.style == .square ? "proSquareEarlier" : "proRowEarlier-\(area.id)")
                 Button { change { $0.moveArea(area.id, by: 1) } } label: {
                     Image(systemName: "arrow.down").frame(width: 44, height: 44)
                 }
-                .accessibilityLabel("Move square later")
-                .accessibilityIdentifier("proSquareLater")
+                .accessibilityLabel("Move \(area.style == .square ? "square" : library.arrangement.name(for: area)) later")
+                .accessibilityIdentifier(area.style == .square ? "proSquareLater" : "proRowLater-\(area.id)")
             }
             if area.style != .grid {
                 Button {

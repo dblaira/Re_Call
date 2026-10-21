@@ -12,8 +12,13 @@ jobs:
   build:
     name: Compile (iOS Simulator)
     runs-on: macos-15
+    env:
+      # The runner defaults to Xcode 16.4, which lacks the iOS 26 SwiftUI APIs.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
+      - name: Show Xcode version
+        run: xcodebuild -version
       - name: Build
         run: |
           cd ios

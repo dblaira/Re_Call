@@ -4,6 +4,19 @@ Handoff for continuing the native SwiftUI reminders feature. Written 2026-06-15.
 top to bottom before touching the iOS build — the **Gotchas** section is what caused repeated
 build/crash loops.
 
+## October 21 update — GitHub build notifications
+
+The GitHub iOS Build failures were caused by the macOS 15 runner selecting its
+default Xcode 16.4. The first failing Pro/header commit on October 19 reported
+`scrollEdgeEffectHidden` missing; the October 21 Reminders checkpoint reported
+`glassEffect` missing. Both are iOS 26 SwiftUI APIs. These remote compile failures
+are separate from the passing local QC and physical-iPhone checks below.
+
+The workflow now explicitly selects the runner's installed Xcode 26.3 and prints
+its version before compiling. No app source, appearance, stored data, signing,
+or deployment setting changes are needed. Always verify the GitHub run for the
+exact pushed commit before reporting all checks green; see `ios/AGENT_BUILD.md`.
+
 ## October 21 update — remove Reminder shapes
 
 Adam now uses Pro for inspiration and requested removal of the Reminder shapes

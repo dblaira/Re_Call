@@ -26,6 +26,18 @@ IOS_DESTINATION="platform=iOS Simulator,name=iPhone 17 Pro" ./scripts/agent-ios-
 
 Do not change signing, certificates, provisioning, or App Store submission settings from an agent run unless Adam explicitly asks.
 
+## GitHub Actions
+
+`.github/workflows/ios-build.yml` selects Xcode 26.3 on the macOS 15 runner using
+`DEVELOPER_DIR`. The runner's default Xcode 16.4 lacks the iOS 26 SwiftUI APIs
+used by `scrollEdgeEffectHidden` and `glassEffect`, even inside runtime
+availability checks. The workflow prints its selected Xcode version before
+compiling the simulator app without signing.
+
+After pushing, verify the iOS Build run for the exact pushed commit reaches
+success. Local QC and physical-iPhone checks are separate evidence and do not
+replace that remote build result. See `.cursor/rules/verify-remote-build.mdc`.
+
 ## Xcode Cloud
 
 This repo includes `ci_scripts/ci_post_clone.sh` for Xcode Cloud. It verifies that `ios/ReCall.xcodeproj` exists, or regenerates it from `ios/project.yml` when `xcodegen` is available in the workflow.

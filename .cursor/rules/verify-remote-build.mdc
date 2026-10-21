@@ -1,0 +1,16 @@
+---
+description: Verify the pushed revision's GitHub build before reporting completion
+alwaysApply: true
+---
+
+# Verify the remote build
+
+After pushing Re_Call changes, inspect the GitHub Actions runs for that exact
+commit and wait for the iOS Build workflow to finish. A local QC pass and an
+iPhone installation do not establish that GitHub compiled the commit.
+
+If the remote build fails, read its failed log and resolve the cause before
+reporting all checks green. Keep local, physical-device, and GitHub results
+distinct in completion reports. When adopting newer Apple APIs, explicitly
+select a compatible Xcode in the workflow; runtime availability checks do not
+make those APIs visible to an older SDK.

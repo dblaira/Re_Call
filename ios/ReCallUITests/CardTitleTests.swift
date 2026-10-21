@@ -169,28 +169,6 @@ final class CardTitleTests: XCTestCase {
         XCTAssertTrue(titleElement("My all-day title").exists)
     }
 
-    func testEveryReminderShapeSupportsInlineTitles() {
-        for title in ["Add one movement", "Pay before due", "Bring this when I leave", "Text them back", "Do this after workout"] {
-            begin(title)
-            replace(with: title + " edited")
-            if title == "Add one movement" {
-                assertPillsFit(in: "reminder-movement", lastTag: "URL")
-                attach("Blue reminder tile retains its own styling")
-            }
-            outside()
-            XCTAssertTrue(titleElement(title + " edited").exists)
-        }
-        app.terminate()
-        app.launch()
-        let renamed = titleElement("Add one movement edited")
-        reveal(renamed, in: app.scrollViews["homeScroll"])
-        renamed.tap()
-        let original = app.textFields["Title"].firstMatch
-        XCTAssertTrue(original.waitForExistence(timeout: 5))
-        XCTAssertEqual(original.value as? String, "Add one movement edited", "Renamed template seeds the requested title")
-        app.buttons["Cancel"].tap()
-    }
-
     func testEveryProfessionalTemplateSupportsInlineTitles() {
         app.buttons["PRO"].tap()
         app.buttons["proTemplatesToggle"].tap()

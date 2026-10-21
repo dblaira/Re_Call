@@ -1,23 +1,11 @@
 import SwiftUI
 
-/// The Reminders tab: editorial home — brand hero, Up Next feed, and reminder-shape tiles.
+/// The Reminders tab: brand header, active reminders, and completed reminders.
 struct RemindersHomeView: View {
-    /// Tapping a shape tile starts a new reminder seeded with a title.
-    var onPick: (ShapeTileSpec) -> Void = { _ in }
     /// Tapping one of your reminders opens it for editing.
     var onOpen: (Reminder) -> Void = { _ in }
 
     @EnvironmentObject private var store: ReminderStore
-
-    private let leftTiles: [ShapeTileSpec] = [
-        .init(id: "reminder-movement", title: "Add one movement",        bg: Brand.primaryBlue,   fg: .white, tags: ["PHOTO", "TIME", "URL"], height: 190, dark: true),
-        .init(id: "reminder-pay", title: "Pay before due",          bg: Brand.primaryYellow, fg: .black, tags: ["DATE"],                 height: 135, dark: false),
-        .init(id: "reminder-bring", title: "Bring this when I leave", bg: Brand.primaryGreen,  fg: .white, tags: ["PLACE", "PHOTO"],       height: 150, dark: true),
-    ]
-    private let rightTiles: [ShapeTileSpec] = [
-        .init(id: "reminder-text", title: "Text them back",        bg: Brand.crimson,   fg: .white, tags: ["PERSON"],       height: 190, dark: true, templateID: "ChooseCommunicationFormatReminder"),
-        .init(id: "reminder-workout", title: "Do this after workout", bg: Brand.nearBlack, fg: .white, tags: ["TIME", "CUE"], height: 190, dark: true, templateID: "HabitStackGymReminder"),
-    ]
 
     @State private var armedReorderId: UUID?
 
@@ -49,8 +37,8 @@ struct RemindersHomeView: View {
             VStack(spacing: 0) {
                 band
                 completedBand
-                shapes
             }
+            .padding(.bottom, 150) // Keep the final reminders above the FAB and tab bar.
         }
         .accessibilityIdentifier("homeScroll")
         // Up Next cards use UIKit gestures (UpNextCardRow) so vertical pans reach this ScrollView
@@ -121,39 +109,6 @@ struct RemindersHomeView: View {
         )
     }
 
-    private var shapes: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Reminder shapes")
-                    .font(.system(size: 22, weight: .heavy))
-                    .foregroundStyle(.black)
-                    .accessibilityIdentifier("reminderShapes")
-                Spacer()
-            }
-            HStack(alignment: .top, spacing: 10) {
-                column(leftTiles)
-                column(rightTiles)
-            }
-        }
-        .padding(.top, 18)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 150)   // clearance for the FAB + tab bar
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Brand.tan)
-    }
-
-    private func column(_ tiles: [ShapeTileSpec]) -> some View {
-        VStack(spacing: 10) {
-            ForEach(tiles) { spec in
-                EditableCardButton(cardTitle: spec.cardTitle, action: { onPick(spec) }) {
-                    ShapeTile(spec: spec)
-                }
-                .accessibilityElement(children: .contain)
-                .accessibilityIdentifier("shapeCard-\(spec.id)")
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .top)
-    }
 }
 
 // MARK: - Feed card

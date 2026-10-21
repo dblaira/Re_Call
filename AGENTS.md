@@ -52,7 +52,7 @@ Read `.cursor/rules/recall.mdc` for QC gates, layer boundaries, and iOS gotchas.
 
 Update this line when the active milestone changes:
 
-**Current lane:** October 21 final Pro spacing adjustment: browsing begins 2 pt below the header instead of 22 pt; Arrange retains its control spacing. Installed and visibly verified on the physical iPhone at 09:27 PDT. All 14 saved-data files are byte-identical. Final full QC is green at 09:43 PDT: 28 UI tests and 5 unit tests passed, zero failures or skips. Preserve the approved cropped square, 2 pt collection gaps, Pinterest thumbnail sizing, carousel/square placement controls, Remove image in Arrange, varied main grid on black, shared headers, and whole-form sharing. See docs/PRO_ARRANGEMENT_PREVIEW.md. No App Store submission.
+**Current lane:** October 21 Reminders simplification: the Reminder shapes heading and five inspiration tiles are removed. The active feed, Completed, and new-reminder entry remain. Installed and visibly verified on the physical iPhone at 09:50 PDT; all three selected phone checks pass, including long-list scrolling after title editing. All 14 saved-data files are unchanged. Final full QC is green at 10:26 PDT: 27 UI tests and 5 unit tests passed, zero failures or skips. See docs/REMINDERS_WITHOUT_SHAPES.md. Adam approved Pro as finished: preserve its exact appearance and features unless he explicitly requests a Pro change. No App Store submission.
 
 ## How agents use Adam's Macs (required)
 

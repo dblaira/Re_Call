@@ -33,6 +33,10 @@ final class SmokeTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Understood"].waitForExistence(timeout: 20),
                       "Native Reminders did not render (brand title missing)")
         XCTAssertTrue(app.buttons["chargeFab"].waitForExistence(timeout: 10), "Charge FAB missing")
+        XCTAssertFalse(app.staticTexts["reminderShapes"].exists, "Reminder shapes have been retired")
+        XCTAssertEqual(app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "shapeCard-reminder-"
+        )).count, 0, "The Reminders page must not show inspiration tiles")
     }
 
     func testProTabOpensProfessionalTemplates() {

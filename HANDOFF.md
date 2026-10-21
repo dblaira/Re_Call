@@ -4,6 +4,22 @@ Handoff for continuing the native SwiftUI reminders feature. Written 2026-06-15.
 top to bottom before touching the iOS build — the **Gotchas** section is what caused repeated
 build/crash loops.
 
+## October 21 update — remove Reminder shapes
+
+Adam now uses Pro for inspiration and requested removal of the Reminder shapes
+heading and its five tiles. Reminders shows the existing active feed and Completed
+control. The unused shape-picker callback is removed; bottom clearance remains.
+The approved Pro page is finished and its implementation is unchanged.
+
+Installed and visibly verified on the physical iPhone at 09:50 PDT. Three isolated
+phone checks pass: shapes absent, a long list reaches and opens Completed, and
+scrolling still works after holding a title. All 14 saved-data files are unchanged.
+The obsolete reminder-tile editing test was retired; scroll tests now use Completed
+and a long fixture feed. Their helper brings Completed fully above the bottom bar
+before tapping; XCTest had incorrectly reported the obscured control as hittable.
+Final `./qc.sh --full` is green at 10:26 PDT: 27 UI tests and 5 unit tests passed,
+zero failures or skips. See `docs/REMINDERS_WITHOUT_SHAPES.md`.
+
 ## October 21 update — Pinterest carousel sizing and one large square
 
 Final adjustment: Adam requested less gap between the Pro header and carousel.

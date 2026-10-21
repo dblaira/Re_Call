@@ -66,7 +66,7 @@ struct MainTabView: View {
     @ViewBuilder private var tabContent: some View {
         switch tab {
         case .reminders:
-            RemindersHomeView(onPick: { pickShape($0) }, onOpen: { open($0) })
+            RemindersHomeView(onOpen: { open($0) })
         case .actions:
             ActionsHomeView(onOpen: { open($0) })
         case .calendar:

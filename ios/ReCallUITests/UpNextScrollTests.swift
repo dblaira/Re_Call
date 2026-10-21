@@ -31,29 +31,43 @@ final class UpNextScrollTests: XCTestCase {
         }
     }
 
-    private func scrollHomeUntilShapesVisible(_ app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
-        let shapes = app.staticTexts["Reminder shapes"]
+    private func scrollHomeUntilCompletedVisible(_ app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        let completed = app.buttons["completedRemindersToggle"]
         let scroll = app.scrollViews["homeScroll"]
         XCTAssertTrue(scroll.waitForExistence(timeout: 10), "Home scroll view missing", file: file, line: line)
 
-        for _ in 0..<8 {
-            if shapes.exists && shapes.isHittable { return }
-            // A full-screen swipe can jump past the heading on smaller phones,
-            // especially with the keyboard open. Drag within the visible page
-            // and reverse if the heading has already passed above the viewport.
+        func visibleBounds() -> (top: CGFloat, bottom: CGFloat) {
             let keyboard = app.keyboards.firstMatch
+            let fab = app.buttons["chargeFab"].firstMatch
             let top = max(scroll.frame.minY, app.frame.minY + 100)
-            let bottom = min(scroll.frame.maxY, keyboard.exists ? keyboard.frame.minY : app.frame.maxY) - 24
+            var bottom = min(scroll.frame.maxY, app.frame.maxY)
+            if fab.exists { bottom = min(bottom, fab.frame.minY) }
+            if keyboard.exists { bottom = min(bottom, keyboard.frame.minY) }
+            return (top, bottom - 24)
+        }
+
+        for _ in 0..<16 {
+            let (top, bottom) = visibleBounds()
+            // XCTest can report this control as hittable beneath the bottom bar.
+            // Bring the whole control above the floating button before tapping.
+            if completed.exists && completed.isHittable
+                && completed.frame.minY >= top && completed.frame.maxY <= bottom { return }
+            // A full-screen swipe can jump past the control on smaller phones,
+            // especially with the keyboard open. Drag within the visible page
+            // and reverse if the control has already passed above the viewport.
             let low = top + (bottom - top) * 0.7
             let high = top + (bottom - top) * 0.3
-            let towardTop = !shapes.exists || shapes.frame.maxY >= top
+            let towardTop = !completed.exists || completed.frame.minY >= top
             let origin = app.coordinate(withNormalizedOffset: .zero)
             let start = origin.withOffset(CGVector(dx: app.frame.width / 2, dy: towardTop ? low : high))
             let end = origin.withOffset(CGVector(dx: app.frame.width / 2, dy: towardTop ? high : low))
             start.press(forDuration: 0.05, thenDragTo: end)
         }
-        XCTAssertTrue(shapes.waitForExistence(timeout: 2), "Reminder shapes never scrolled into view", file: file, line: line)
-        XCTAssertTrue(shapes.isHittable, "Reminder shapes visible but not hittable — scroll stuck", file: file, line: line)
+        XCTAssertTrue(completed.waitForExistence(timeout: 2), "Completed reminders never scrolled into view", file: file, line: line)
+        XCTAssertTrue(completed.isHittable, "Completed control is not reachable — scroll stuck", file: file, line: line)
+        let (top, bottom) = visibleBounds()
+        XCTAssertGreaterThanOrEqual(completed.frame.minY, top, "Completed is behind the header", file: file, line: line)
+        XCTAssertLessThanOrEqual(completed.frame.maxY, bottom, "Completed is behind the bottom controls", file: file, line: line)
     }
 
     /// Long-press to arm, tap up chevron: Beta must move above Alpha.
@@ -86,27 +100,39 @@ final class UpNextScrollTests: XCTestCase {
                           "tap-up did not move Beta above Alpha — reorder never fired")
     }
 
-    func testHomeScrollsToShapesOnLaunch() {
+    func testHomeScrollsToCompletedOnLaunch() {
         let app = XCUIApplication()
-        app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED", "RECALL_UI_TEST_CARD_TITLES", "RECALL_UI_TEST_LONG_FEED"]
+        app.launchEnvironment["RECALL_UI_TEST_SESSION"] = UUID().uuidString
         app.launch()
         dismissNotificationPrompt()
         XCTAssertTrue(app.staticTexts["Understood"].waitForExistence(timeout: 20))
-        scrollHomeUntilShapesVisible(app)
+        let completed = app.buttons["completedRemindersToggle"]
+        XCTAssertFalse(completed.isHittable, "The fixture must require scrolling to reach Completed")
+        scrollHomeUntilCompletedVisible(app)
+        completed.tap()
+        XCTAssertTrue(app.staticTexts["Original completed writing"].waitForExistence(timeout: 5))
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Completed opens after scrolling the long reminder list"
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 
     func testHomeScrollWorksAfterUpNextLongPress() {
         let app = XCUIApplication()
-        app.launchArguments = ["RECALL_UI_TEST_ISOLATED", "RECALL_UI_TEST_CARD_TITLES"]
+        app.launchArguments = ["RECALL_UI_TEST_ISOLATED", "RECALL_UI_TEST_CARD_TITLES", "RECALL_UI_TEST_LONG_FEED"]
+        app.launchEnvironment["RECALL_UI_TEST_SESSION"] = UUID().uuidString
         app.launch()
         dismissNotificationPrompt()
         XCTAssertTrue(app.staticTexts["Understood"].waitForExistence(timeout: 20))
+        XCTAssertFalse(app.buttons["completedRemindersToggle"].isHittable,
+                       "The fixture must require scrolling to reach Completed")
 
         let card = app.otherElements["upNextCard0"]
         XCTAssertTrue(card.waitForExistence(timeout: 5))
         card.press(forDuration: 0.6)
         XCTAssertTrue(app.textFields["cardTitleField"].waitForExistence(timeout: 5))
-        scrollHomeUntilShapesVisible(app)
+        scrollHomeUntilCompletedVisible(app)
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.006, dy: 0.20)).tap()
         XCTAssertTrue(app.textFields["cardTitleField"].waitForNonExistence(timeout: 5))
     }

@@ -1,0 +1,11 @@
+---
+description: Resolve source paths before reading or editing them
+alwaysApply: true
+---
+
+# Locate source first
+
+Before opening a source file, confirm its path with `rg --files`. When starting
+from a Swift type name, use `rg -n` to find its declaration; the filename may name
+a different type. Do not derive filenames from symbol names or repeatedly try
+guessed paths.

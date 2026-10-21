@@ -33,7 +33,16 @@ enum CardTitleUITestFixtures {
         timed.dueDate = Date()
         timed.dueTime = Date()
         timed.upNextOrder = 3
-        ICloudReminderCache.save([action, reminder, completed, allDay, timed])
+        var fixtures = [action, reminder, completed, allDay, timed]
+        if arguments.contains("RECALL_UI_TEST_LONG_FEED") {
+            for index in 0..<8 {
+                var extra = Reminder()
+                extra.title = "Scroll reminder \(index + 1)"
+                extra.upNextOrder = index + 4
+                fixtures.append(extra)
+            }
+        }
+        ICloudReminderCache.save(fixtures)
     }
 }
 #endif

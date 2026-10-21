@@ -52,7 +52,7 @@ Read `.cursor/rules/recall.mdc` for QC gates, layer boundaries, and iOS gotchas.
 
 Update this line when the active milestone changes:
 
-**Current lane:** Black Pro collection with strongly varied image widths and lengths is installed and verified on the physical iPhone. Images retain their proportions and chosen order; captions are white directly on black. All four physical interaction tests passed, including native drag, carousel swiping, relaunch, fresh-import pickers, and onscreen title editing. All 13 saved-data files are unchanged. Final full QC is green: 24/24 UI tests, zero failures or skips, October 19 at 13:15 PDT. See docs/PRO_ARRANGEMENT_PREVIEW.md. Keep the approved shared headers. No App Store submission.
+**Current lane:** October 21 Pro refinement: identical Pinterest carousel thumbnails and one large square image area are installed on the physical iPhone. All five selected physical checks and a fresh square import/relaunch pass. Final full QC is green: 26 UI tests and 5 unit tests, zero failures or skips, October 21 at 08:10 PDT. The main grid remains varied on black; original images, chosen order, approved shared headers, and whole-form sharing are preserved. The empty square below the first carousel is ready for Adam's image choice. See docs/PRO_ARRANGEMENT_PREVIEW.md. No App Store submission.
 
 ## How agents use Adam's Macs (required)
 

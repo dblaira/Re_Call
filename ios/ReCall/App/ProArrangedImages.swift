@@ -10,18 +10,43 @@ struct ProArrangedImages: View {
     var open: (ProImageCard) -> Void
     var report: (String) -> Void
     @State private var saving = false
+    @State private var choosingSquare: ProLibraryArrangement.Area?
+
+    // Pinterest's supplied 1320 px screenshot uses 270 × 405 px thumbnails.
+    private let rowWidth: CGFloat = 90
+    private let rowHeight: CGFloat = 135
 
     var body: some View {
         VStack(spacing: 24) {
             ForEach(library.arrangement.areas) { area in
                 if area.style == .row {
                     row(area)
+                } else if area.style == .square {
+                    square(area)
                 } else if arranging || !area.cardIDs.isEmpty {
                     grid(area)
                 }
             }
         }
         .disabled(saving)
+        .sheet(item: $choosingSquare) { area in
+            NavigationStack {
+                List(library.cards) { card in
+                    Button(CardTitleStore.shared.title(for: card.cardTitle)) {
+                        choosingSquare = nil
+                        change { $0.move(card.id, to: area.id) }
+                    }
+                    .accessibilityIdentifier("proChooseSquareImage-\(card.id)")
+                }
+                .navigationTitle("Choose image")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { choosingSquare = nil }
+                    }
+                }
+            }
+        }
     }
 
     private func grid(_ area: ProLibraryArrangement.Area) -> some View {
@@ -45,6 +70,7 @@ struct ProArrangedImages: View {
                 }
                 .buttonStyle(.plain).foregroundStyle(.white)
                 .accessibilityIdentifier("proAddRow-\(area.id)")
+                addSquareButton(after: area)
             }
         }
         .padding(.horizontal, 18)
@@ -61,23 +87,21 @@ struct ProArrangedImages: View {
 
     private func row(_ area: ProLibraryArrangement.Area) -> some View {
         let cards = library.cards(in: area)
-        let sizes = rowSizes(cards)
         return VStack(alignment: .leading, spacing: 16) {
             if arranging { heading(area).padding(.horizontal, 18) }
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(alignment: .top, spacing: 12) {
+                    LazyHStack(alignment: .top, spacing: 4) {
                         ForEach(cards) { card in
-                            let size = sizes[card.id] ?? CGSize(width: 164, height: 164 / card.aspectRatio)
-                            tile(card, area: area, imageHeight: size.height).frame(width: size.width).id(card.id)
+                            tile(card, area: area, imageHeight: rowHeight).frame(width: rowWidth).id(card.id)
                         }
                         addImageTile(area)
-                        if arranging { dropTarget(area).frame(width: 164, height: 210) }
+                        if arranging { dropTarget(area).frame(width: rowWidth, height: rowHeight) }
                     }
-                    .frame(minHeight: sizes.values.map(\.height).max().map { $0 + 54 } ?? 144, alignment: .top)
+                    .frame(minHeight: rowHeight, alignment: .top)
                     .scrollTargetLayout()
                 }
-                .contentMargins(.horizontal, 18, for: .scrollContent)
+                .contentMargins(.horizontal, 4, for: .scrollContent)
                 .scrollTargetBehavior(.viewAligned)
                 .accessibilityIdentifier("proRow-\(area.id)")
                 .onChange(of: area.cardIDs) { old, current in
@@ -86,29 +110,56 @@ struct ProArrangedImages: View {
                     }
                 }
             }
+            if arranging { addSquareButton(after: area).padding(.horizontal, 18) }
         }
         .padding(.vertical, 8)
     }
 
-    /// Keep each image's proportions and a stable size across launches. Nearby
-    /// images with similar dimensions get different scales, without shuffling cards.
-    private func rowSizes(_ cards: [ProImageCard]) -> [UUID: CGSize] {
-        var sizes: [UUID: CGSize] = [:]
-        var previous: CGSize?
-        for card in cards {
-            let hash = card.id.uuidString.utf8.reduce(UInt32(2_166_136_261)) { ($0 ^ UInt32($1)) &* 16_777_619 }
-            let variation = CGFloat(hash % 1_000) / 999
-            var width = min(140 + variation * 130, (220 + variation * 150) * card.aspectRatio)
-            if let previous,
-               abs(width / card.aspectRatio - previous.height) < 48 || abs(width - previous.width) < 28 {
-                width *= previous.height >= 250 || previous.width >= 210 ? 0.62 : 1.5
+    private func square(_ area: ProLibraryArrangement.Area) -> some View {
+        let side = max(1, availableWidth - 8)
+        return VStack(alignment: .leading, spacing: 14) {
+            if arranging { heading(area).padding(.horizontal, 14) }
+            if let card = library.cards(in: area).first {
+                tile(card, area: area, imageHeight: side).frame(width: side)
+            } else {
+                Menu {
+                    Button("Photo Library", systemImage: "photo.on.rectangle") { addImage(area.id, .photos) }
+                    Button("Choose File", systemImage: "folder") { addImage(area.id, .files) }
+                    if !library.cards.isEmpty {
+                        Button("Choose saved image", systemImage: "photo") { choosingSquare = area }
+                    }
+                } label: {
+                    VStack(spacing: 12) {
+                        Image(systemName: "plus").font(.system(size: 32, weight: .light))
+                        Text("Add image").font(.system(size: 15, weight: .medium))
+                    }
+                    .frame(width: side, height: side)
+                    .background(Color.white.opacity(0.04), in: RoundedRectangle(cornerRadius: 16))
+                    .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(.white.opacity(0.22)))
+                    .foregroundStyle(.white)
+                }
+                .accessibilityIdentifier("proSquareAddImage-\(area.id)")
+                .disabled(importing)
+                .onDrop(of: [.plainText], delegate: ProImageDrop { id in change { $0.move(id, to: area.id) } })
             }
-            width = max(108, min(width, min(300, 380 * card.aspectRatio)))
-            let size = CGSize(width: width, height: min(380, width / card.aspectRatio))
-            sizes[card.id] = size
-            previous = size
         }
-        return sizes
+        .padding(.horizontal, 4)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("proSquare-\(area.id)")
+    }
+
+    @ViewBuilder private func addSquareButton(after area: ProLibraryArrangement.Area) -> some View {
+        if !library.arrangement.areas.contains(where: { $0.style == .square }) {
+            Button {
+                change { $0.addSquare(after: area.id) }
+            } label: {
+                Label("Add square here", systemImage: "square")
+                    .font(.system(size: 14, weight: .semibold))
+                    .frame(maxWidth: .infinity).padding(.vertical, 14)
+            }
+            .buttonStyle(.plain).foregroundStyle(.white)
+            .accessibilityIdentifier("proAddSquare-\(area.id)")
+        }
     }
 
     private func addImageTile(_ area: ProLibraryArrangement.Area) -> some View {
@@ -120,7 +171,7 @@ struct ProArrangedImages: View {
                 Image(systemName: "plus").font(.system(size: 28, weight: .light))
                 Text("Add image").font(.system(size: 14, weight: .medium))
             }
-            .frame(width: 112, height: 144)
+            .frame(width: rowWidth, height: rowHeight)
             .foregroundStyle(.white)
             .background(Color.black)
         }
@@ -132,7 +183,19 @@ struct ProArrangedImages: View {
         HStack {
             Text(library.arrangement.name(for: area)).font(Brand.serif(22))
             Spacer()
-            if area.style == .row {
+            if area.style == .square {
+                Button { change { $0.moveArea(area.id, by: -1) } } label: {
+                    Image(systemName: "arrow.up").frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("Move square earlier")
+                .accessibilityIdentifier("proSquareEarlier")
+                Button { change { $0.moveArea(area.id, by: 1) } } label: {
+                    Image(systemName: "arrow.down").frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("Move square later")
+                .accessibilityIdentifier("proSquareLater")
+            }
+            if area.style != .grid {
                 Button {
                     change { $0.removeRow(area.id) }
                 } label: {
@@ -148,7 +211,8 @@ struct ProArrangedImages: View {
 
     @ViewBuilder private func tile(_ card: ProImageCard, area: ProLibraryArrangement.Area, imageHeight: CGFloat? = nil) -> some View {
         if arranging {
-            ProSavedImageTile(card: card, url: library.url(for: card), compact: area.style == .row, imageHeight: imageHeight)
+            ProSavedImageTile(card: card, url: library.url(for: card), compact: area.style != .grid,
+                              imageHeight: imageHeight, fillsImage: area.style != .grid)
                 .overlay(alignment: .topTrailing) {
                     Image(systemName: "line.3.horizontal").font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.white)
@@ -164,7 +228,8 @@ struct ProArrangedImages: View {
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("proArrangeCard-\(card.id)")
         } else {
-            ProSavedImageCard(card: card, url: library.url(for: card), compact: area.style == .row, imageHeight: imageHeight) { open(card) }
+            ProSavedImageCard(card: card, url: library.url(for: card), compact: area.style != .grid,
+                              imageHeight: imageHeight, fillsImage: area.style != .grid) { open(card) }
         }
     }
 
@@ -180,7 +245,9 @@ struct ProArrangedImages: View {
                 Button("Start a row here", systemImage: "rectangle.split.3x1") { change { $0.startRow(at: card.id) } }
                     .accessibilityIdentifier("proStartRow")
             }
-            ForEach(library.arrangement.areas.filter { $0.id != area.id }) { destination in
+            ForEach(library.arrangement.areas.filter {
+                $0.id != area.id && ($0.style != .square || $0.cardIDs.isEmpty)
+            }) { destination in
                 Button("Move to \(library.arrangement.name(for: destination))") {
                     change { $0.move(card.id, to: destination.id) }
                 }

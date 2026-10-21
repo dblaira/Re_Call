@@ -50,44 +50,109 @@ final class ProArrangementTests: XCTestCase {
         app.buttons["proStartRow"].tap()
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         XCTAssertTrue(title("Poster 3", in: row).exists)
+        let firstID = title("Poster 3", in: row).identifier
+            .replacingOccurrences(of: "cardTitleText-pro-image:", with: "proImageCard-")
         menu("Poster 4")
         app.buttons["Move to Row 1"].tap()
         XCTAssertTrue(title("Poster 4", in: row).waitForExistence(timeout: 5))
-        let first = title("Poster 3", in: row)
-        let second = title("Poster 4", in: row)
-        XCTAssertLessThan(first.frame.minX, second.frame.minX)
+        let secondID = title("Poster 4", in: row).identifier
+            .replacingOccurrences(of: "cardTitleText-pro-image:", with: "proImageCard-")
+        for number in 5...7 {
+            menu("Poster \(number)")
+            app.buttons["Move to Row 1"].tap()
+        }
+        reveal(row, up: false)
+        row.swipeRight(velocity: .slow)
         app.buttons["proArrange"].tap()
         XCTAssertFalse(app.staticTexts["Carousel"].exists)
         XCTAssertFalse(app.staticTexts["Row 1"].exists, "The horizontal row must have no visible heading while browsing")
-        let firstCard = row.descendants(matching: .any).matching(identifier:
-            first.identifier.replacingOccurrences(of: "cardTitleText-pro-image:", with: "proImageCard-")).firstMatch
-        let secondCard = row.descendants(matching: .any).matching(identifier:
-            second.identifier.replacingOccurrences(of: "cardTitleText-pro-image:", with: "proImageCard-")).firstMatch
+        let firstCard = row.descendants(matching: .any).matching(identifier: firstID).firstMatch
+        let secondCard = row.descendants(matching: .any).matching(identifier: secondID).firstMatch
         XCTAssertTrue(firstCard.waitForExistence(timeout: 5))
         XCTAssertTrue(secondCard.waitForExistence(timeout: 5))
         let originalSize = firstCard.frame.size
-        XCTAssertGreaterThan(abs(firstCard.frame.height - secondCard.frame.height), 20,
-                             "Different image proportions must remain visibly different lengths in a carousel")
-        attach("Only the chosen cards occupy the unlabelled smaller row")
+        XCTAssertEqual(firstCard.frame.width, 90, accuracy: 1)
+        XCTAssertEqual(firstCard.frame.height, 135, accuracy: 1)
+        XCTAssertEqual(secondCard.frame.size, originalSize,
+                       "Pinterest carousel thumbnails must have identical 2:3 frames for different source proportions")
+        XCTAssertLessThan(firstCard.frame.minX, secondCard.frame.minX)
+        attach("Matching Pinterest thumbnails without caption panels")
         app.terminate(); app.launch(); app.buttons["PRO"].tap()
-        reveal(first)
-        XCTAssertTrue(second.exists)
-        XCTAssertLessThan(first.frame.minX, second.frame.minX)
+        reveal(firstCard)
+        XCTAssertTrue(secondCard.exists)
+        XCTAssertLessThan(firstCard.frame.minX, secondCard.frame.minX)
         XCTAssertEqual(firstCard.frame.width, originalSize.width, accuracy: 1,
-                       "Varied sizes must stay stable across relaunch")
+                       "Pinterest sizing must stay stable across relaunch")
         XCTAssertEqual(firstCard.frame.height, originalSize.height, accuracy: 1)
         let addImage = row.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "proRowAddImage-")).firstMatch
+        XCTAssertTrue(!addImage.exists || addImage.frame.minX >= app.frame.maxX,
+                      "Add image must start beyond the screen so the next swipe proves real horizontal scrolling")
         row.swipeLeft(velocity: .slow)
         XCTAssertTrue(addImage.isHittable)
         XCTAssertLessThanOrEqual(addImage.frame.maxX, app.frame.maxX,
                                  "A horizontal swipe must fully reveal the row's Add image card")
         attach("Native horizontal swipe reveals Add image")
         row.swipeRight(velocity: .slow)
-        first.tap()
+        firstCard.tap()
         XCTAssertTrue(app.buttons["proClosePoster"].waitForExistence(timeout: 5))
         app.buttons["proClosePoster"].tap()
-        XCTAssertTrue(first.isHittable, "Closing the image must return to the same row")
+        XCTAssertTrue(firstCard.isHittable, "Closing the image must return to the same row")
+        firstCard.press(forDuration: 0.6)
+        let field = app.descendants(matching: .any).matching(identifier: "cardTitleField").firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 5), "Holding a thumbnail must still allow inline title editing")
+        let keyboard = app.keyboards.firstMatch
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 5))
+        keyboard.keys["s"].tap()
+        XCTAssertEqual(field.value as? String, "Poster 3s")
+        keyboard.buttons["Done"].tap()
+        XCTAssertTrue(field.waitForNonExistence(timeout: 5))
+        XCTAssertEqual(firstCard.frame.height, 135, accuracy: 1)
         attach("Chosen row and order survive relaunch and image viewing")
+    }
+
+    func testLargeSquareAcceptsOneChosenImageAndPersists() {
+        app.buttons["proArrange"].tap()
+        let addSquare = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "proAddSquare-")).firstMatch
+        reveal(addSquare)
+        addSquare.tap()
+        let square = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "proSquare-")).firstMatch
+        let addImage = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "proSquareAddImage-")).firstMatch
+        reveal(addImage)
+        app.buttons["proArrange"].tap()
+        XCTAssertEqual(addImage.frame.width, app.frame.width - 8, accuracy: 1)
+        XCTAssertEqual(addImage.frame.height, addImage.frame.width, accuracy: 1)
+        addImage.tap()
+        app.buttons["Photo Library"].tap()
+        XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: 10))
+        app.buttons["Cancel"].tap()
+        addImage.tap()
+        app.buttons["Choose File"].tap()
+        XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: 10))
+        app.buttons["Cancel"].tap()
+        addImage.tap()
+        app.buttons["Choose saved image"].tap()
+        let choice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND label == %@",
+                                                     "proChooseSquareImage-", "Poster 2")).firstMatch
+        XCTAssertTrue(choice.waitForExistence(timeout: 5))
+        let cardID = choice.identifier.replacingOccurrences(of: "proChooseSquareImage-", with: "cardHold-pro-image:")
+        choice.tap()
+        let image = square.descendants(matching: .any).matching(identifier: cardID).firstMatch
+        XCTAssertTrue(image.waitForExistence(timeout: 5))
+        reveal(image)
+        XCTAssertEqual(image.frame.width, app.frame.width - 8, accuracy: 1)
+        XCTAssertEqual(image.frame.height, image.frame.width, accuracy: 1)
+        XCTAssertFalse(addImage.exists, "An occupied square holds one image")
+        attach("One large square breaks up the collection")
+        image.tap()
+        XCTAssertTrue(app.buttons["proClosePoster"].waitForExistence(timeout: 5))
+        app.buttons["proClosePoster"].tap()
+        XCTAssertTrue(image.isHittable)
+        app.terminate(); app.launch(); app.buttons["PRO"].tap()
+        reveal(image)
+        XCTAssertEqual(image.frame.height, image.frame.width, accuracy: 1)
+        attach("Chosen square image and placement survive relaunch")
+        reveal(title("Poster 1"), up: false)
+        XCTAssertTrue(title("Poster 1").isHittable)
     }
 
     func testNativeDragReordersCardsAndKeepsVerticalScroll() {

@@ -14,6 +14,6 @@ For design previews, read the saved collection and keep sample arrangements in m
 
 Rows must accept fresh images directly through their own Add image control, including when the row and collection are empty. Verify a real system picker, Save into the intended row, and relaunch. Cancelling must leave the empty row usable. The header's Add image must reset the destination to the top full-size area.
 
-Verify that carousel images retain different lengths and widths on the black collection background. Variety must survive relaunch without shuffling the saved order. Check the short and tall cards, Add image, and editing controls in the rendered phone UI.
+Verify identical 90 × 135 pt carousel frames for different source proportions, matching Adam's October 21 Pinterest reference. Use enough cards to overflow the screen before testing a horizontal swipe. Verify the full-width square is 1:1, accepts fresh imports or one chosen saved image, and persists without changing source bytes or losing other images. Check Add image, holding a thumbnail to edit its title, and return from the original-image viewer. The main grid retains its varied proportions on black.
 
 Locate a source with `rg --files` or a symbol search before reading an assumed filename; the shared palette is in `Theme.swift`, not a separate `Brand.swift` file.

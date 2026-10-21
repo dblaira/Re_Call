@@ -1,6 +1,66 @@
-# Pro arrangements — October 19, 2026
+# Pro arrangements
 
-## Latest direction — black and varied image sizes
+## October 21, 2026 — Pinterest carousel and large square
+
+Adam's supplied `IMG_3052.png` shows the compact “Your saves” carousel. On the original
+1320 px screenshot its card frames measure 270 × 405 px, equivalent to 90 × 135 pt on
+the attached 3× iPhone. Pro now matches those identical 2:3 frames, 4 pt gaps, 4 pt
+side margins, 16 pt corners, and image-only browsing. Original proportions still govern
+the varied main grid. Carousel thumbnails fill their frames without changing source
+bytes, and opening an image shows the original in the existing viewer. Holding a
+thumbnail retains inline title editing.
+
+The full-width square from `IMG_3053.png` is represented by one 1:1 area with 4 pt side
+margins. Arrange can place it after a grid or row and move it earlier/later. Its Add
+image menu supports fresh Photo Library or Files imports and choosing one saved image.
+Moving or importing another image into an occupied square cannot overwrite its image.
+Returning the square to full-size cards preserves the card and its saved metadata.
+
+The worktree was fast-forwarded to `69f17a8` before implementation, retaining October 20
+whole-form sharing. The native build is installed on Adam's iPhone. The normal collection
+has an empty square after the first carousel, ready for his own image choice. Readback
+confirms all 13 non-arrangement files unchanged, including all 10 original
+images. Only `arrangement.json` changed to place the empty square and reconcile the
+newly saved top card; the original row memberships and order remain intact.
+
+All five selected physical checks now pass on the installed code. The square, native
+drag, empty-row pickers, and both onscreen title editors passed in
+`Test-ReCall-2026.10.21_07-54-46--0700.xcresult`. The final carousel check passed in
+`Test-ReCall-2026.10.21_07-58-12--0700.xcresult`, proving identical 90 × 135 pt frames,
+saved membership/order after relaunch, an actual horizontal swipe to offscreen Add
+image, return from the viewer, and a held thumbnail accepting an onscreen key and Done.
+These results are under `/tmp/Understood-ProPinterest-device/Logs/Test/` and their
+summaries and screenshots are preserved in the evidence directory below.
+
+The first physical run exposed clipped image content expanding accessibility bounds;
+the card now explicitly uses its rectangular layout bounds for accessibility. The
+square assertion uses its stable native tap-host identifier because SwiftUI merges a
+single-child container with its parent. The overflow assertion checks that Add image
+starts beyond the screen; querying hittability for that offscreen element throws in
+this iOS version. Device Hub's simulated hardware keyboard was disabled, and actual
+onscreen key taps then passed. Failed attempts remain in the evidence directory.
+
+A separate native Photo Library import in isolated session
+`7434FE12-222A-4FE6-A5D2-8BA3D14FBB77` saved the supplied `IMG_3053.png` directly into
+an empty square. Reopening showed the same image in the square, with both grid areas
+empty. Device readback matches the supplied file byte for byte (SHA-256
+`d4fbb845a8f758bd15e4a1018fd58e1a854668699f652ec85465c58ff1c8980d`).
+The normal collection is restored and its 14 files match the post-placement copy;
+all 13 original non-arrangement files remain unchanged.
+
+Final `./qc.sh --full` completed QC GREEN on October 21 at 08:10 PDT: all 26 UI tests
+and 5 unit tests passed, with zero failures or skips. Engine, native persistence,
+deterministic KG output, and build gates also passed. The final result is
+`/Users/adamblair/Library/Developer/Xcode/DerivedData/ReCall-QC/Logs/Test/Test-ReCall-2026.10.21_07-56-30--0700.xcresult`.
+Its summary and logs are preserved as `full-qc-final-summary.json`, `full-qc-final.log`,
+and `full-qc-final-ui.log` in the evidence directory. Runtime checks cover one square,
+fresh and chosen images, occupied-slot protection, original bytes, relaunch, placement
+changes, and returning to the grid. An earlier full run was stopped after the
+test-lookup fixes superseded it; it is not counted as a passing gate.
+
+Evidence: `/Users/adamblair/.codex/visualizations/2026/10/19/01a15550-786d-7151-87b2-d02e194093a5/pro-pinterest-square-2026-10-21`.
+
+## October 19, 2026 — black and varied image sizes (historical)
 
 After the tan version was saved as `e4dbe08`, Adam supplied two Pinterest screenshots and requested a black Pro collection with strongly different image widths and lengths. This replaces the earlier tan Pro collection described below. The approved shared navy header and white bottom navigation remain in place.
 

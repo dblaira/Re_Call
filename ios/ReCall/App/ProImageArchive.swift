@@ -17,7 +17,7 @@ struct ProImageCard: Codable, Identifiable, Equatable {
 }
 
 enum ProImageError: LocalizedError {
-    case unreadableImage, imageTooLarge, invalidSource, missingCard, missingRow, titleSaveFailed
+    case unreadableImage, imageTooLarge, invalidSource, missingCard, missingRow, squareOccupied, titleSaveFailed
 
     var errorDescription: String? {
         switch self {
@@ -25,7 +25,8 @@ enum ProImageError: LocalizedError {
         case .imageTooLarge: return "This image is too large. Choose an image under 80 MB and 120 megapixels."
         case .invalidSource: return "Enter a website address for the source, or leave it empty."
         case .missingCard: return "This saved image is no longer in Pro."
-        case .missingRow: return "This row is no longer available. Close this sheet and choose a row again."
+        case .missingRow: return "This image area is no longer available. Close this sheet and choose an area again."
+        case .squareOccupied: return "The square already has an image. Move it out in Arrange before adding another."
         case .titleSaveFailed: return "The title couldn’t be saved. Try Save again."
         }
     }
@@ -71,8 +72,11 @@ actor ProImageArchive {
         var arrangement: ProLibraryArrangement?
         if let areaID {
             let current = try loadArrangement()
-            guard current.areas.contains(where: { $0.id == areaID && $0.style == .row }) else {
+            guard let destination = current.areas.first(where: { $0.id == areaID && $0.style != .grid }) else {
                 throw ProImageError.missingRow
+            }
+            guard destination.style != .square || destination.cardIDs.isEmpty else {
+                throw ProImageError.squareOccupied
             }
             arrangement = current
         }

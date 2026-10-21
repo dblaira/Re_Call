@@ -6,7 +6,7 @@ alwaysApply: false
 
 Use the shared compact header across Reminders, Actions, Calendar, and Pro. Keep navy solid through the status bar to the very top of the iPhone. Header titles are white and sit lower; controls and other header text stay sand. Reminders, Actions, Calendar, and Templates retain tan body backgrounds. The Pro image collection is black. The bottom navigation bar is white on every tab.
 
-Pro images use their original proportions, strongly varied widths and heights, and simple white captions directly on black. Carousel cards have different lengths and widths; do not return them to uniform boxes or add pale panels. Sizes stay stable across relaunch, and the user's chosen order stays intact. Original image pixels stay intact.
+The main Pro grid uses original proportions, strongly varied widths and heights, and simple white captions directly on black. Adam's October 21 Pinterest reference replaces the earlier varied carousel sizing: carousel thumbnails are identical 90 × 135 pt frames, with 4 pt gaps and side margins, 16 pt corners, and no caption panels while browsing. Add one large square image area spanning the collection width with 4 pt side margins. Carousel and square thumbnails fill their frames; the original image bytes and full-image viewer remain intact. Sizes stay stable across relaunch, and the user's chosen order stays intact. Keep the background black.
 
 Page names stand on their own. Do not add descriptive subtitles, UP NEXT, PRIORITY, LIGHT OFFERING, or PRO LIBRARY labels. Pro appears above Templates, Arrange, and Add image. Keep functional controls and the user's saved card contents.
 

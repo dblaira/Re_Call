@@ -42,6 +42,7 @@ import UniformTypeIdentifiers
         precondition(preserved == corrupt)
         try await arrangementTests(bytes: bytes)
         try await freshRowImportTests(bytes: bytes)
+        try await squareImportTests(bytes: bytes)
         print("PASS: original bytes, dimensions, source, notes, relaunch, edit identity, invalid imports, removal, corrupt-index preservation")
     }
 
@@ -171,5 +172,52 @@ import UniformTypeIdentifiers
         CGImageDestinationAddImage(destination, image, nil)
         guard CGImageDestinationFinalize(destination) else { throw ProImageError.unreadableImage }
         return bytes as Data
+    }
+
+    static func squareImportTests(bytes: Data) async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let archive = ProImageArchive(directory: directory)
+        let first = try await archive.save(data: bytes, title: "Existing", source: "example.com", notes: "Keep")
+        let originalID = first.cards[0].id
+        let initial = try await archive.loadArrangement()
+        let topID = initial.areas[0].id
+        let empty = try await archive.arrange { $0.addSquare(after: topID) }
+        guard let squareID = empty.areas.first(where: { $0.style == .square })?.id else {
+            fatalError("Square missing")
+        }
+        let single = try await archive.arrange { $0.addSquare(after: topID) }
+        precondition(single == empty, "Only one large square is added")
+        let fresh = try await archive.save(data: bytes, title: "Fresh square", source: "", notes: "", to: squareID)
+        let squareCard = fresh.cards[0]
+        let reopened = try await ProImageArchive(directory: directory).loadArrangement()
+        precondition(reopened.areas.first(where: { $0.id == squareID })?.cardIDs == [squareCard.id])
+        precondition(reopened.areas[0].cardIDs == [originalID])
+        let originalBytes = try Data(contentsOf: directory.appendingPathComponent(squareCard.imageName))
+        precondition(originalBytes == bytes)
+        let indexBefore = try Data(contentsOf: directory.appendingPathComponent("cards.json"))
+        let filesBefore = try FileManager.default.contentsOfDirectory(atPath: directory.path).sorted()
+        do {
+            _ = try await archive.save(data: bytes, title: "Must not replace", source: "", notes: "", to: squareID)
+            fatalError("A second image was accepted into an occupied square")
+        } catch ProImageError.squareOccupied { }
+        let rejectedMove = try await archive.arrange { $0.move(originalID, to: squareID) }
+        precondition(rejectedMove == reopened, "Moving into an occupied square must leave both images intact")
+        let filesAfter = try FileManager.default.contentsOfDirectory(atPath: directory.path).sorted()
+        let indexAfter = try Data(contentsOf: directory.appendingPathComponent("cards.json"))
+        precondition(filesBefore == filesAfter && indexBefore == indexAfter)
+        _ = try await archive.arrange { $0.move(squareCard.id, to: topID) }
+        let chosen = try await archive.arrange { $0.move(originalID, to: squareID) }
+        precondition(chosen.areas.first(where: { $0.id == squareID })?.cardIDs == [originalID])
+        let shifted = try await archive.arrange { $0.moveArea(squareID, by: 1) }
+        precondition(shifted.areas.last?.id == squareID)
+        let flattened = try await archive.arrange { $0.removeRow(squareID) }
+        precondition(flattened.areas.flatMap(\.cardIDs) == shifted.areas.flatMap(\.cardIDs))
+        precondition(flattened.areas.allSatisfy { $0.style == .grid })
+        do {
+            _ = try await archive.save(data: bytes, title: "Removed square", source: "", notes: "", to: squareID)
+            fatalError("A removed square accepted an import")
+        } catch ProImageError.missingRow { }
+        print("PASS: single square, fresh and chosen images, occupied-slot protection, exact bytes, relaunch, placement and removal")
     }
 }

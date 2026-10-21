@@ -130,7 +130,7 @@ struct ProLibraryView: View {
                         ProgressView("Opening image…").frame(maxWidth: .infinity).tint(.white)
                             .foregroundStyle(.white)
                     }
-                    if library.cards.isEmpty && !arranging && !library.arrangement.areas.contains(where: { $0.style == .row }) {
+                    if library.cards.isEmpty && !arranging && !library.arrangement.areas.contains(where: { $0.style != .grid }) {
                         emptyCollection
                     } else {
                         ProArrangedImages(library: library, arranging: arranging, importing: loading,
@@ -188,16 +188,21 @@ struct ProSavedImageCard: View {
     let url: URL
     var compact = false
     var imageHeight: CGFloat?
+    var fillsImage = false
     var open: () -> Void
     @StateObject private var titleSession = CardTitleSession()
 
     var body: some View {
         EditableCardButton(cardTitle: card.cardTitle, session: titleSession, action: open) {
-            ProSavedImageTile(card: card, url: url, compact: compact, imageHeight: imageHeight)
+            ProSavedImageTile(card: card, url: url, compact: compact, imageHeight: imageHeight,
+                              fillsImage: fillsImage, showsCaption: !compact)
         }
+        // Keep cropped image content from expanding the accessible card bounds.
+        .contentShape(.accessibility, Rectangle())
         .accessibilityIdentifier("proImageCard-\(card.id.uuidString)")
+        .accessibilityLabel(CardTitleStore.shared.title(for: card.cardTitle))
         .overlay(alignment: .bottomTrailing) {
-            if !titleSession.isEditing {
+            if !compact && !titleSession.isEditing {
                 Button { titleSession.begin(card.cardTitle) } label: {
                     Image(systemName: "pencil")
                         .font(.system(size: 14, weight: .semibold))
@@ -216,6 +221,8 @@ struct ProSavedImageTile: View {
     let url: URL
     var compact = false
     var imageHeight: CGFloat?
+    var fillsImage = false
+    var showsCaption = true
     @State private var image: UIImage?
     @State private var failed = false
     @Environment(\.isEditingRecallCardTitle) private var isEditingTitle
@@ -228,25 +235,31 @@ struct ProSavedImageTile: View {
             }
                 .overlay {
                     if let image {
-                        Image(uiImage: image).resizable().scaledToFit()
+                        GeometryReader { geometry in
+                            Image(uiImage: image).resizable()
+                                .aspectRatio(contentMode: fillsImage ? .fill : .fit)
+                                .frame(width: geometry.size.width, height: geometry.size.height)
+                        }
                     } else if failed {
                         Image(systemName: "photo.badge.exclamationmark").foregroundStyle(.white)
                     } else { ProgressView().tint(.white) }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .clipShape(RoundedRectangle(cornerRadius: compact ? 16 : 14))
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                CardTitleText(card: card.cardTitle).font(.system(size: 14))
-                    .lineLimit(compact && !isEditingTitle ? 2 : nil)
-                if !compact, let host = card.sourceURL?.host() {
-                    Text(host).font(.system(size: 11)).lineLimit(1).foregroundStyle(.white.opacity(0.65))
+            if showsCaption || isEditingTitle {
+                VStack(alignment: .leading, spacing: 4) {
+                    CardTitleText(card: card.cardTitle).font(.system(size: 14))
+                        .lineLimit(compact && !isEditingTitle ? 2 : nil)
+                    if !compact, let host = card.sourceURL?.host() {
+                        Text(host).font(.system(size: 11)).lineLimit(1).foregroundStyle(.white.opacity(0.65))
+                    }
                 }
+                .foregroundStyle(.white)
+                .padding(.trailing, isEditingTitle ? 0 : 33)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 8)
+                .frame(minHeight: 44, alignment: .topLeading)
             }
-            .foregroundStyle(.white)
-            .padding(.trailing, isEditingTitle ? 0 : 33)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 8)
-            .frame(minHeight: 44, alignment: .topLeading)
         }
         .background(Color.black)
         .task(id: url) {

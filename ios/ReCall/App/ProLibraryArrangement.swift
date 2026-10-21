@@ -3,7 +3,7 @@ import Foundation
 /// Presentation only: moving a card never rewrites its image or metadata.
 struct ProLibraryArrangement: Codable, Equatable {
     struct Area: Codable, Identifiable, Equatable {
-        enum Style: String, Codable { case grid, row }
+        enum Style: String, Codable { case grid, row, square }
         let id: UUID
         var style: Style
         var cardIDs: [UUID]
@@ -45,6 +45,7 @@ struct ProLibraryArrangement: Codable, Equatable {
         guard cardID != target,
               let source = areas.firstIndex(where: { $0.cardIDs.contains(cardID) }),
               let destination = areas.firstIndex(where: { $0.id == areaID }),
+              areas[destination].style != .square || areas[destination].cardIDs.isEmpty,
               target == nil || areas[destination].cardIDs.contains(target ?? cardID) else { return }
         areas[source].cardIDs.removeAll { $0 == cardID }
         let insertion = target.flatMap { areas[destination].cardIDs.firstIndex(of: $0) }
@@ -75,9 +76,21 @@ struct ProLibraryArrangement: Codable, Equatable {
         areas.insert(contentsOf: [Area(style: .row), Area(style: .grid)], at: index + 1)
     }
 
+    mutating func addSquare(after areaID: UUID) {
+        guard !areas.contains(where: { $0.style == .square }),
+              let index = areas.firstIndex(where: { $0.id == areaID }) else { return }
+        areas.insert(contentsOf: [Area(style: .square), Area(style: .grid)], at: index + 1)
+    }
+
+    mutating func moveArea(_ areaID: UUID, by offset: Int) {
+        guard let index = areas.firstIndex(where: { $0.id == areaID }),
+              areas.indices.contains(index + offset), index + offset > 0 else { return }
+        areas.swapAt(index, index + offset)
+    }
+
     /// Removing a row changes its presentation, never the user's saved images.
     mutating func removeRow(_ areaID: UUID) {
-        guard let index = areas.firstIndex(where: { $0.id == areaID && $0.style == .row }) else { return }
+        guard let index = areas.firstIndex(where: { $0.id == areaID && $0.style != .grid }) else { return }
         areas[index].style = .grid
         var merged: [Area] = []
         for area in areas {
@@ -91,6 +104,7 @@ struct ProLibraryArrangement: Codable, Equatable {
     func name(for area: Area) -> String {
         guard let index = areas.firstIndex(where: { $0.id == area.id }) else { return "Cards" }
         let rowCount = areas.prefix(index + 1).filter { $0.style == .row }.count
+        if area.style == .square { return "Large square" }
         if area.style == .row { return "Row \(rowCount)" }
         return rowCount == 0 ? "Top cards" : "Cards below row \(rowCount)"
     }

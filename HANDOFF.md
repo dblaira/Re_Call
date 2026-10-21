@@ -4,9 +4,30 @@ Handoff for continuing the native SwiftUI reminders feature. Written 2026-06-15.
 top to bottom before touching the iOS build — the **Gotchas** section is what caused repeated
 build/crash loops.
 
+## October 21 update — Pinterest carousel sizing and one large square
+
+Adam supplied three Pinterest screenshots and requested identical compact carousel sizing
+plus one large square image container. Carousel thumbnails now use 90 × 135 pt frames,
+4 pt gaps and side margins, and 16 pt corners. Captions are hidden while browsing the
+carousel; holding an image still opens its title editor. The main grid remains varied
+on black, and the shared headers and white navigation retain their approved appearance.
+
+Arrange can add one large square after any grid or row, move it earlier/later, or return
+it to the grid. The square accepts a fresh Photo Library/Files import or one chosen
+saved image. Its image fills a 1:1 frame with 4 pt side margins; the original file and
+full-image viewer remain intact. An occupied square cannot silently replace an image.
+
+This build includes main's October 20 whole-form sharing work. It is installed on the
+physical iPhone, with an empty square placed after Adam's first carousel. All five
+selected physical checks and a fresh square import/relaunch pass. Final `./qc.sh --full`
+is green: all 26 UI tests and 5 unit tests pass, with zero failures or skips, October 21
+at 08:10 PDT. All 13 original non-arrangement data files remain unchanged. See the latest section of
+`docs/PRO_ARRANGEMENT_PREVIEW.md` for current evidence. The October 19 varied-carousel
+direction below is historical and superseded by these uniform thumbnails.
+
 ## October 19 update — Pro arrangements and approved page appearance
 
-Latest Pro direction: black behind the saved-image collection, simple white captions,
+October 19 Pro direction: black behind the saved-image collection, simple white captions,
 and strongly varied image widths and lengths in both the main grid and carousels.
 This replaces the tan Pro body described in the earlier verification below. Original
 image proportions, saved order, row membership, and source bytes are preserved. The

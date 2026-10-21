@@ -1,5 +1,27 @@
 # Pro arrangements
 
+## October 21 final adjustment — carousel directly below the header
+
+Adam requested a smaller gap between the Pro header and the first carousel. The
+collection's browsing top inset is now 2 pt instead of 22 pt, matching the gaps
+between sections. Arrange retains its existing 22 pt inset for its controls.
+This is the only runtime change; the approved header, carousel sizing, square crop,
+card spacing, and chosen arrangement remain intact.
+
+The updated build was installed and opened on the physical iPhone at 09:27 PDT.
+The carousel visibly sits immediately below the header's red rule. Before/after
+device readback confirms all 14 saved-data files are byte-identical. Final
+`./qc.sh --full` completed QC GREEN at 09:43 PDT: all 28 UI tests and 5 unit tests
+passed, with zero failures or skips. Engine, native persistence, deterministic KG
+output, and build gates also passed. Result:
+`/Users/adamblair/Library/Developer/Xcode/DerivedData/ReCall-QC/Logs/Test/Test-ReCall-2026.10.21_09-27-10--0700.xcresult`.
+
+Evidence:
+`/Users/adamblair/.codex/visualizations/2026/10/19/01a15550-786d-7151-87b2-d02e194093a5/pro-header-gap-2026-10-21`.
+The `iphone-before.png` and `iphone-after.png` screenshots show the physical phone;
+`data-integrity.json` records the matching file sets and hashes. `full-qc.log`,
+`full-qc-ui.log`, and `full-qc-summary.json` record the final passing gate.
+
 ## October 21 follow-up — minimal gaps and the chosen picture crop
 
 Adam requested almost no gap around the large square or between the portrait cards.

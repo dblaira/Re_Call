@@ -52,7 +52,7 @@ Read `.cursor/rules/recall.mdc` for QC gates, layer boundaries, and iOS gotchas.
 
 Update this line when the active milestone changes:
 
-**Current lane:** October 21 Pro follow-up: Remove image is available directly in Arrange; cancellation, all three layouts, and relaunch passed on the physical iPhone. Browsing gaps are now 2 pt, and Adam's chosen large diagram has a saved thumbnail crop removing its black bands. Final appearance, scrolling, original-image viewing, and crop persistence were inspected on the phone at 09:08 PDT. Adam approved this exact version: “That is perfect.” Only that image's crop metadata changed in the current 14-file collection; original bytes and arrangement remain intact. Final full QC is green at 09:23 PDT: 28 UI tests and 5 unit tests passed, zero failures or skips. Keep this approved appearance, Pinterest thumbnail sizing, carousel/square placement controls, varied main grid on black, shared headers, and whole-form sharing. See docs/PRO_ARRANGEMENT_PREVIEW.md. No App Store submission.
+**Current lane:** October 21 final Pro spacing adjustment: browsing begins 2 pt below the header instead of 22 pt; Arrange retains its control spacing. Installed and visibly verified on the physical iPhone at 09:27 PDT. All 14 saved-data files are byte-identical. Final full QC is green at 09:43 PDT: 28 UI tests and 5 unit tests passed, zero failures or skips. Preserve the approved cropped square, 2 pt collection gaps, Pinterest thumbnail sizing, carousel/square placement controls, Remove image in Arrange, varied main grid on black, shared headers, and whole-form sharing. See docs/PRO_ARRANGEMENT_PREVIEW.md. No App Store submission.
 
 ## How agents use Adam's Macs (required)
 

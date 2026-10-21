@@ -139,7 +139,7 @@ struct ProLibraryView: View {
                                           open: { selectedCard = $0 }, report: { problem = $0 })
                     }
                 }
-                .padding(.top, 22)
+                .padding(.top, arranging ? 22 : 2)
                 .padding(.bottom, 140)
                 .frame(maxWidth: .infinity)
             }

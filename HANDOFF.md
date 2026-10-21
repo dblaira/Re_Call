@@ -6,6 +6,13 @@ build/crash loops.
 
 ## October 21 update — Pinterest carousel sizing and one large square
 
+Final adjustment: Adam requested less gap between the Pro header and carousel.
+Browsing now has a 2 pt top inset instead of 22 pt; Arrange keeps its control spacing.
+The updated build is installed and visibly verified on the physical iPhone at
+09:27 PDT. All 14 saved-data files are byte-identical. Final `./qc.sh --full` is
+green at 09:43 PDT: 28 UI tests and 5 unit tests passed, zero failures or skips.
+See the newest section of `docs/PRO_ARRANGEMENT_PREVIEW.md`.
+
 Latest appearance: Adam requested almost no gaps. Pro browsing now has 2 pt spacing
 between areas and grid cards, tighter captions, and no extra carousel padding. At his
 explicit request, the selected large diagram has a saved thumbnail crop removing its

@@ -227,11 +227,16 @@ struct ProSavedImageTile: View {
     @State private var failed = false
     @Environment(\.isEditingRecallCardTitle) private var isEditingTitle
 
+    private struct ThumbnailSource: Hashable {
+        let url: URL
+        let crop: ProImageCrop?
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Group {
                 if let imageHeight { Color.clear.frame(height: imageHeight) }
-                else { Color.clear.aspectRatio(card.aspectRatio, contentMode: .fit) }
+                else { Color.clear.aspectRatio(card.thumbnailAspectRatio, contentMode: .fit) }
             }
                 .overlay {
                     if let image {
@@ -257,13 +262,13 @@ struct ProSavedImageTile: View {
                 .foregroundStyle(.white)
                 .padding(.trailing, isEditingTitle ? 0 : 33)
                 .padding(.horizontal, 6)
-                .padding(.vertical, 8)
-                .frame(minHeight: 44, alignment: .topLeading)
+                .padding(.vertical, 2)
+                .frame(minHeight: isEditingTitle ? 44 : 0, alignment: .topLeading)
             }
         }
         .background(Color.black)
-        .task(id: url) {
-            let loaded = await ProImageLoader.load(url: url, maxPixelSize: 700)
+        .task(id: ThumbnailSource(url: url, crop: card.thumbnailCrop)) {
+            let loaded = await ProImageLoader.load(url: url, maxPixelSize: 700, crop: card.thumbnailCrop)
             guard !Task.isCancelled else { return }
             image = loaded
             failed = loaded == nil

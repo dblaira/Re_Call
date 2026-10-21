@@ -55,10 +55,10 @@ final class ProImageStore: ObservableObject {
 
 /// Decode off the UI thread and only at the resolution needed by the current surface.
 enum ProImageLoader {
-    static func load(url: URL, maxPixelSize: Int) async -> UIImage? {
+    static func load(url: URL, maxPixelSize: Int, crop: ProImageCrop? = nil) async -> UIImage? {
         await Task.detached(priority: .userInitiated) {
             guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
-            return thumbnail(source: source, maxPixelSize: maxPixelSize)
+            return thumbnail(source: source, maxPixelSize: maxPixelSize, crop: crop)
         }.value
     }
 
@@ -73,12 +73,16 @@ enum ProImageLoader {
         }.value
     }
 
-    private static func thumbnail(source: CGImageSource, maxPixelSize: Int) -> UIImage? {
+    private static func thumbnail(source: CGImageSource, maxPixelSize: Int, crop: ProImageCrop? = nil) -> UIImage? {
         let options: [CFString: Any] = [kCGImageSourceCreateThumbnailFromImageAlways: true,
                                        kCGImageSourceCreateThumbnailWithTransform: true,
                                        kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
                                        kCGImageSourceShouldCacheImmediately: true]
         guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
+        if let bounds = crop?.pixelRect(width: image.width, height: image.height),
+           let cropped = image.cropping(to: bounds) {
+            return UIImage(cgImage: cropped)
+        }
         return UIImage(cgImage: image)
     }
 }

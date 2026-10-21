@@ -52,7 +52,7 @@ Read `.cursor/rules/recall.mdc` for QC gates, layer boundaries, and iOS gotchas.
 
 Update this line when the active milestone changes:
 
-**Current lane:** October 21 Pro follow-up: whole carousels now have up/down arrows in Arrange, matching the large square. The physical iPhone passed movement across the square and another carousel, membership/order after relaunch, and vertical scrolling. Both actual carousel headings were inspected on the updated phone; all 15 normal collection files are unchanged. Final full QC is green: 27 UI tests and 5 unit tests passed, zero failures or skips, October 21 at 08:37 PDT. Keep the approved Pinterest sizing, varied main grid on black, shared headers, and whole-form sharing. See docs/PRO_ARRANGEMENT_PREVIEW.md. No App Store submission.
+**Current lane:** October 21 Pro follow-up: Remove image is available directly in Arrange; cancellation, all three layouts, and relaunch passed on the physical iPhone. Browsing gaps are now 2 pt, and Adam's chosen large diagram has a saved thumbnail crop removing its black bands. Final appearance, scrolling, original-image viewing, and crop persistence were inspected on the phone at 09:08 PDT. Adam approved this exact version: “That is perfect.” Only that image's crop metadata changed in the current 14-file collection; original bytes and arrangement remain intact. Final full QC is green at 09:23 PDT: 28 UI tests and 5 unit tests passed, zero failures or skips. Keep this approved appearance, Pinterest thumbnail sizing, carousel/square placement controls, varied main grid on black, shared headers, and whole-form sharing. See docs/PRO_ARRANGEMENT_PREVIEW.md. No App Store submission.
 
 ## How agents use Adam's Macs (required)
 

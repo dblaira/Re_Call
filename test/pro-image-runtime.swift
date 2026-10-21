@@ -43,7 +43,34 @@ import UniformTypeIdentifiers
         try await arrangementTests(bytes: bytes)
         try await freshRowImportTests(bytes: bytes)
         try await squareImportTests(bytes: bytes)
+        try await thumbnailCropTests(bytes: bytes)
         print("PASS: original bytes, dimensions, source, notes, relaunch, edit identity, invalid imports, removal, corrupt-index preservation")
+    }
+
+    static func thumbnailCropTests(bytes: Data) async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let archive = ProImageArchive(directory: directory)
+        var cards = try await archive.save(data: bytes, title: "Original", source: "example.com", notes: "Keep me").cards
+        precondition(cards[0].thumbnailCrop == nil, "Existing images need no crop metadata")
+        let original = cards[0]
+        let crop = ProImageCrop(x: 0, y: 0.1, width: 1, height: 0.8)
+        cards[0].thumbnailCrop = crop
+        try JSONEncoder().encode(cards).write(to: directory.appendingPathComponent("cards.json"), options: .atomic)
+        let reopened = try await ProImageArchive(directory: directory).load()
+        precondition(reopened == cards, "A selected thumbnail crop must persist with its image")
+        precondition(reopened[0].aspectRatio == original.aspectRatio, "The original dimensions must remain intact")
+        precondition(reopened[0].thumbnailAspectRatio == 120.0 / 192.0)
+        let edited = try await archive.update(reopened[0], title: "Renamed", source: original.source, notes: original.notes)
+        precondition(edited[0].thumbnailCrop == crop, "Editing details must retain the chosen crop")
+        let savedBytes = try Data(contentsOf: directory.appendingPathComponent(original.imageName))
+        precondition(savedBytes == bytes, "Cropping a thumbnail must never rewrite original image bytes")
+        let invalid = ProImageCrop(x: 0, y: 0.9, width: 1, height: 0.8)
+        precondition(invalid.pixelRect(width: 120, height: 240) == nil,
+                     "Invalid crop metadata must fall back to the original image")
+        let corruptNumber = ProImageCrop(x: .nan, y: 0, width: 1, height: 1)
+        precondition(corruptNumber.pixelRect(width: 120, height: 240) == nil)
+        print("PASS: optional thumbnail crops, relaunch, detail edits, original bytes and dimensions, invalid bounds")
     }
 
     static func arrangementTests(bytes: Data) async throws {

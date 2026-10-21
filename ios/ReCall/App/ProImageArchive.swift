@@ -2,6 +2,23 @@ import Foundation
 import ImageIO
 import UniformTypeIdentifiers
 
+/// Normalized bounds for the collection thumbnail; the original image stays intact.
+struct ProImageCrop: Codable, Hashable {
+    let x: Double
+    let y: Double
+    let width: Double
+    let height: Double
+
+    func pixelRect(width pixelWidth: Int, height pixelHeight: Int) -> CGRect? {
+        guard [x, y, width, height].allSatisfy(\.isFinite), x >= 0, y >= 0,
+              width > 0, height > 0, x + width <= 1, y + height <= 1 else { return nil }
+        let left = ceil(x * Double(pixelWidth)), top = ceil(y * Double(pixelHeight))
+        let right = floor((x + width) * Double(pixelWidth)), bottom = floor((y + height) * Double(pixelHeight))
+        guard right > left, bottom > top else { return nil }
+        return CGRect(x: left, y: top, width: right - left, height: bottom - top)
+    }
+}
+
 struct ProImageCard: Codable, Identifiable, Equatable {
     let id: UUID
     let imageName: String
@@ -11,8 +28,13 @@ struct ProImageCard: Codable, Identifiable, Equatable {
     var title: String
     var source: String
     var notes: String
+    var thumbnailCrop: ProImageCrop?
 
     var aspectRatio: CGFloat { CGFloat(pixelWidth) / CGFloat(max(1, pixelHeight)) }
+    var thumbnailAspectRatio: CGFloat {
+        guard let bounds = thumbnailCrop?.pixelRect(width: pixelWidth, height: pixelHeight) else { return aspectRatio }
+        return bounds.width / bounds.height
+    }
     var sourceURL: URL? { source.isEmpty ? nil : URL(string: source) }
 }
 

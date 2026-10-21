@@ -1,5 +1,79 @@
 # Pro arrangements
 
+## October 21 follow-up — minimal gaps and the chosen picture crop
+
+Adam requested almost no gap around the large square or between the portrait cards.
+Browsing now uses 2 pt section gaps and 2 pt vertical/horizontal grid gaps. Captions
+use 2 pt vertical padding without an artificial minimum height; the title editor
+retains its 44 pt minimum. Arrange retains room for its controls. Empty grid areas
+are filtered before laying out the browsing stack. Carousel thumbnails stay 90 × 135 pt.
+
+The selected diagram had black bands inside its source file. At Adam's explicit request,
+its collection thumbnail now uses a saved normalized crop covering original rows
+103 through 1774 of the 2992 × 1878 image. This is per-image presentation metadata,
+not an automatic crop applied to other pictures. Original image bytes and dimensions
+remain intact, and the full-image viewer still opens the original. The crop is carried
+with the image if its placement changes. Legacy cards need no crop metadata; invalid
+crop bounds fall back to the original image.
+
+The final build was installed on the physical iPhone and visually checked on October 21
+at 09:08 PDT. The square has no black bands, the portrait gaps are tighter, scrolling
+works, opening/closing the original returns to the same square, and the crop persists
+after relaunch. Device readback confirms that only this image's `thumbnailCrop` metadata
+changed: all 14 current files remain present, every original image and the arrangement
+are byte-identical, and every other card field is unchanged. The current collection had
+already changed from 15 to 14 files before this crop was applied; no earlier backup was restored.
+
+Adam inspected this exact version on his iPhone and approved it: “That is perfect.”
+Keep the accepted appearance unchanged.
+
+Final `./qc.sh --full` completed QC GREEN on October 21 at 09:23 PDT: all 28 UI tests
+and 5 unit tests passed, with zero failures or skips. Engine, native persistence,
+deterministic KG output, and build gates also passed. Crop persistence checks cover
+detail edits, original bytes/dimensions, legacy data, and invalid bounds. Final result:
+`/Users/adamblair/Library/Developer/Xcode/DerivedData/ReCall-QC/Logs/Test/Test-ReCall-2026.10.21_09-07-42--0700.xcresult`.
+Earlier QC runs were stopped when Adam added spacing and crop requirements; they are
+not green gates.
+
+Evidence in `pro-arrange-remove-2026-10-21` under the evidence directory below:
+
+- `iphone-final-cropped-square.png`: the chosen picture between its neighbors.
+- `iphone-final-portrait-spacing.png`: the compact main grid after a native swipe.
+- `device-before-crop/`, `device-after-crop/`, and `crop-integrity.json`: the exact
+  single-field crop change and unchanged image/layout hashes.
+- `physical-final-summary.json` and `physical-final-proof/`: the removal rerun at
+  08:58 PDT, before the final two-point gap and crop refinement.
+- `full-qc.log`, `full-qc-ui.log`, and `full-qc-summary.json`: the final combined
+  change's passing regression gate, 33 tests with zero failures or skips.
+
+## October 21 follow-up — remove images directly in Arrange
+
+Every image's ellipsis menu in Arrange now includes **Remove image**, for full-size
+cards, carousel images, and the large square. It uses the existing **Remove this image
+from Pro?** confirmation and the same local archive removal as the image viewer.
+Confirming keeps Arrange active; cancelling preserves the image. Removing the final
+image from a carousel or square leaves that container available for another image.
+
+The physical iPhone passed the new isolated interaction test on October 21 at 08:48 PDT.
+It checked cancellation, confirmed removal from all three layouts, preservation of
+unselected images, continued Arrange mode, empty containers, and persistence after
+relaunch. Result:
+`/tmp/Understood-ProPinterest-device/Logs/Test/Test-ReCall-2026.10.21_08-47-07--0700.xcresult`.
+
+The normal collection was reopened on the updated phone and its actual Arrange menu
+was visually inspected. At that removal-only checkpoint, all 15 Application Support
+files matched the pre-update copy byte for byte. No user image was deleted during
+verification. The final combined change passed full QC as recorded above.
+
+Evidence:
+`/Users/adamblair/.codex/visualizations/2026/10/19/01a15550-786d-7151-87b2-d02e194093a5/pro-arrange-remove-2026-10-21`.
+
+- `iphone-arrange-remove-menu.png`: the new menu action in the normal collection.
+- `physical-summary.json`, `physical-tests.log`, and `physical-proof/`: the passing
+  physical check and its confirmation, empty-square, and relaunch screenshots.
+- `device-before/`, `device-after/`, and `data-integrity.json`: matching file sets and
+  SHA-256 hashes for all 15 normal saved-data files.
+
 ## October 21 follow-up — position whole carousels
 
 Arrange now gives every carousel the same up/down controls as the large square.

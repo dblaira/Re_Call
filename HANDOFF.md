@@ -6,13 +6,30 @@ build/crash loops.
 
 ## October 21 update — Pinterest carousel sizing and one large square
 
-Latest follow-up: every carousel now has up/down arrows in Arrange, matching the large
-square. Moving a carousel preserves its membership and image order. The physical iPhone
-passed moves across the square and another carousel, relaunch persistence, and vertical
-scrolling. Both actual carousel headings were inspected on the updated phone, and all
-15 normal collection files are unchanged. Final full QC is green: 27 UI tests and 5 unit
-tests passed, zero failures or skips, October 21 at 08:37 PDT. See the latest section of
-`docs/PRO_ARRANGEMENT_PREVIEW.md`.
+Latest appearance: Adam requested almost no gaps. Pro browsing now has 2 pt spacing
+between areas and grid cards, tighter captions, and no extra carousel padding. At his
+explicit request, the selected large diagram has a saved thumbnail crop removing its
+black bands. The crop is optional per-image metadata; the original image and viewer
+remain intact. Final appearance, scrolling, original-image viewing, and crop persistence
+were inspected on the physical iPhone at 09:08 PDT. Only the selected image's crop field
+changed in the current 14-file collection; original bytes and layout are unchanged.
+Adam inspected this exact version and said, “That is perfect.” Preserve it.
+Final `./qc.sh --full` is green on October 21 at 09:23 PDT: all 28 UI tests and
+5 unit tests pass, with zero failures or skips. Engine, native persistence,
+deterministic KG output, and build gates also passed.
+
+Latest follow-up: **Remove image** is available in every image's ellipsis menu in
+Arrange, including full-size cards, carousel images, and the large square. It uses the
+existing confirmation and local archive removal, keeps Arrange active, and leaves
+empty carousel/square containers ready for another image. Physical iPhone checks passed
+for cancellation, all three layouts, neighboring images, and relaunch persistence.
+The actual menu was inspected on the updated phone. At the earlier removal-only
+checkpoint, all 15 normal collection files were unchanged. The final combined change
+passed full QC as recorded above. See the latest section of `docs/PRO_ARRANGEMENT_PREVIEW.md`.
+
+Every carousel also has up/down arrows in Arrange, matching the large square. Moving a
+carousel preserves its membership and image order. The preceding physical check passed
+moves across the square and another carousel, relaunch persistence, and vertical scrolling.
 
 Adam supplied three Pinterest screenshots and requested identical compact carousel sizing
 plus one large square image container. Carousel thumbnails now use 90 × 135 pt frames,

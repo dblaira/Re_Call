@@ -11,24 +11,32 @@ struct ProArrangedImages: View {
     var report: (String) -> Void
     @State private var saving = false
     @State private var choosingSquare: ProLibraryArrangement.Area?
+    @State private var removingCard: ProImageCard?
 
     // Pinterest's supplied 1320 px screenshot uses 270 × 405 px thumbnails.
     private let rowWidth: CGFloat = 90
     private let rowHeight: CGFloat = 135
 
     var body: some View {
-        VStack(spacing: 24) {
-            ForEach(library.arrangement.areas) { area in
+        VStack(spacing: arranging ? 24 : 2) {
+            ForEach(library.arrangement.areas.filter {
+                arranging || $0.style != .grid || !$0.cardIDs.isEmpty
+            }) { area in
                 if area.style == .row {
                     row(area)
                 } else if area.style == .square {
                     square(area)
-                } else if arranging || !area.cardIDs.isEmpty {
+                } else {
                     grid(area)
                 }
             }
         }
         .disabled(saving)
+        .confirmationDialog("Remove this image from Pro?", isPresented: Binding(
+            get: { removingCard != nil }, set: { if !$0 { removingCard = nil } }
+        ), titleVisibility: .visible, presenting: removingCard) { card in
+            Button("Remove image", role: .destructive) { remove(card) }
+        }
         .sheet(item: $choosingSquare) { area in
             NavigationStack {
                 List(library.cards) { card in
@@ -51,13 +59,15 @@ struct ProArrangedImages: View {
 
     private func grid(_ area: ProLibraryArrangement.Area) -> some View {
         let cards = library.cards(in: area)
+        let gap: CGFloat = arranging ? 12 : 2
+        let columnWidth = max(1, availableWidth - 36 - gap)
         return VStack(alignment: .leading, spacing: 14) {
             if arranging { heading(area) }
-            HStack(alignment: .top, spacing: 12) {
+            HStack(alignment: .top, spacing: gap) {
                 column(cards.enumerated().filter { $0.offset.isMultiple(of: 2) }.map(\.element), area: area)
-                    .frame(width: max(1, availableWidth - 48) * 0.58)
+                    .frame(width: columnWidth * 0.58)
                 column(cards.enumerated().filter { !$0.offset.isMultiple(of: 2) }.map(\.element), area: area)
-                    .frame(width: max(1, availableWidth - 48) * 0.42)
+                    .frame(width: columnWidth * 0.42)
             }
             if arranging {
                 dropTarget(area)
@@ -79,7 +89,7 @@ struct ProArrangedImages: View {
     }
 
     private func column(_ cards: [ProImageCard], area: ProLibraryArrangement.Area) -> some View {
-        LazyVStack(spacing: 14) {
+        LazyVStack(spacing: arranging ? 14 : 2) {
             ForEach(cards) { card in tile(card, area: area) }
         }
         .frame(maxWidth: .infinity)
@@ -112,7 +122,7 @@ struct ProArrangedImages: View {
             }
             if arranging { addSquareButton(after: area).padding(.horizontal, 18) }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, arranging ? 8 : 0)
     }
 
     private func square(_ area: ProLibraryArrangement.Area) -> some View {
@@ -253,6 +263,9 @@ struct ProArrangedImages: View {
                 }
                 .accessibilityIdentifier("proMoveTo-\(destination.id)")
             }
+            Divider()
+            Button("Remove image", systemImage: "trash", role: .destructive) { removingCard = card }
+                .accessibilityIdentifier("proArrangeRemoveImage-\(card.id)")
         } label: {
             Image(systemName: "ellipsis").font(.system(size: 17, weight: .semibold))
                 .frame(width: 44, height: 44).contentShape(Rectangle())
@@ -280,6 +293,16 @@ struct ProArrangedImages: View {
         Task { @MainActor in
             defer { saving = false }
             do { try await library.arrange(update) }
+            catch { report(error.localizedDescription) }
+        }
+    }
+
+    private func remove(_ card: ProImageCard) {
+        guard !saving else { return }
+        saving = true
+        Task { @MainActor in
+            defer { saving = false }
+            do { try await library.remove(card) }
             catch { report(error.localizedDescription) }
         }
     }

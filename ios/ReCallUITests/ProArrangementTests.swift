@@ -234,6 +234,76 @@ final class ProArrangementTests: XCTestCase {
         attach("Dragged order persists after relaunch")
     }
 
+    func testArrangeRemovalConfirmsAcrossCardsCarouselAndSquare() {
+        app.buttons["proArrange"].tap()
+        let confirmation = app.staticTexts["Remove this image from Pro?"]
+        func requestRemoval(_ name: String) {
+            menu(name)
+            app.buttons["Remove image"].tap()
+            XCTAssertTrue(confirmation.waitForExistence(timeout: 5))
+            XCTAssertFalse(app.buttons["proClosePoster"].exists,
+                           "Removing in Arrange must not open the image viewer")
+        }
+        func confirmRemoval(_ name: String) {
+            requestRemoval(name)
+            app.buttons["Remove image"].tap()
+            XCTAssertTrue(title(name).waitForNonExistence(timeout: 5))
+            XCTAssertEqual(app.buttons["proArrange"].label, "Done",
+                           "Removing an image must keep Arrange active")
+        }
+
+        requestRemoval("Poster 1")
+        attach("Remove image is available directly in Arrange with confirmation")
+        if app.buttons["Cancel"].exists {
+            app.buttons["Cancel"].tap()
+        } else {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.3)).tap()
+        }
+        XCTAssertTrue(confirmation.waitForNonExistence(timeout: 5))
+        XCTAssertTrue(title("Poster 1").exists, "Cancel must preserve the selected image")
+        confirmRemoval("Poster 1")
+        XCTAssertTrue(title("Poster 2").exists, "Removal must preserve the neighboring image")
+
+        menu("Poster 2")
+        app.buttons["proStartRow"].tap()
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        let rowID = row.identifier
+        confirmRemoval("Poster 2")
+        let rowAdd = app.buttons[rowID.replacingOccurrences(of: "proRow-", with: "proRowAddImage-")]
+        XCTAssertTrue(rowAdd.exists, "Removing the final carousel image must leave Add image available")
+
+        let addSquare = app.buttons[rowID.replacingOccurrences(of: "proRow-", with: "proAddSquare-")]
+        reveal(addSquare)
+        addSquare.tap()
+        let squareAdd = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "proSquareAddImage-")).firstMatch
+        reveal(squareAdd)
+        squareAdd.tap()
+        app.buttons["Choose saved image"].tap()
+        let choice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND label == %@",
+                                                     "proChooseSquareImage-", "Poster 3")).firstMatch
+        XCTAssertTrue(choice.waitForExistence(timeout: 5))
+        choice.tap()
+        confirmRemoval("Poster 3")
+        XCTAssertTrue(squareAdd.waitForExistence(timeout: 5),
+                      "Removing the square's image must leave its container ready for another image")
+        attach("Removing an image preserves the square and Arrange controls")
+
+        app.terminate(); app.launch(); app.buttons["PRO"].tap()
+        app.buttons["proArrange"].tap()
+        XCTAssertTrue(rowAdd.waitForExistence(timeout: 5))
+        reveal(squareAdd)
+        XCTAssertTrue(squareAdd.exists)
+        for number in 4...7 {
+            reveal(title("Poster \(number)"))
+            XCTAssertTrue(title("Poster \(number)").exists,
+                          "Every unselected image must survive removal and relaunch")
+        }
+        for number in 1...3 {
+            XCTAssertFalse(title("Poster \(number)").exists)
+        }
+        attach("Arrange removals persist and preserve all unselected images")
+    }
+
     func testEmptyRowOffersFreshPhotoAndFileImports() {
         app.terminate()
         app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]

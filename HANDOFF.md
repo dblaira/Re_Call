@@ -28,7 +28,7 @@ build/crash loops.
 
 The signed Debug app is installed as `sh.notorious.app`. Normal physical launch succeeded. The blank Action form was canceled to Home without entering writing or saving an entry.
 
-Final full QC is green. The exact final pushed revision’s GitHub build is pending.
+Final full QC is green. Source feature commit `fd771e397c0295abf8138411b02ca3e7d00a6a6c` has a successful [GitHub iOS Build](https://github.com/dblaira/Re_Call/actions/runs/41006449225).
 
 Repo and Mac evidence copies match. Cowork copies are staged; cloud upload remains unconfirmed.
 
@@ -48,6 +48,7 @@ Adam’s request, verbatim:
 | Unit tests | 11/11 passed; zero failures or skips |
 | UI tests | 32/32 passed; zero failures or skips |
 | Full simulator test suite | 43/43 passed together |
+| Full QC gates | 8/8 passed |
 | Signed device build and installation | Succeeded |
 | Physical blank Action form | Both selectors inspected while closed and open |
 | Opened Visual menu | All twelve choices visible; compared with SAVY |
@@ -55,7 +56,7 @@ Adam’s request, verbatim:
 | First Visual question tap | Writing cursor directly below the question |
 | Blank form cancellation | Returned to Home without saving |
 | Production file comparison | Same 14 relative paths; all SHA256 hashes match |
-| Exact final commit’s GitHub iOS Build | Pending push |
+| Source feature commit’s GitHub iOS Build | Passed for `fd771e397c0295abf8138411b02ca3e7d00a6a6c` |
 
 The initial physical XCTest attempt failed during runner initialization with Apple authentication error 12. It executed no tests. Initial Mirroring clicks returned `noWindowsAvailable`; Raise and Connect enabled the later direct inspection recorded above.
 
@@ -82,7 +83,9 @@ Final installation log: `/tmp/ReCall-entry-forms-final-install.log`.
 
 Final full-QC log: `/tmp/ReCall-entry-forms-qc-complete.log`.
 
-All 17 source/build/test files match `/tmp/ReCall-entry-forms-tested-source.json` after the passing run. Their hashes are included in the verification record.
+Final test result: `/Users/adamblair/Library/Developer/Xcode/DerivedData/ReCall-QC/Logs/Test/Test-ReCall-2026.10.29_21-44-28--0700.xcresult`.
+
+All 17 source/build/test files match `/tmp/ReCall-entry-forms-tested-source.json` after the passing run. The committed source feature snapshot also matches those tested hashes. Their hashes are included in the verification record.
 
 [Verification record](</Users/adamblair/Developer/GitHub/Re_Call/docs/entry forms.json>)
 

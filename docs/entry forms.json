@@ -27,7 +27,7 @@
     "storage": "local and iCloud Documents",
     "supabase_migration": false
   },
-  "verification_status": "Physical appearance, data preservation and final full local QC verified; exact final GitHub build pending",
+  "verification_status": "Physical appearance, data preservation, final full local QC and source feature commit GitHub iOS Build verified",
   "current_checks": {
     "signed_debug_device_build": "succeeded per root agent",
     "device_installation": "succeeded per root agent",
@@ -40,7 +40,6 @@
     "physical_xctest": "Initial runner failed authentication with error12 before executing tests; later direct physical UI inspection succeeded",
     "mirroring_clicks": "Initial noWindowsAvailable failure resolved through Raise and Connect",
     "postinstall_file_comparison": "All14 relative paths and SHA256 hashes identical after final reinstallation",
-    "final_github_ios_build": "pending first source commit and push",
     "visual_all_12_choices_visible": true,
     "physical_summarize_selection": "four prompts updated",
     "physical_question_tap": "cursor directly below first Visual prompt",
@@ -50,7 +49,8 @@
     "final_device_build_log": "/tmp/ReCall-entry-forms-device-final-build.log",
     "final_device_reinstallation": "succeeded",
     "final_device_install_log": "/tmp/ReCall-entry-forms-final-install.log",
-    "final_normal_physical_launch": "succeeded per root agent"
+    "final_normal_physical_launch": "succeeded per root agent",
+    "source_feature_github_ios_build": "passed for fd771e397c0295abf8138411b02ca3e7d00a6a6c"
   },
   "preinstallation_backup": {
     "source_bundle": "sh.notorious.app",
@@ -318,7 +318,11 @@
       "test/visual-template-runtime.swift": "c2531b994166815ba0463c94e05d26117498aa71d820a9bf1eb4ee635d914d66",
       "ios/ReCallUITests/UpNextScrollTests.swift": "682978f025173ae3e4f14a146bbc9f9460ea2b2396a35c9f26f314632add9c06"
     },
-    "source_hashes_verified_after_run": true
+    "source_hashes_verified_after_run": true,
+    "gates_passed": 8,
+    "gates_failed": 0,
+    "xcresult": "/Users/adamblair/Library/Developer/Xcode/DerivedData/ReCall-QC/Logs/Test/Test-ReCall-2026.10.29_21-44-28--0700.xcresult",
+    "committed_source_feature_hashes_match_tested": true
   },
   "focused_regression_checks": {
     "smoke_cases_passed": 7,
@@ -326,5 +330,14 @@
     "all_three_kinds_log": "/tmp/ReCall-entry-forms-three-kinds.log",
     "up_next_reorder": "passed",
     "up_next_reorder_log": "/tmp/ReCall-entry-forms-reorder-final.log"
+  },
+  "source_feature_commit": "fd771e397c0295abf8138411b02ca3e7d00a6a6c",
+  "source_feature_github_ios_build": {
+    "head_sha": "fd771e397c0295abf8138411b02ca3e7d00a6a6c",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/dblaira/Re_Call/actions/runs/41006449225",
+    "run_id": 41006449225,
+    "scope": "Source feature commit; documentation-only follow-up is verified separately by the root agent"
   }
 }

@@ -116,20 +116,36 @@ final class ProArrangementTests: XCTestCase {
         reveal(addSquare)
         addSquare.tap()
         let square = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "proSquare-")).firstMatch
-        let addImage = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "proSquareAddImage-")).firstMatch
+        let addImage = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "proSquareAddImage-")).firstMatch
         reveal(addImage)
+        let addImageID = addImage.identifier
         app.buttons["proArrange"].tap()
         XCTAssertEqual(addImage.frame.width, app.frame.width - 8, accuracy: 1)
         XCTAssertEqual(addImage.frame.height, addImage.frame.width, accuracy: 1)
-        addImage.tap()
+        func openAddImageMenu() {
+            let menu = app.descendants(matching: .any).matching(identifier: addImageID).firstMatch
+            XCTAssertTrue(menu.waitForExistence(timeout: 10))
+            reveal(menu)
+            menu.tap()
+            for choice in ["Photo Library", "Choose File", "Choose saved image"] {
+                XCTAssertTrue(app.buttons[choice].waitForExistence(timeout: 5),
+                              "The square's Add image menu must offer \(choice)")
+            }
+        }
+        func cancelPicker() {
+            let cancel = app.buttons["Cancel"].firstMatch
+            XCTAssertTrue(cancel.waitForExistence(timeout: 10))
+            cancel.tap()
+            XCTAssertTrue(cancel.waitForNonExistence(timeout: 10),
+                          "The picker must finish dismissing before reopening Add image")
+        }
+        openAddImageMenu()
         app.buttons["Photo Library"].tap()
-        XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: 10))
-        app.buttons["Cancel"].tap()
-        addImage.tap()
+        cancelPicker()
+        openAddImageMenu()
         app.buttons["Choose File"].tap()
-        XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: 10))
-        app.buttons["Cancel"].tap()
-        addImage.tap()
+        cancelPicker()
+        openAddImageMenu()
         app.buttons["Choose saved image"].tap()
         let choice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND label == %@",
                                                      "proChooseSquareImage-", "Poster 2")).firstMatch

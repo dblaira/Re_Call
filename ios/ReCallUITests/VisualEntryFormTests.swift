@@ -164,6 +164,34 @@ final class VisualEntryFormTests: XCTestCase {
         cancelForm()
     }
 
+    func testDelegateQuestionsStayVisibleAndFocusAnswersDirectlyBelow() {
+        openForm()
+        let fields = [
+            ("Title", "What do I want?", "My exact want."),
+            ("WhenIAm", "When I am...I like to", "My exact context."),
+            ("Outcome", "Done looks like...", "My exact done statement.")
+        ]
+        for (identifier, prompt, writing) in fields {
+            let question = element("DelegateQuestion\(identifier)")
+            let answer = element(identifier)
+            reveal(question)
+            XCTAssertEqual(question.label, prompt)
+            question.tap()
+            XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+            app.typeText(writing)
+            XCTAssertEqual(answer.value as? String, writing,
+                           "Question taps must focus the matching answer without typing into the question")
+            XCTAssertEqual(question.label, prompt, "The prompt must remain after typing")
+            XCTAssertGreaterThanOrEqual(answer.frame.minY, question.frame.maxY - 1)
+            XCTAssertLessThanOrEqual(answer.frame.minY - question.frame.maxY, 2,
+                                     "Delegate writing belongs directly below its question")
+            dismissKeyboard()
+        }
+        attach("Delegate")
+        cancelForm()
+        assertEmptyHome()
+    }
+
     func testUntouchedFormatChangesAndCancellationDoNotCreateAnEntry() {
         openForm()
         selectFormat("Summarize")

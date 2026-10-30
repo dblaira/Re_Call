@@ -276,12 +276,42 @@ struct ReminderFormView: View {
     }
 
     private func persistentField(_ prompt: String, text: Binding<String>, identifier: String, field: EntryField) -> some View {
-        TextField(prompt, text: text, axis: .vertical)
-            .lineLimit(1...)
-            .textFieldStyle(.plain)
-            .fixedSize(horizontal: false, vertical: true)
-            .focused($focusedField, equals: field)
-            .accessibilityIdentifier(identifier)
+        let symbol: String
+        switch field {
+        case .title: symbol = "target"
+        case .whenIAm: symbol = "lightbulb"
+        case .doneLooksLike: symbol = "checkmark.circle"
+        default: symbol = "pencil"
+        }
+        return HStack(alignment: .top, spacing: 10) {
+            Image(systemName: symbol)
+                .font(Self.decideIconFont)
+                .foregroundStyle(Brand.crimson)
+                .frame(width: 24, height: PredictiveWritingField.writingFont.lineHeight)
+                .onTapGesture { moveCursor(to: field) }
+            VStack(alignment: .leading, spacing: 0) {
+                Text(prompt)
+                    .font(Self.questionFont)
+                    .foregroundStyle(.black)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .onTapGesture { moveCursor(to: field) }
+                    .accessibilityIdentifier("DelegateQuestion\(identifier)")
+                TextField("", text: text, axis: .vertical)
+                    .lineLimit(1...)
+                    .textFieldStyle(.plain)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(minHeight: PredictiveWritingField.writingFont.lineHeight * 2, alignment: .topLeading)
+                    .focused($focusedField, equals: field)
+                    .accessibilityLabel(prompt)
+                    .accessibilityIdentifier(identifier)
+            }
+        }
+        .contentShape(Rectangle())
+        .simultaneousGesture(TapGesture().onEnded {
+            if activeField != field { moveCursor(to: field) }
+        })
     }
 
     // MARK: - Visual templates

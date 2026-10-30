@@ -215,7 +215,7 @@ final class SmokeTests: XCTestCase {
         reveal(title, in: app)
         XCTAssertTrue(title.waitForExistence(timeout: 5))
         title.tap()
-        XCTAssertEqual(title.placeholderValue, "What do I want?")
+        XCTAssertEqual(app.staticTexts["DelegateQuestionTitle"].label, "What do I want?")
         let initialHeight = title.frame.height
         let longAnswer = "Full answer test " + UUID().uuidString + "\n"
             + (1...8).map { "Line \($0): I can see all the words I enter." }.joined(separator: "\n")
@@ -223,19 +223,22 @@ final class SmokeTests: XCTestCase {
         XCTAssertEqual(title.value as? String, longAnswer)
         XCTAssertGreaterThan(title.frame.height, initialHeight * 3,
                              "The field must expand rather than clip or scroll within three lines")
-        XCTAssertFalse(app.staticTexts["What do I want?"].exists, "Filled Delegate fields follow SAVY's placeholder styling")
+        XCTAssertEqual(app.staticTexts["DelegateQuestionTitle"].label, "What do I want?",
+                       "Delegate's question must remain visible after typing")
         let when = app.descendants(matching: .any).matching(identifier: "WhenIAm").firstMatch
         reveal(when, in: app)
-        XCTAssertEqual(when.placeholderValue, "When I am...I like to")
+        XCTAssertEqual(app.staticTexts["DelegateQuestionWhenIAm"].label, "When I am...I like to")
         when.tap()
         when.typeText("Learning something unfamiliar")
         XCTAssertEqual(when.value as? String, "Learning something unfamiliar")
+        XCTAssertEqual(app.staticTexts["DelegateQuestionWhenIAm"].label, "When I am...I like to")
         let outcome = app.descendants(matching: .any).matching(identifier: "Outcome").firstMatch
         reveal(outcome, in: app)
-        XCTAssertEqual(outcome.placeholderValue, "Done looks like...")
+        XCTAssertEqual(app.staticTexts["DelegateQuestionOutcome"].label, "Done looks like...")
         outcome.tap()
         outcome.typeText("The full question and answer stay visible")
         XCTAssertEqual(outcome.value as? String, "The full question and answer stay visible")
+        XCTAssertEqual(app.staticTexts["DelegateQuestionOutcome"].label, "Done looks like...")
         let delegateShot = XCTAttachment(screenshot: app.screenshot())
         delegateShot.name = "Delegate"
         delegateShot.lifetime = .keepAlways

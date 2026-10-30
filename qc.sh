@@ -57,6 +57,12 @@ else
   bad "native Pro image persistence tests"
 fi
 
+if ./scripts/test-visual-templates.sh >/dev/null 2>&1; then
+  ok "native Visual persistence and sharing tests"
+else
+  bad "native Visual persistence and sharing tests"
+fi
+
 # recommendations.js must be the deterministic compile of the current KG.
 REC=build/recommendations.js
 BEFORE=$(md5 -q "$REC" 2>/dev/null || echo none)

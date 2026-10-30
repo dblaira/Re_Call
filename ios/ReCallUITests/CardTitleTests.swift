@@ -33,6 +33,30 @@ final class CardTitleTests: XCTestCase {
         )).firstMatch
     }
 
+    private func revealEntryField(_ element: XCUIElement) {
+        for _ in 0..<20 {
+            let top = max(110, app.navigationBars.firstMatch.frame.maxY + 8)
+            let share = app.descendants(matching: .any).matching(identifier: "shareForm").firstMatch
+            let bottom = share.exists && share.isHittable ? share.frame.minY - 12 : app.frame.height - 100
+            if element.exists && element.isHittable && element.frame.minY >= top && element.frame.maxY <= bottom {
+                return
+            }
+            let exists = element.exists
+            let frame = exists ? element.frame : .zero
+            let down = exists && frame.minY < top
+            let overflow = down ? top - frame.minY + 12 : frame.maxY - bottom + 12
+            let distance = exists ? min(140, max(35, overflow)) : 140
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.4))
+            start.press(forDuration: 0.05, thenDragTo:
+                start.withOffset(CGVector(dx: 0, dy: down ? distance : -distance)))
+        }
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = "Unreachable entry field hierarchy"
+        hierarchy.lifetime = .keepAlways
+        add(hierarchy)
+        XCTFail("Entry field was not fully reachable")
+    }
+
     private func begin(_ title: String, scroll: String = "homeScroll") {
         let text = titleElement(title)
         reveal(text, in: app.scrollViews[scroll])
@@ -104,8 +128,11 @@ final class CardTitleTests: XCTestCase {
         app.buttons["Actions"].tap()
         XCTAssertTrue(titleElement("Original theme answers").waitForExistence(timeout: 5))
         titleElement("Original theme answers").tap()
-        let original = app.textFields["Title"].firstMatch
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "Theme").firstMatch.waitForExistence(timeout: 10))
+        let original = app.descendants(matching: .any).matching(identifier: "Title").firstMatch
+        revealEntryField(original)
         XCTAssertTrue(original.waitForExistence(timeout: 5))
+        XCTAssertTrue(original.isHittable)
         XCTAssertEqual(original.value as? String, "Original action writing", "Original writing must remain untouched")
         app.buttons["Cancel"].tap()
         app.terminate()

@@ -141,6 +141,8 @@ struct Reminder: Identifiable, Codable, Equatable {
     var postThemeName: String? = nil
     var postAnswers: [String]? = nil
     var postAnswersContainQuestions: Bool? = nil
+    // All explored Visual formats, preserving older entries without this optional field.
+    var visualTemplates: VisualTemplateDraft? = nil
     // Places & People
     var locationName: String = ""
     // Graph + lifecycle

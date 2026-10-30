@@ -23,6 +23,21 @@ final class SmokeTests: XCTestCase {
         let center = fab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         let reminderZone = center.withOffset(CGVector(dx: -120, dy: 0))   // left = Reminder
         center.press(forDuration: 0.2, thenDragTo: reminderZone)
+        XCTAssertTrue(app.buttons["Theme"].waitForExistence(timeout: 10), "Entry form must open", file: file, line: line)
+    }
+
+    private func reveal(_ element: XCUIElement, in app: XCUIApplication, towardTopWhenMissing: Bool = false) {
+        if app.buttons["KeyboardRowDone"].exists && app.buttons["KeyboardRowDone"].isHittable {
+            app.buttons["KeyboardRowDone"].tap()
+        }
+        for _ in 0..<24 {
+            let bottom = app.frame.height - 130
+            if element.exists && element.isHittable && element.frame.minY > 180 && element.frame.minY < bottom - 30 { return }
+            let towardTop = element.exists ? element.frame.minY < 180 : towardTopWhenMissing
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.88, dy: 0.48))
+            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: towardTop ? 180 : -180)))
+        }
+        XCTAssertTrue(element.isHittable)
     }
 
     func testAppLaunchesToNativeReminders() {
@@ -100,7 +115,7 @@ final class SmokeTests: XCTestCase {
         app.launch()
         dismissNotificationPrompt()
         openReminderForm(app)
-        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "Title").firstMatch.waitForExistence(timeout: 10),
+        XCTAssertTrue(app.buttons["Theme"].waitForExistence(timeout: 10),
                       "Entry form did not open from the charge FAB")
     }
 
@@ -111,6 +126,7 @@ final class SmokeTests: XCTestCase {
         dismissNotificationPrompt()
         openReminderForm(app)
         let title = app.descendants(matching: .any).matching(identifier: "Title").firstMatch
+        reveal(title, in: app)
         XCTAssertTrue(title.waitForExistence(timeout: 10))
         title.tap()
         title.typeText("Smoke test reminder")
@@ -162,13 +178,14 @@ final class SmokeTests: XCTestCase {
             let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
             start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: 130)))
         }
+        reveal(title, in: app)
         title.tap()
         title.typeText("Step regression")
         app.buttons["Save"].tap()
         XCTAssertTrue(app.staticTexts["Step regression"].waitForExistence(timeout: 10))
     }
 
-    func testThemeAndPersistentDelegateWithLongAnswers() {
+    func testThemeAndSavyDelegateWithLongAnswers() {
         let app = XCUIApplication()
         app.launchArguments = ["RECALL_UI_TEST_ISOLATED"]
         app.launch()
@@ -195,8 +212,10 @@ final class SmokeTests: XCTestCase {
         add(themeShot)
 
         let title = app.descendants(matching: .any).matching(identifier: "Title").firstMatch
+        reveal(title, in: app)
         XCTAssertTrue(title.waitForExistence(timeout: 5))
         title.tap()
+        XCTAssertEqual(title.placeholderValue, "What do I want?")
         let initialHeight = title.frame.height
         let longAnswer = "Full answer test " + UUID().uuidString + "\n"
             + (1...8).map { "Line \($0): I can see all the words I enter." }.joined(separator: "\n")
@@ -204,27 +223,34 @@ final class SmokeTests: XCTestCase {
         XCTAssertEqual(title.value as? String, longAnswer)
         XCTAssertGreaterThan(title.frame.height, initialHeight * 3,
                              "The field must expand rather than clip or scroll within three lines")
-        XCTAssertTrue(app.staticTexts["What do I want?"].exists,
-                      "The question must remain after typing an answer")
+        XCTAssertFalse(app.staticTexts["What do I want?"].exists, "Filled Delegate fields follow SAVY's placeholder styling")
         let when = app.descendants(matching: .any).matching(identifier: "WhenIAm").firstMatch
+        reveal(when, in: app)
+        XCTAssertEqual(when.placeholderValue, "When I am...I like to")
         when.tap()
         when.typeText("Learning something unfamiliar")
-        XCTAssertTrue(app.staticTexts["When I am...I like to"].exists)
+        XCTAssertEqual(when.value as? String, "Learning something unfamiliar")
         let outcome = app.descendants(matching: .any).matching(identifier: "Outcome").firstMatch
+        reveal(outcome, in: app)
+        XCTAssertEqual(outcome.placeholderValue, "Done looks like...")
         outcome.tap()
         outcome.typeText("The full question and answer stay visible")
-        XCTAssertTrue(app.staticTexts["Done looks like..."].exists)
+        XCTAssertEqual(outcome.value as? String, "The full question and answer stay visible")
         let delegateShot = XCTAttachment(screenshot: app.screenshot())
-        delegateShot.name = "Persistent Delegate questions and full answers"
+        delegateShot.name = "Delegate"
         delegateShot.lifetime = .keepAlways
         add(delegateShot)
         app.buttons["Save"].tap()
         let saved = app.staticTexts.matching(NSPredicate(format: "label == %@", longAnswer)).firstMatch
         XCTAssertTrue(saved.waitForExistence(timeout: 10))
         saved.tap()
-        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "Title").firstMatch.waitForExistence(timeout: 5))
-        XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "Title").firstMatch.value as? String, longAnswer)
-        XCTAssertTrue((app.descendants(matching: .any).matching(identifier: "themeAnswer0").firstMatch.value as? String ?? "").contains("My exact theme answer"))
+        XCTAssertTrue(app.buttons["Theme"].waitForExistence(timeout: 5))
+        let restoredTitle = app.descendants(matching: .any).matching(identifier: "Title").firstMatch
+        reveal(restoredTitle, in: app)
+        XCTAssertEqual(restoredTitle.value as? String, longAnswer)
+        let restoredTheme = app.descendants(matching: .any).matching(identifier: "themeAnswer0").firstMatch
+        reveal(restoredTheme, in: app, towardTopWhenMissing: true)
+        XCTAssertTrue((restoredTheme.value as? String ?? "").contains("My exact theme answer"))
         app.buttons["Cancel"].tap()
     }
 

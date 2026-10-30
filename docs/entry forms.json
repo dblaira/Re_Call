@@ -1,0 +1,330 @@
+{
+  "request": "OK, now we're going to switch to the recall understood app because I want the same edition to that app as well. This is another level of consistency that I want in the entry forms. I want them all to be the same, whether it's the understood app or whether it's the SAVY app, because they represent different levels of the Adam pattern for me.",
+  "product": {
+    "visible_name": "Understood",
+    "bundle_identifier": "sh.notorious.app",
+    "repository": "/Users/adamblair/Developer/GitHub/Re_Call"
+  },
+  "scope": {
+    "entry_kinds": [
+      "Reminder",
+      "Action",
+      "Event"
+    ],
+    "shared_form": "ios/ReCall/App/ReminderFormView.swift",
+    "configured_mac_catalyst_target": false,
+    "social_entry_kind": false,
+    "pro_implementation_changed": false
+  },
+  "source_starting_commit": "6929ce7c5392fef6e07174a796c12305ca37dd42",
+  "visual_catalog_reference": "/Users/adamblair/Developer/GitHub/SAVY-iOS/SAVY/VisualTemplate.swift",
+  "implementation": {
+    "visual_location": "Decide then Visual then Delegate",
+    "selector_treatment": "compact crimson native Theme and Visual selectors",
+    "question_weight": "regular",
+    "iphone_form_point_size": 17,
+    "answer_growth": "vertical with first writing line immediately below the question",
+    "storage": "local and iCloud Documents",
+    "supabase_migration": false
+  },
+  "verification_status": "Physical appearance, data preservation and final full local QC verified; exact final GitHub build pending",
+  "current_checks": {
+    "signed_debug_device_build": "succeeded per root agent",
+    "device_installation": "succeeded per root agent",
+    "normal_physical_launch": "Home captured per root agent",
+    "full_qc": "passed, exit0, QC GREEN",
+    "full_qc_log": "/tmp/ReCall-entry-forms-qc-complete.log",
+    "runtime_persistence_sharing_checks": "passed in final full QC",
+    "simulator_app_build": "passed in final full QC",
+    "physical_open_form": "Action inspected through Mirroring; both Theme and Visual closed and open",
+    "physical_xctest": "Initial runner failed authentication with error12 before executing tests; later direct physical UI inspection succeeded",
+    "mirroring_clicks": "Initial noWindowsAvailable failure resolved through Raise and Connect",
+    "postinstall_file_comparison": "All14 relative paths and SHA256 hashes identical after final reinstallation",
+    "final_github_ios_build": "pending first source commit and push",
+    "visual_all_12_choices_visible": true,
+    "physical_summarize_selection": "four prompts updated",
+    "physical_question_tap": "cursor directly below first Visual prompt",
+    "physical_four_questions_and_delegate": "visible",
+    "physical_blank_form": "canceled to Home; no writing entered",
+    "final_device_build": "succeeded",
+    "final_device_build_log": "/tmp/ReCall-entry-forms-device-final-build.log",
+    "final_device_reinstallation": "succeeded",
+    "final_device_install_log": "/tmp/ReCall-entry-forms-final-install.log",
+    "final_normal_physical_launch": "succeeded per root agent"
+  },
+  "preinstallation_backup": {
+    "source_bundle": "sh.notorious.app",
+    "source": "Library/Application Support",
+    "backup_root": "/var/folders/ll/k4r0q6fj5k18c1vh9vk5t1c80000gn/T/tmpzaztdh88",
+    "files": {
+      "card-titles.json": {
+        "bytes": 338,
+        "sha256": "7417ab41982b9206dbb35248f5fda0e984b971c49f435a32862b07e420e2d795",
+        "top_level_count": 3
+      },
+      "pro-library/03317062-D417-47C6-AB28-71AFFE9A3C07.jpeg": {
+        "bytes": 259197,
+        "sha256": "0eba0913c60b5bd4af35e1b9bcc83b182f05282eafcd0dc2886917af5a77110f"
+      },
+      "pro-library/17C0986F-EE41-45FC-AEF1-85DE717DAC8D.png": {
+        "bytes": 3750908,
+        "sha256": "4ea19aca131714486f706c55f9bfc476b0ec01bf372c26c3b9f5fb285b87d3f4"
+      },
+      "pro-library/2B23CE69-08F4-4BE0-B6DB-551D0513E716.png": {
+        "bytes": 3184976,
+        "sha256": "64bbad2cd4134b9769ef6a338fe35e9e9a6e99a57aab909575f57cc689f4dc49"
+      },
+      "pro-library/42A78F17-BBB5-424C-A60C-493C1A598FB3.png": {
+        "bytes": 294767,
+        "sha256": "bf1c6fe92ed9f221ff7580546636f70f189c688798af463ac95d9562c74c6395"
+      },
+      "pro-library/58645C22-F14D-45C9-98AE-BA17C4706A29.png": {
+        "bytes": 5660563,
+        "sha256": "ff42faffcc1a6d40d57e8bed461d0fe4ee716cdf108701caba98197e609b6535"
+      },
+      "pro-library/6905ABC1-FD3F-4C37-9DC2-683D4D3DDAF3.png": {
+        "bytes": 431572,
+        "sha256": "466534955fc70b9f23675d20877a78a93b069e68378221fd8c3a52b2418b626b"
+      },
+      "pro-library/864ACCDE-A84F-4EE0-A0A7-188F170142CC.png": {
+        "bytes": 874063,
+        "sha256": "f507ed6ae053153bdda893ce826b4603869385b262869a8466c7725537dd7e29"
+      },
+      "pro-library/A3032041-ED95-4BD0-B0B7-434466B393F5.jpeg": {
+        "bytes": 251355,
+        "sha256": "b63155d63725aefd9b071c434f1905c82f22831bd8e2181ef0ebd09ba66b3edc"
+      },
+      "pro-library/AE4632E5-44D1-4175-BED3-DE5E9287AE82.png": {
+        "bytes": 2641282,
+        "sha256": "3cdf3b0fe06351388097ebcd562eb5d2da24ac1ea2666b6481163ef70a3e07a4"
+      },
+      "pro-library/DA83F474-7C6B-4337-B713-4E7C2E910149.png": {
+        "bytes": 123726,
+        "sha256": "efd806788152f5cea36dde5aa0e85c6dbfe1182d008533d7b48a541e303d75a8"
+      },
+      "pro-library/arrangement.json": {
+        "bytes": 953,
+        "sha256": "77f83c1c0b7ef53b8ccdcf6a2df341e5f7e1aa5895fbff61a12e7547154932dc",
+        "top_level_count": 1
+      },
+      "pro-library/cards.json": {
+        "bytes": 4114,
+        "sha256": "ce2b3c6ea8182f67c026a9338b2e629945d34453ed0fdb423b4382eb421f6dd8",
+        "top_level_count": 10
+      },
+      "reminders.json": {
+        "bytes": 35191,
+        "sha256": "0d3fac027d737085e486de32a0e0ea1134d4840225124837d8751017a51dded2",
+        "top_level_count": 37
+      }
+    },
+    "file_count": 14,
+    "total_bytes": 17513005
+  },
+  "historical_github_baseline": {
+    "commit": "6929ce7c5392fef6e07174a796c12305ca37dd42",
+    "status": "success",
+    "url": "https://github.com/dblaira/Re_Call/actions/runs/40715922079"
+  },
+  "failed_verification_history": [
+    {
+      "environment": "physical XCTest",
+      "failure": "Apple authentication error12 during initialization; no tests executed",
+      "followup": "Direct physical UI inspection through Mirroring succeeded after Raise and Connect"
+    },
+    {
+      "environment": "initial full QC simulator run",
+      "test": "CardTitleTests/testThemeCardOutsideTapSavesAcrossPagesAndRelaunch",
+      "failure": "Offscreen Title lookup",
+      "followup": "Field-visibility helper corrected; focused rerun and final full QC passed"
+    },
+    {
+      "environment": "earlier full QC simulator run",
+      "test": "UpNextScrollTests/testReorderMovesCardWithinUpNext",
+      "failure": "Legacy createReminder helper did not reveal offscreen Title",
+      "followup": "Helper corrected without weakening assertions; focused rerun and final full QC passed"
+    }
+  ],
+  "postinstallation_backup": {
+    "source_bundle": "sh.notorious.app",
+    "source": "Library/Application Support",
+    "backup_root": "/var/folders/ll/k4r0q6fj5k18c1vh9vk5t1c80000gn/T/tmp1pf411eb",
+    "files": {
+      "card-titles.json": {
+        "bytes": 338,
+        "sha256": "7417ab41982b9206dbb35248f5fda0e984b971c49f435a32862b07e420e2d795",
+        "top_level_count": 3
+      },
+      "pro-library/03317062-D417-47C6-AB28-71AFFE9A3C07.jpeg": {
+        "bytes": 259197,
+        "sha256": "0eba0913c60b5bd4af35e1b9bcc83b182f05282eafcd0dc2886917af5a77110f"
+      },
+      "pro-library/17C0986F-EE41-45FC-AEF1-85DE717DAC8D.png": {
+        "bytes": 3750908,
+        "sha256": "4ea19aca131714486f706c55f9bfc476b0ec01bf372c26c3b9f5fb285b87d3f4"
+      },
+      "pro-library/2B23CE69-08F4-4BE0-B6DB-551D0513E716.png": {
+        "bytes": 3184976,
+        "sha256": "64bbad2cd4134b9769ef6a338fe35e9e9a6e99a57aab909575f57cc689f4dc49"
+      },
+      "pro-library/42A78F17-BBB5-424C-A60C-493C1A598FB3.png": {
+        "bytes": 294767,
+        "sha256": "bf1c6fe92ed9f221ff7580546636f70f189c688798af463ac95d9562c74c6395"
+      },
+      "pro-library/58645C22-F14D-45C9-98AE-BA17C4706A29.png": {
+        "bytes": 5660563,
+        "sha256": "ff42faffcc1a6d40d57e8bed461d0fe4ee716cdf108701caba98197e609b6535"
+      },
+      "pro-library/6905ABC1-FD3F-4C37-9DC2-683D4D3DDAF3.png": {
+        "bytes": 431572,
+        "sha256": "466534955fc70b9f23675d20877a78a93b069e68378221fd8c3a52b2418b626b"
+      },
+      "pro-library/864ACCDE-A84F-4EE0-A0A7-188F170142CC.png": {
+        "bytes": 874063,
+        "sha256": "f507ed6ae053153bdda893ce826b4603869385b262869a8466c7725537dd7e29"
+      },
+      "pro-library/A3032041-ED95-4BD0-B0B7-434466B393F5.jpeg": {
+        "bytes": 251355,
+        "sha256": "b63155d63725aefd9b071c434f1905c82f22831bd8e2181ef0ebd09ba66b3edc"
+      },
+      "pro-library/AE4632E5-44D1-4175-BED3-DE5E9287AE82.png": {
+        "bytes": 2641282,
+        "sha256": "3cdf3b0fe06351388097ebcd562eb5d2da24ac1ea2666b6481163ef70a3e07a4"
+      },
+      "pro-library/DA83F474-7C6B-4337-B713-4E7C2E910149.png": {
+        "bytes": 123726,
+        "sha256": "efd806788152f5cea36dde5aa0e85c6dbfe1182d008533d7b48a541e303d75a8"
+      },
+      "pro-library/arrangement.json": {
+        "bytes": 953,
+        "sha256": "77f83c1c0b7ef53b8ccdcf6a2df341e5f7e1aa5895fbff61a12e7547154932dc",
+        "top_level_count": 1
+      },
+      "pro-library/cards.json": {
+        "bytes": 4114,
+        "sha256": "ce2b3c6ea8182f67c026a9338b2e629945d34453ed0fdb423b4382eb421f6dd8",
+        "top_level_count": 10
+      },
+      "reminders.json": {
+        "bytes": 35191,
+        "sha256": "0d3fac027d737085e486de32a0e0ea1134d4840225124837d8751017a51dded2",
+        "top_level_count": 37
+      }
+    },
+    "file_count": 14,
+    "total_bytes": 17513005,
+    "comparison": {
+      "before_backup": "/var/folders/ll/k4r0q6fj5k18c1vh9vk5t1c80000gn/T/tmpzaztdh88",
+      "after_backup": "/var/folders/ll/k4r0q6fj5k18c1vh9vk5t1c80000gn/T/tmp1pf411eb",
+      "relative_paths_identical": true,
+      "added_files": [],
+      "removed_files": [],
+      "changed_files": [],
+      "all_hashes_identical": true
+    }
+  },
+  "physical_screenshots": [
+    {
+      "file": "Visual.jpg",
+      "state": "Opened Visual menu; twelve choices visible",
+      "encoding": "JPEG",
+      "bytes": 110107,
+      "sha256": "0f0055521f31d702083b4d17a136cea8b1b25f3afb9ed66dff254592c0d5030c",
+      "environment": "Physical iPhone; installed Debug app through Mirroring"
+    },
+    {
+      "file": "Theme.jpg",
+      "state": "Opened Theme menu",
+      "encoding": "JPEG",
+      "bytes": 103314,
+      "sha256": "9d8437d60168e492697ca99679b8760dabd590cf27ed17f02eb41228a90638b4",
+      "environment": "Physical iPhone; installed Debug app through Mirroring"
+    },
+    {
+      "file": "entry forms.jpg",
+      "state": "Closed Theme and Visual selectors",
+      "encoding": "JPEG",
+      "bytes": 85963,
+      "sha256": "f724ad8f0ef2e5e19ae1e778adf0c693896d4d9a1fd4cafffbfb969e358130a3",
+      "environment": "Physical iPhone; installed Debug app through Mirroring"
+    },
+    {
+      "file": "right below the question.jpg",
+      "state": "Summarize prompts with writing focus and Delegate",
+      "encoding": "JPEG",
+      "bytes": 88819,
+      "sha256": "fd67640329b0c211734e25d25fad4e27cc778d1a5782a8c037baf2cc6e10edef",
+      "environment": "Physical iPhone; installed Debug app through Mirroring"
+    }
+  ],
+  "cowork_delivery": "Staged locally; cloud upload unconfirmed",
+  "earlier_postinstallation_comparison": {
+    "backup_root": "/var/folders/ll/k4r0q6fj5k18c1vh9vk5t1c80000gn/T/tmpxjxknh8j",
+    "comparison": {
+      "before_backup": "/var/folders/ll/k4r0q6fj5k18c1vh9vk5t1c80000gn/T/tmpzaztdh88",
+      "after_backup": "/var/folders/ll/k4r0q6fj5k18c1vh9vk5t1c80000gn/T/tmpxjxknh8j",
+      "relative_paths_identical": true,
+      "added_files": [],
+      "removed_files": [],
+      "changed_files": [],
+      "all_hashes_identical": true
+    }
+  },
+  "focused_simulator_tests": {
+    "testOpenedThemeAndVisualChoicesMatchThePhoneReference": "passed independently and in final full QC",
+    "testReminderActionAndEventUseTheSameThemeAndVisualRows": "passed independently and in final full QC",
+    "testFormatSwitchingKeepsSeparateWritingAndQuestionTapFocusesAnswer": "passed independently and in final full QC",
+    "testLongVisualWritingSurvivesSaveReopenRelaunchAndFirstLineEdit": "passed independently and in final full QC",
+    "testUntouchedFormatChangesAndCancellationDoNotCreateAnEntry": "passed independently and in final full QC"
+  },
+  "physical_screenshots_provenance": "Captured from the first installed Debug build. Final rebuild removed only unused Catalyst code; the iOS runtime UI code is unchanged. Final device build/reinstallation and normal launch passed.",
+  "final_built_product": {
+    "path": "/tmp/ReCall-entry-forms-device/Build/Products/Debug-iphoneos/ReCall.app",
+    "bundle_identifier": "sh.notorious.app",
+    "executable_sha256": "ca203fa93ac5e276aff241a08cbbbc91bd9a5b26c4bba1193d97597a4cb94f18"
+  },
+  "final_full_qc": {
+    "exit_code": 0,
+    "status": "QC GREEN",
+    "unit_tests": {
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    "ui_tests": {
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0
+    },
+    "total_tests_passed_together": 43,
+    "log": "/tmp/ReCall-entry-forms-qc-complete.log",
+    "ui_log": "/Users/adamblair/Library/Developer/Xcode/DerivedData/ReCall-QC/qc-ui-tests.log",
+    "tested_source_hashes": {
+      "ios/ReCall.xcodeproj/project.pbxproj": "693595e50ed113072c0063df5b3e8ea33aa32b0bc444cf8a6bf929035fa1319a",
+      "ios/ReCall/App/EntryShareContent.swift": "b60f193da09661a2856e2dc8d881398e54267cd55f34429863a8f04431fd6e4d",
+      "ios/ReCall/App/Models.swift": "4b89582582e76d362b143b06146d4e2625d611d6928b117ce2c509b72589eb86",
+      "ios/ReCall/App/ReminderFormView.swift": "5f8de30a78cb98868f06e3c94d972e8c41777bd573a996468321ebd608d6bfe3",
+      "ios/ReCall/App/VisualTemplate.swift": "5e6d81af490cdc71289e7d41df0116ce177058ee69257820bf2b4d2328d334ea",
+      "ios/ReCallTests/VisualTemplateTests.swift": "2a8ea6e2cdc6e8bace8448b92d0f9f99bf850c702339501a80d9800bed999f25",
+      "ios/ReCallUITests/CardTitleTests.swift": "4b8298006c1503926bcaa4a2d8ea11d7e15b133b8480a15c6ba5ea6df1c3142a",
+      "ios/ReCallUITests/SmokeTests.swift": "78250b6e448818c79713ab397e5c2f9d445ec346fbd1d1ce79e3dd3eb13df013",
+      "ios/ReCallUITests/VisualEntryFormTests.swift": "45351efa47b6c2d64fb93b2a42d072612bf540d8a03acfa5315395e5f9aac1e3",
+      "qc.sh": "88307ebc89f33b2f25298f775289d5bc610c5424a27e08cbad9d62e01865df4e",
+      "scripts/test-card-title-runtime.sh": "c9b9ae94fc22e4256ccf61f01723edbd018c884002c032923e1b89ff0f045507",
+      "scripts/test-entry-themes.sh": "95b7b5e68ad4e52422052a23d365dc912dd917e62d38de2c67ded964347937d3",
+      "scripts/test-harness-capture-runtime.sh": "a48007a749c5060a8c7e435a19ead0f63b552b52a52f8f4adc7a3688bd2236bf",
+      "scripts/test-visual-templates.sh": "61098d14886288a117e95072307174f25cffc881ad17e3d4ee6d49111f30e377",
+      "test/harness-capture-runtime.swift": "d31d35909c341035fbf123080d85d1106f88bce36d8ec8db2071d9c1332c86a6",
+      "test/visual-template-runtime.swift": "c2531b994166815ba0463c94e05d26117498aa71d820a9bf1eb4ee635d914d66",
+      "ios/ReCallUITests/UpNextScrollTests.swift": "682978f025173ae3e4f14a146bbc9f9460ea2b2396a35c9f26f314632add9c06"
+    },
+    "source_hashes_verified_after_run": true
+  },
+  "focused_regression_checks": {
+    "smoke_cases_passed": 7,
+    "smoke_log": "/tmp/ReCall-entry-forms-corrected-tests.log",
+    "all_three_kinds_log": "/tmp/ReCall-entry-forms-three-kinds.log",
+    "up_next_reorder": "passed",
+    "up_next_reorder_log": "/tmp/ReCall-entry-forms-reorder-final.log"
+  }
+}

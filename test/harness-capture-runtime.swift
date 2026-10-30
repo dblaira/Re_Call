@@ -56,6 +56,11 @@ struct HarnessCaptureRuntimeTests {
         reminder.createdAt = capturedAt.addingTimeInterval(-3_600)
         reminder.updatedAt = capturedAt
         reminder.needsSync = true
+        var visual = VisualTemplateDraft()
+        visual.setAnswer("  Exact matrix writing.\nSecond line.  ", at: 0)
+        visual.selectFormat("Tables")
+        visual.setAnswer("Table writing remains separate.", at: 3)
+        reminder.visualTemplates = visual
 
         let createdID = "capture-recall-created-0001"
         let createdURL = try unwrap(

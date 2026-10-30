@@ -15,12 +15,39 @@ final class UpNextScrollTests: XCTestCase {
         XCTAssertTrue(fab.waitForExistence(timeout: 20), "Charge FAB missing")
         let center = fab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         center.press(forDuration: 0.2, thenDragTo: center.withOffset(CGVector(dx: -120, dy: 0)))
+        let theme = app.descendants(matching: .any).matching(identifier: "Theme").firstMatch
+        XCTAssertTrue(theme.waitForExistence(timeout: 10), "Entry form did not open")
         let field = app.descendants(matching: .any).matching(identifier: "Title").firstMatch
+        revealEntryField(app, field)
         XCTAssertTrue(field.waitForExistence(timeout: 10), "Entry form did not open")
         field.tap()
         field.typeText(title)
         app.buttons["Save"].tap()
         XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 10), "Created \(title) not in feed")
+    }
+
+    private func revealEntryField(_ app: XCUIApplication, _ element: XCUIElement) {
+        for _ in 0..<20 {
+            let top = max(110, app.navigationBars.firstMatch.frame.maxY + 8)
+            let share = app.descendants(matching: .any).matching(identifier: "shareForm").firstMatch
+            let bottom = share.exists && share.isHittable ? share.frame.minY - 12 : app.frame.height - 100
+            let exists = element.exists
+            let frame = exists ? element.frame : .zero
+            if exists && element.isHittable && frame.minY >= top && frame.maxY <= bottom {
+                return
+            }
+            let down = exists && frame.minY < top
+            let overflow = down ? top - frame.minY + 12 : frame.maxY - bottom + 12
+            let distance = exists ? min(140, max(35, overflow)) : 140
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.4))
+            start.press(forDuration: 0.05, thenDragTo:
+                start.withOffset(CGVector(dx: 0, dy: down ? distance : -distance)))
+        }
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = "Unreachable reminder entry field hierarchy"
+        hierarchy.lifetime = .keepAlways
+        add(hierarchy)
+        XCTFail("Reminder entry field was not fully reachable")
     }
 
     private func scrollUntilHittable(_ app: XCUIApplication, _ el: XCUIElement, maxSwipes: Int = 8) {

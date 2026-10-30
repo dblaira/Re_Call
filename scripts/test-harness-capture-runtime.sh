@@ -7,6 +7,7 @@ trap 'rm -rf "$(dirname "$BIN")"' EXIT
 
 xcrun swiftc -parse-as-library \
   "$ROOT/ios/ReCall/App/Models.swift" \
+  "$ROOT/ios/ReCall/App/VisualTemplate.swift" \
   "$ROOT/ios/ReCall/App/ICloudReminderCache.swift" \
   "$ROOT/test/harness-capture-runtime.swift" \
   -o "$BIN"

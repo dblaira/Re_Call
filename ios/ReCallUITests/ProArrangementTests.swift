@@ -110,6 +110,52 @@ final class ProArrangementTests: XCTestCase {
         attach("Chosen row and order survive relaunch and image viewing")
     }
 
+    private func cancelPicker(_ cancel: XCUIElement) {
+        func diagnose(_ reason: String) {
+            attach("Picker \(reason)")
+            let hierarchy = XCTAttachment(string: app.debugDescription)
+            hierarchy.name = "Picker \(reason) hierarchy"
+            hierarchy.lifetime = .keepAlways
+            add(hierarchy)
+        }
+        let exists = cancel.waitForExistence(timeout: 10)
+        if !exists { diagnose("Cancel missing") }
+        XCTAssertTrue(exists)
+        var lastFrame: CGRect?
+        var stableSince: TimeInterval?
+        let ready = NSPredicate { _, _ in
+            guard cancel.exists && cancel.isHittable else {
+                lastFrame = nil
+                stableSince = nil
+                return false
+            }
+            let frame = cancel.frame
+            guard !frame.isEmpty && !frame.isNull && !frame.isInfinite else {
+                lastFrame = nil
+                stableSince = nil
+                return false
+            }
+            let now = ProcessInfo.processInfo.systemUptime
+            if lastFrame != frame {
+                lastFrame = frame
+                stableSince = now
+                return false
+            }
+            return now - (stableSince ?? now) >= 0.5
+        }
+        let readiness = XCTWaiter.wait(for: [
+            XCTNSPredicateExpectation(predicate: ready, object: cancel)
+        ], timeout: 10)
+        if readiness != .completed { diagnose("Cancel not ready") }
+        XCTAssertEqual(readiness, .completed,
+                       "Cancel must be hittable with a stable nonempty frame before tapping")
+        cancel.tap()
+        let dismissed = cancel.waitForNonExistence(timeout: 10)
+        if !dismissed { diagnose("Cancel did not dismiss") }
+        XCTAssertTrue(dismissed,
+                      "The picker must finish dismissing before reopening Add image")
+    }
+
     func testLargeSquareAcceptsOneChosenImageAndPersists() {
         app.buttons["proArrange"].tap()
         let addSquare = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "proAddSquare-")).firstMatch
@@ -131,51 +177,6 @@ final class ProArrangementTests: XCTestCase {
                 XCTAssertTrue(app.buttons[choice].waitForExistence(timeout: 5),
                               "The square's Add image menu must offer \(choice)")
             }
-        }
-        func cancelPicker(_ cancel: XCUIElement) {
-            func diagnose(_ reason: String) {
-                attach("Picker \(reason)")
-                let hierarchy = XCTAttachment(string: app.debugDescription)
-                hierarchy.name = "Picker \(reason) hierarchy"
-                hierarchy.lifetime = .keepAlways
-                add(hierarchy)
-            }
-            let exists = cancel.waitForExistence(timeout: 10)
-            if !exists { diagnose("Cancel missing") }
-            XCTAssertTrue(exists)
-            var lastFrame: CGRect?
-            var stableSince: TimeInterval?
-            let ready = NSPredicate { _, _ in
-                guard cancel.exists && cancel.isHittable else {
-                    lastFrame = nil
-                    stableSince = nil
-                    return false
-                }
-                let frame = cancel.frame
-                guard !frame.isEmpty && !frame.isNull && !frame.isInfinite else {
-                    lastFrame = nil
-                    stableSince = nil
-                    return false
-                }
-                let now = ProcessInfo.processInfo.systemUptime
-                if lastFrame != frame {
-                    lastFrame = frame
-                    stableSince = now
-                    return false
-                }
-                return now - (stableSince ?? now) >= 0.5
-            }
-            let readiness = XCTWaiter.wait(for: [
-                XCTNSPredicateExpectation(predicate: ready, object: cancel)
-            ], timeout: 10)
-            if readiness != .completed { diagnose("Cancel not ready") }
-            XCTAssertEqual(readiness, .completed,
-                           "Cancel must be hittable with a stable nonempty frame before tapping")
-            cancel.tap()
-            let dismissed = cancel.waitForNonExistence(timeout: 10)
-            if !dismissed { diagnose("Cancel did not dismiss") }
-            XCTAssertTrue(dismissed,
-                          "The picker must finish dismissing before reopening Add image")
         }
         openAddImageMenu()
         app.buttons["Photo Library"].tap()
@@ -376,13 +377,14 @@ final class ProArrangementTests: XCTestCase {
         app.buttons["Photo Library"].tap()
         XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: 10), "The row must open the system photo picker")
         attach("Empty row opens Photo Library for a fresh image")
-        app.buttons["Cancel"].tap()
+        cancelPicker(app.buttons["Cancel"].firstMatch)
         XCTAssertTrue(add.waitForExistence(timeout: 5))
         add.tap()
+        XCTAssertTrue(app.buttons["Choose File"].waitForExistence(timeout: 5))
         app.buttons["Choose File"].tap()
         XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: 10), "The row must open the system file picker")
         attach("Empty row opens Files for a fresh image")
-        app.buttons["Cancel"].tap()
+        cancelPicker(app.navigationBars["FullDocumentManagerViewControllerNavigationBar"].buttons["Cancel"])
         app.terminate(); app.launch(); app.buttons["PRO"].tap()
         XCTAssertTrue(add.waitForExistence(timeout: 10), "The empty row must remain available after cancelling and relaunching")
         XCTAssertFalse(app.buttons["proFirstImage"].exists)

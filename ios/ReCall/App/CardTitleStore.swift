@@ -15,6 +15,7 @@ struct CardTitle: Equatable {
 struct CardTitleOverride: Codable, Equatable {
     let title: String
     let modifiedAt: Date
+    var createdAt: Date? = nil
 }
 
 /// A separate document preserves the original entry and template. Older builds
@@ -22,6 +23,7 @@ struct CardTitleOverride: Codable, Equatable {
 @MainActor
 final class CardTitleStore: ObservableObject {
     static let shared = CardTitleStore()
+    static let didChange = Notification.Name("EntryCardTitleDidChange")
     @Published private(set) var titles: [String: CardTitleOverride] = [:]
     private let localURL: URL
     private let cloudURL: () -> URL?
@@ -57,7 +59,10 @@ final class CardTitleStore: ObservableObject {
         let cloudTitles = cloud.map(read) ?? [:]
         let merged = Self.merge(local, cloudTitles)
         if merged != local, !persist(merged, to: localURL) { return }
-        if merged != titles { titles = merged }
+        if merged != titles {
+            titles = merged
+            NotificationCenter.default.post(name: Self.didChange, object: nil)
+        }
         // Retry edits made offline when iCloud becomes available again.
         if let cloud, merged != cloudTitles { _ = persist(merged, to: cloud) }
     }
@@ -66,10 +71,14 @@ final class CardTitleStore: ObservableObject {
         let cloud = cloudURL()
         var updated = Self.merge(titles, cloud.map(read) ?? [:])
         let timestamp = max(Date(), (updated[card.id]?.modifiedAt ?? .distantPast).addingTimeInterval(0.001))
-        updated[card.id] = CardTitleOverride(title: title, modifiedAt: timestamp)
+        let original = updated[card.id]
+        updated[card.id] = CardTitleOverride(title: title, modifiedAt: timestamp,
+                                            createdAt: original == nil ? timestamp : original?.createdAt)
         guard persist(updated, to: localURL) else { return false }
         titles = updated
         if let cloud { _ = persist(updated, to: cloud) }
+        NotificationCenter.default.post(name: Self.didChange, object: nil,
+                                        userInfo: ["id": card.id, "date": timestamp])
         return true
     }
 

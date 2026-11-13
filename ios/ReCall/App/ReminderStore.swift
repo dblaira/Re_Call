@@ -1,17 +1,23 @@
 import Foundation
 import SwiftUI
+import Combine
 
 /// Local-first source of truth for every item type (Reminder, Action, Event). Writes to the phone
 /// immediately, then copies the same file to iCloud Documents — no Supabase, no login screen.
 @MainActor
 final class ReminderStore: ObservableObject {
     @Published private(set) var reminders: [Reminder] = []
+    private var titleChanges: AnyCancellable?
 
     init() {
         #if DEBUG
         CardTitleUITestFixtures.seedIfRequested()
         #endif
         reminders = ICloudReminderCache.load()
+        applyTitleChangeDates()
+        titleChanges = NotificationCenter.default.publisher(for: CardTitleStore.didChange).sink { [weak self] _ in
+            MainActor.assumeIsolated { self?.applyTitleChangeDates() }
+        }
         reminders.forEach(NotificationScheduler.schedule)
     }
 
@@ -45,14 +51,15 @@ final class ReminderStore: ObservableObject {
 
     func refresh() async {
         let loaded = ICloudReminderCache.load()
-        guard loaded != reminders else { return }
-        reminders = loaded
+        if loaded != reminders { reminders = loaded }
+        applyTitleChangeDates()
         reminders.forEach(NotificationScheduler.schedule)
     }
 
     func save(_ reminder: Reminder) {
         let existing = reminders.first { $0.id == reminder.id }
         var r = reminder
+        r.createdAt = existing?.createdAt ?? r.createdAt
         r.updatedAt = Date()
         upsertLocal(r)
         NotificationScheduler.schedule(r)
@@ -159,10 +166,25 @@ final class ReminderStore: ObservableObject {
         HarnessCaptureExporter.record(.deleted, reminder: r, at: r.updatedAt)
     }
 
-    private func upsertLocal(_ r: Reminder) {
+    private func upsertLocal(_ reminder: Reminder) {
+        var r = reminder
+        r.createdAt = reminders.first { $0.id == r.id }?.createdAt ?? r.createdAt
         if let idx = reminders.firstIndex(where: { $0.id == r.id }) { reminders[idx] = r }
         else { reminders.append(r) }
         saveCache()
+    }
+
+    /// Inline card titles live separately, but they are still changes to their entry.
+    private func applyTitleChangeDates() {
+        var changed = false
+        for index in reminders.indices {
+            let key = CardTitle.reminder(reminders[index]).id
+            if let date = CardTitleStore.shared.titles[key]?.modifiedAt, date > reminders[index].updatedAt {
+                reminders[index].updatedAt = date
+                changed = true
+            }
+        }
+        if changed { saveCache() }
     }
 
     private func saveCache() {

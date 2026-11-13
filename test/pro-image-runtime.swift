@@ -11,6 +11,7 @@ import UniformTypeIdentifiers
         let bytes = try fixture()
         let cards = try await archive.save(data: bytes, title: "Tool poster", source: "example.com/tools", notes: "Try this brush.").cards
         guard let card = cards.first else { fatalError("Saved card missing") }
+        precondition(card.updatedAt == card.createdAt, "New images record both dates")
         precondition(card.pixelWidth == 120 && card.pixelHeight == 240)
         precondition(card.source == "https://example.com/tools")
         let savedBytes = try Data(contentsOf: directory.appendingPathComponent(card.imageName))
@@ -19,6 +20,11 @@ import UniformTypeIdentifiers
         precondition(reopened == cards, "Image identity, source and notes must survive relaunch")
         let edited = try await archive.update(card, title: "My title", source: card.source, notes: "Keep these details")
         precondition(edited.count == 1 && edited[0].id == card.id && edited[0].notes == "Keep these details")
+        precondition(edited[0].createdAt == card.createdAt && (edited[0].updatedAt ?? .distantPast) >= card.createdAt)
+        var legacy = try JSONSerialization.jsonObject(with: JSONEncoder().encode(card)) as! [String: Any]
+        legacy.removeValue(forKey: "updatedAt")
+        let decoded = try JSONDecoder().decode(ProImageCard.self, from: JSONSerialization.data(withJSONObject: legacy))
+        precondition(decoded.updatedAt == nil && decoded.createdAt == card.createdAt, "Never invent a change date for an older image")
         do {
             _ = try await archive.save(data: Data("not an image".utf8), title: "Bad", source: "", notes: "")
             fatalError("Invalid image was accepted")

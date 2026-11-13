@@ -180,11 +180,14 @@ final class CardTitleTests: XCTestCase {
         attach("Calendar timed title expands inline")
         outside()
         XCTAssertTrue(titleElement("My timed title").exists)
-        let scroll = app.scrollViews["calendarScroll"]
         // The all-day band is above the hours; scroll back to it.
         for _ in 0..<20 {
             if titleElement("Original all-day writing").isHittable { break }
-            scroll.swipeDown()
+            // Keep the drag inside the visible timeline and above the fixed bottom
+            // controls, including when Today starts late in the day.
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.35))
+            start.press(forDuration: 0.05, thenDragTo:
+                app.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.72)))
         }
         begin("Original all-day writing", scroll: "calendarScroll")
         replace(with: "My all-day title")

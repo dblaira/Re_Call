@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import ImageIO
 
 @MainActor
@@ -7,14 +8,26 @@ final class ProImageStore: ObservableObject {
     @Published private(set) var arrangement = ProLibraryArrangement(cardIDs: [])
     let directory: URL
     private let archive: ProImageArchive
+    private var titleChanges: AnyCancellable?
 
     init() {
         directory = ICloudReminderCache.localURL(fileName: "pro-library")
         archive = ProImageArchive(directory: directory)
+        titleChanges = NotificationCenter.default.publisher(for: CardTitleStore.didChange).sink { [weak self] _ in
+            Task { @MainActor in
+                do { try await self?.refresh() }
+                catch { NSLog("Understood image timestamp update failed: %@", error.localizedDescription) }
+            }
+        }
     }
 
     func refresh() async throws {
-        cards = try await archive.load()
+        let loaded = try await archive.load()
+        var titleDates: [UUID: Date] = [:]
+        for card in loaded {
+            if let date = CardTitleStore.shared.titles[card.cardTitle.id]?.modifiedAt { titleDates[card.id] = date }
+        }
+        cards = try await archive.recordChanges(titleDates)
         // Keep images available even if the separate layout needs repair.
         arrangement = arrangement.reconciled(with: cards.map(\.id))
         arrangement = try await archive.loadArrangement()

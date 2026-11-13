@@ -29,6 +29,8 @@ struct ProImageCard: Codable, Identifiable, Equatable {
     var source: String
     var notes: String
     var thumbnailCrop: ProImageCrop?
+    /// Unknown for images saved before change dates were recorded.
+    var updatedAt: Date? = nil
 
     var aspectRatio: CGFloat { CGFloat(pixelWidth) / CGFloat(max(1, pixelHeight)) }
     var thumbnailAspectRatio: CGFloat {
@@ -107,10 +109,12 @@ actor ProImageArchive {
         let typeID = imageSource.flatMap { CGImageSourceGetType($0) } as String?
         let suffix = typeID.flatMap { UTType($0)?.preferredFilenameExtension } ?? "image"
         let name = id.uuidString + "." + suffix
-        let card = ProImageCard(id: id, imageName: name, pixelWidth: dimensions.width,
-                                pixelHeight: dimensions.height, createdAt: Date(),
+        let now = Date()
+        var card = ProImageCard(id: id, imageName: name, pixelWidth: dimensions.width,
+                                pixelHeight: dimensions.height, createdAt: now,
                                 title: title.trimmingCharacters(in: .whitespacesAndNewlines),
                                 source: source, notes: notes)
+        card.updatedAt = now
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let imageURL = directory.appendingPathComponent(name)
         try data.write(to: imageURL, options: .atomic)
@@ -139,7 +143,21 @@ actor ProImageArchive {
         cards[index].title = title.trimmingCharacters(in: .whitespacesAndNewlines)
         cards[index].source = try Self.normalizedSource(source)
         cards[index].notes = notes
+        cards[index].updatedAt = Date()
         try persist(cards)
+        return cards
+    }
+
+    func recordChanges(_ dates: [UUID: Date]) throws -> [ProImageCard] {
+        var cards = try load()
+        var changed = false
+        for index in cards.indices {
+            if let date = dates[cards[index].id], date > (cards[index].updatedAt ?? .distantPast) {
+                cards[index].updatedAt = date
+                changed = true
+            }
+        }
+        if changed { try persist(cards) }
         return cards
     }
 

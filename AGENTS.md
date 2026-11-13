@@ -1,3 +1,7 @@
+## Creation And Change Date And Time Stamps — November 12, 2026
+
+Adam requested creation and change timestamps across SAVY and Understood so agents can tell when entries were made or changed. Both signed phone builds are installed; native Copy output was verified against saved dates, and existing authored data is preserved. Details: [Creation And Change Date And Time Stamps](<docs/creation and change date and time stamps.md>). Understood final full QC is green: all nine gates and 47 tests (14 unit, 33 UI), zero failures. Exact-commit GitHub iOS Build verification follows the scoped timestamp commit/push. Existing Correlation → Causation edits remain outside this commit. Preserve original writing, styling and font sizes.
+
 # Re_Call Agent Instructions
 
 ## Delegate entry boxes — October 29, 2026

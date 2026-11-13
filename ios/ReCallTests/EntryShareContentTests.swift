@@ -88,3 +88,23 @@ final class EntryShareContentTests: XCTestCase {
         }
     }
 }
+
+extension EntryShareContentTests {
+    func testEveryEntryKindExportsCreationAndChangeAsAbsoluteInstants() throws {
+        for kind in ReminderKind.allCases {
+            var entry = Reminder()
+            entry.kind = kind
+            entry.createdAt = Date(timeIntervalSince1970: 1_700_000_000)
+            entry.updatedAt = Date(timeIntervalSince1970: 1_700_086_400)
+            entry.dueDate = Date(timeIntervalSince1970: 1_900_000_000)
+            let before = try JSONEncoder.recall.encode(entry)
+            let text = EntryShareContent(entry: entry, sourceApp: "Test", entryLabel: kind.label, whenIAm: "").entireForm
+            XCTAssertTrue(text.contains("Created: 2023-11-14T22:13:20Z"), kind.rawValue)
+            XCTAssertTrue(text.contains("Changed: 2023-11-15T22:13:20Z"), kind.rawValue)
+            XCTAssertEqual(try JSONDecoder.recall.decode(Reminder.self, from: before), entry)
+            XCTAssertEqual(entry.updatedAt, Date(timeIntervalSince1970: 1_700_086_400), "Reading or sharing must not change the timestamp")
+            let draft = EntryShareContent(entry: entry, sourceApp: "Test", entryLabel: kind.label, whenIAm: "", isDraft: true).entireForm
+            XCTAssertTrue(draft.contains("Unsaved draft"))
+        }
+    }
+}

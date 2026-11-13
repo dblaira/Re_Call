@@ -147,7 +147,7 @@ struct ReminderFormView: View {
         entry.deferDate = hasDefer ? deferDate : nil
         entry.endTime = nil
         return EntryShareContent(entry: entry, sourceApp: "Understood", entryLabel: entry.kind.label,
-                                 whenIAm: entry.whenIAm)
+                                 whenIAm: entry.whenIAm, isDraft: existing == nil || entry != existing)
     }
 
     @ViewBuilder private var unifiedEntrySections: some View {

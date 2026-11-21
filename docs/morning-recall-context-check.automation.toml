@@ -1,0 +1,12 @@
+version = 1
+id = "morning-recall-context-check"
+kind = "cron"
+name = "Morning Recall Context Check"
+prompt = "Review the previous calendar day in the configured local timezone. Refresh the configured repositories and summarize meaningful changes, merged pull requests, and shipped work. Exclude bulk imports and migration baselines. Write the styled HTML brief to the configured output directory and return a short summary linking to it. Follow morning-brief-rules.md. Start with a plain judgment and end with one clear improvement."
+status = "ACTIVE"
+rrule = "FREQ=DAILY;BYHOUR=9;BYMINUTE=30;BYSECOND=0"
+model = "gpt-5.4"
+reasoning_effort = "medium"
+execution_environment = "worktree"
+# Configure local repository paths before use.
+cwds = []

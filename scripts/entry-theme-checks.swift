@@ -3,8 +3,8 @@ import Foundation
 @main
 struct EntryThemeChecks {
     static func main() throws {
-        precondition(PostThemeCatalog.themes.count == 33)
-        precondition(Set(PostThemeCatalog.themes.map(\.id)).count == 33)
+        precondition(PostThemeCatalog.themes.count == 34)
+        precondition(Set(PostThemeCatalog.themes.map(\.id)).count == 34)
         // Adam, 2026-10-15: Habit first, then A Strong Yes, Pattern Recognition, Inductive
         // Reasoning, Mental Model, and Personal Lessons; the rest keep their order.
         precondition(Array(PostThemeCatalog.themes.prefix(7).map(\.name)) == [
@@ -69,6 +69,7 @@ struct EntryThemeChecks {
         cardDraft.setAnswer("Make it Obvious\nPut the shoes by the door.", at: 0)
         cardDraft.apply(to: &card)
         precondition(card.firstThemeAnswer == "Put the shoes by the door.")
-        print("PASS exact 33-theme SAVY catalog, Habit first, Theme answer leads the card")
+        precondition(PostThemeCatalog.themes.last?.id == "correlation-causation")
+        print("PASS 34 themes, Correlation → Causation appended, Habit first, Theme answer leads the card")
     }
 }

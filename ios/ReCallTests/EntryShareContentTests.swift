@@ -89,6 +89,35 @@ final class EntryShareContentTests: XCTestCase {
     }
 }
 
+final class PostThemeCatalogTests: XCTestCase {
+    func testCorrelationCausationMatchesTheSAVYThemeExactly() throws {
+        let theme = try XCTUnwrap(PostThemeCatalog.theme(id: "correlation-causation"))
+        XCTAssertEqual(theme.name, "Correlation → Causation")
+        XCTAssertEqual(theme.questions, [
+            PostThemeQuestion(prompt: "What two things seem to be connected, and what have I observed?", symbol: "link"),
+            PostThemeQuestion(prompt: "Which one might cause the other, and how could that happen?", symbol: "arrow.right"),
+            PostThemeQuestion(prompt: "What else could explain the connection, or could the cause and effect be reversed?", symbol: "arrow.triangle.branch"),
+            PostThemeQuestion(prompt: "What could I compare or test to distinguish these explanations, and what result would change my mind?", symbol: "magnifyingglass"),
+        ])
+    }
+
+    func testCorrelationCausationIsAppendedWithoutChangingExistingThemeOrder() {
+        XCTAssertEqual(PostThemeCatalog.themes.map(\.id), [
+            "habit", "a-strong-yes", "pattern-recognition", "inductive-reasoning", "mental-model",
+            "your-personal-take-lessons-learned", "five-ws", "problem-solution", "before-after",
+            "lesson-learned", "how-to", "story-arc", "myth-fact", "the-decision",
+            "frequently-asked-questions", "customer-success-story", "key-challenges-solutions",
+            "myths-vs-facts", "the-ultimate-checklist", "quick-hack-or-shortcut",
+            "recommended-tools-resources", "essential-terminology", "before-after-scenarios",
+            "audience-poll-or-survey-results", "core-principles-explained",
+            "debunking-popular-industry-beliefs", "history-of-the-topic", "alternative-approaches",
+            "step-by-step-breakdown", "checklist-for-breakdown", "checklist-for-beginners",
+            "advanced-strategies", "frequently-misunderstood-concepts", "correlation-causation",
+        ])
+    }
+}
+
+
 extension EntryShareContentTests {
     func testEveryEntryKindExportsCreationAndChangeAsAbsoluteInstants() throws {
         for kind in ReminderKind.allCases {
